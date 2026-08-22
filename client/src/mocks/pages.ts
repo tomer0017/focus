@@ -264,6 +264,9 @@ export const MOCK_PAGES: PageSummary[] = [
   {
     id: "before-a-flight",
     type: "checklist",
+    // A pre-flight list belongs to a trip, not to the household shopping
+    // screen. Declaring it is what keeps it off there.
+    checklist: { purpose: "packing", scope: "trip" },
     spaceId: "trips",
     status: "active",
     title: "Before a Flight",
@@ -275,9 +278,43 @@ export const MOCK_PAGES: PageSummary[] = [
     visibility: "private",
     dueAt: daysAhead(6, 7),
   },
+  /*
+   * Two household shopping lists.
+   *
+   * They are here because the shopping screen now asks a real question —
+   * purpose `shopping`, scope `household` — and a screen that answers it
+   * honestly with nothing shows nothing. These are what it is for; the packing
+   * lists above are what it is not.
+   */
+  {
+    id: "weekly-shop",
+    type: "checklist",
+    checklist: { purpose: "shopping", scope: "household" },
+    spaceId: "home",
+    status: "active",
+    title: "Weekly Shop",
+    description: "The standing supermarket list. What runs out every week.",
+    lastUpdatedAt: daysAgo(2, 9),
+    favorite: false,
+    visibility: "private",
+    dueAt: daysAhead(2, 10),
+  },
+  {
+    id: "holiday-shop",
+    type: "checklist",
+    checklist: { purpose: "shopping", scope: "household" },
+    spaceId: "home",
+    status: "active",
+    title: "Holiday Shop",
+    description: "Everything the holiday meal needs that the weekly list does not cover.",
+    lastUpdatedAt: daysAgo(5, 17),
+    favorite: false,
+    visibility: "private",
+  },
   {
     id: "trip-north",
     type: "checklist",
+    checklist: { purpose: "packing", scope: "trip" },
     spaceId: "trips",
     status: "active",
     title: "Trip North",

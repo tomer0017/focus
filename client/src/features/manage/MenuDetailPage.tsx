@@ -92,6 +92,9 @@ export function MenuDetailPage() {
         type: "checklist",
         spaceId: "home",
         title: listTitle,
+        // A menu generates household shopping, so the list says so from the
+        // moment it exists — otherwise it would appear on no screen at all.
+        checklist: { purpose: "shopping", scope: "household" },
       });
 
     const ownerId = `page:${page.id}`;

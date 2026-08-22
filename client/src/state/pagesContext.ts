@@ -1,6 +1,7 @@
 import { createContext, useContext } from "react";
 import type { RecipeGroup } from "../lib/recipes";
 import type {
+  ChecklistContext,
   CollectionEntry,
   LearningResource,
   EditablePageFields,
@@ -32,6 +33,12 @@ export interface CreatePageDraft {
   /** A representative picture. An address only — never bytes, never a data URI. */
   visionImageUrl?: string;
   learning?: LearningFacts;
+  /**
+   * What a checklist page is for, and whose it is. Required in practice for a
+   * page of type `checklist`: a list that does not say what it is appears on no
+   * screen that filters, which is the safe failure rather than the loud one.
+   */
+  checklist?: ChecklistContext;
 }
 
 export interface PagesContextValue {

@@ -1,19 +1,17 @@
 {
-  "title": "Leisure",
-  "lead": "Films, books, places and ideas — with enough tags to find one when you need it.",
-  "add": "Add an idea",
+  "title": "Leisure & lists",
+  "lead": "Books, films, places, purchases you are still thinking about, and things to do one day.",
+  "add": "Add something",
   "edit": "Edit",
   "empty": "Nothing saved yet",
   "emptyHint": "Save a film, a book, a place or an idea for an evening.",
   "noMatches": "Nothing matches these filters",
   "kinds": {
-    "movie": "Film",
-    "series": "Series",
-    "book": "Book",
-    "place": "Place",
-    "activity": "Activity",
-    "evening": "Evening idea",
-    "wishlist": "Wishlist"
+    "book": "Books",
+    "movie": "Films & series",
+    "destination": "Places",
+    "future_purchase": "Future purchases",
+    "idea": "Ideas"
   },
   "fields": {
     "title": "What is it",
@@ -29,7 +27,13 @@
     "cost": "Cost",
     "tags": "Tags",
     "tagsHint": "Your own words. Type one and press Enter.",
-    "status": "State"
+    "status": "State",
+    "ownership": "Do you have it",
+    "ownershipHint": "Kept separate from how far through it you are, so “mine, unread” is a real answer.",
+    "region": "Country or region",
+    "budget": "Roughly what it costs",
+    "budgetHint": "A number you typed. Nothing is looked up and no price is tracked.",
+    "currency": "Currency"
   },
   "energy": {
     "low": "Low",
@@ -107,5 +111,94 @@
     "deleteTitle": "Delete this idea?",
     "deleteBody": "“{{title}}” will be removed from your list."
   },
-  "suggestMe": "What suits right now?"
+  "suggestMe": "What suits right now?",
+  "editFacts": "Edit details",
+  "openLink": "Open the link",
+  "tabsLabel": "What to show",
+  "searchIn": "Search {{collection}}",
+  "removeTag": "Remove the tag “{{tag}}”",
+  "missing": "This is not on your lists",
+  "missingHint": "It may have been deleted, or the link may be out of date.",
+  "updatedAt": "Last changed {{when}}",
+  "makeTrip": "Plan a trip from here",
+  "makeTripHint": "Nothing is created automatically — you choose what the trip is and when.",
+  "ownership": {
+    "unset": "Not recorded",
+    "wishlist": "Want to buy",
+    "owned": "I have it",
+    "borrowed": "Borrowed",
+    "not_applicable": "Doesn't apply"
+  },
+  "consumption": {
+    "not_started": "Not started",
+    "in_progress": "In progress",
+    "completed": "Finished",
+    "abandoned": "Gave up on it"
+  },
+  "destinationStatus": {
+    "want_to_visit": "Want to go",
+    "visited": "Been",
+    "revisit": "Want to go back"
+  },
+  "purchase": {
+    "researching": "Looking into it",
+    "want_to_buy": "Want to buy",
+    "waiting": "Waiting",
+    "purchased": "Bought",
+    "abandoned": "Decided against"
+  },
+  "emptyIn": {
+    "book": {
+      "title": "No books saved yet",
+      "hint": "Add one you want to read, or one already on your shelf."
+    },
+    "movie": {
+      "title": "No films or series yet",
+      "hint": "Save something you want to watch, or something you have just finished."
+    },
+    "destination": {
+      "title": "No places yet",
+      "hint": "Save somewhere you want to go, or somewhere worth going back to."
+    },
+    "future_purchase": {
+      "title": "Nothing being researched",
+      "hint": "Save something you have looked into, so you don't start from scratch next year."
+    },
+    "idea": {
+      "title": "No ideas yet",
+      "hint": "Save something to do one evening, one weekend, or one day."
+    }
+  },
+  "tabs": {
+    "overview": "Overview",
+    "notes": "Notes",
+    "materials": "Materials"
+  },
+  "materials": {
+    "label": "Which materials",
+    "links": "Links",
+    "documents": "Documents",
+    "images": "Pictures",
+    "videos": "Videos",
+    "open": "Open",
+    "noLink": "No link",
+    "name": "What is it",
+    "url": "Address",
+    "imageUrl": "Picture address",
+    "source": "Where it came from",
+    "note": "One line about it",
+    "documentsNote": "Only the address is stored. Nothing is uploaded.",
+    "add": {
+      "links": "Add a link",
+      "documents": "Add a document",
+      "images": "Add a picture",
+      "videos": "Add a video"
+    },
+    "empty": {
+      "links": "No links saved here",
+      "documents": "No documents saved here",
+      "images": "No pictures saved here",
+      "videos": "No videos saved here"
+    }
+  }
 }

@@ -1,3 +1,4 @@
+import type { ChecklistContext } from "./checklist";
 import type { SpaceId } from "./space";
 
 /** The kinds of page Focus is designed around. */
@@ -238,6 +239,17 @@ export interface PageSummary {
   progressImages?: ProjectProgressImage[];
   /** Set only on pages of type `learning`. */
   learning?: LearningFacts;
+  /**
+   * What a checklist page is for, and whose it is. Set only on pages of type
+   * `checklist`.
+   *
+   * This is what stops a packing list appearing on the household shopping
+   * screen. It is stored rather than derived because "Trip North" and "Weekly
+   * shop" are the same *shape* and only the user knows which is which — and
+   * because deriving it from the space would keep re-guessing every time the
+   * page moved. See `checklistContextOf`, which is the single judge.
+   */
+  checklist?: ChecklistContext;
   /** Pinned to Quick Access. */
   favorite: boolean;
   visibility: Visibility;
@@ -301,6 +313,7 @@ export type PageOverride = Partial<
       | "visionLinkUrl"
       | "progressImages"
       | "learning"
+      | "checklist"
       | "favorite"
     >
 >;

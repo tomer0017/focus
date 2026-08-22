@@ -29,6 +29,7 @@ import { FamilyPage } from "./features/family/FamilyPage";
 import { FamilyProfilePage } from "./features/family/FamilyProfilePage";
 import { LearningPage } from "./features/learning/LearningPage";
 import { LeisurePage } from "./features/leisure/LeisurePage";
+import { LeisureDetailPage } from "./features/leisure/LeisureDetailPage";
 import { RemindersPage } from "./features/reminders/RemindersPage";
 import { NotFoundPage } from "./features/page/NotFoundPage";
 
@@ -108,6 +109,7 @@ export default function App() {
               <Route path="family/:id" element={<FamilyProfilePage />} />
               <Route path="learning" element={<LearningPage />} />
               <Route path="leisure" element={<LeisurePage />} />
+              <Route path="leisure/:id" element={<LeisureDetailPage />} />
               <Route path="reminders" element={<RemindersPage />} />
 
               <Route path="pages/:id" element={<PageDetailPage />} />

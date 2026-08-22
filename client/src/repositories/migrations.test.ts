@@ -458,3 +458,196 @@ describe("learning pages already in storage", () => {
     expect([...storage.keys].sort()).toEqual(before);
   });
 });
+
+describe("checklist pages already in storage", () => {
+  /*
+   * Checklist pages gained a purpose and a scope so that a packing list could
+   * stop appearing on the household shopping screen. A list somebody made
+   * before that has neither, and it must not disappear from the only screen
+   * that has ever shown it.
+   */
+  it("files an undeclared list as household shopping, which is where it came from", async () => {
+    const { ownPagesRepository } = await repositories();
+    write(STORAGE_KEYS.ownPages, [
+      {
+        id: "own-list",
+        type: "checklist",
+        spaceId: "home",
+        status: "active",
+        title: "Weekly shop",
+        lastUpdatedAt: "2026-01-01T00:00:00.000Z",
+        favorite: false,
+        visibility: "private",
+      },
+    ]);
+
+    const [page] = ownPagesRepository.load();
+    expect(page.checklist).toEqual({ purpose: "shopping", scope: "household" });
+    // Nothing else moved.
+    expect(page.id).toBe("own-list");
+    expect(page.title).toBe("Weekly shop");
+  });
+
+  it("never overwrites a context the user's data already carries", async () => {
+    const { ownPagesRepository } = await repositories();
+    write(STORAGE_KEYS.ownPages, [
+      {
+        id: "own-packing",
+        type: "checklist",
+        spaceId: "trips",
+        status: "active",
+        title: "Kit for the north",
+        checklist: { purpose: "packing", scope: "trip" },
+        lastUpdatedAt: "2026-01-01T00:00:00.000Z",
+        favorite: false,
+        visibility: "private",
+      },
+    ]);
+
+    expect(ownPagesRepository.load()[0].checklist).toEqual({
+      purpose: "packing",
+      scope: "trip",
+    });
+  });
+
+  it("leaves pages that are not checklists alone", async () => {
+    const { ownPagesRepository } = await repositories();
+    write(STORAGE_KEYS.ownPages, [
+      {
+        id: "own-project",
+        type: "project",
+        spaceId: "home",
+        status: "active",
+        title: "Shelf",
+        lastUpdatedAt: "2026-01-01T00:00:00.000Z",
+        favorite: false,
+        visibility: "private",
+      },
+    ]);
+
+    expect(ownPagesRepository.load()[0].checklist).toBeUndefined();
+  });
+
+  it("is idempotent — a second run produces the same page as the first", async () => {
+    const { ownPagesRepository } = await repositories();
+    write(STORAGE_KEYS.ownPages, [
+      {
+        id: "own-list",
+        type: "checklist",
+        spaceId: "home",
+        status: "active",
+        title: "Weekly shop",
+        lastUpdatedAt: "2026-01-01T00:00:00.000Z",
+        favorite: false,
+        visibility: "private",
+      },
+    ]);
+
+    const once = ownPagesRepository.load();
+    ownPagesRepository.save(once);
+    expect(ownPagesRepository.load()).toEqual(once);
+  });
+});
+
+describe("leisure items already in storage", () => {
+  /*
+   * The payload below is exactly what an older build wrote: the seven-kind
+   * vocabulary, and one `status` field doing the work of both ownership and
+   * progress. It must still load, and it must not gain a fact nobody recorded.
+   */
+  it("loads a payload written before the five collections", async () => {
+    const { leisureRepository } = await repositories();
+    write(STORAGE_KEYS.leisure, [
+      {
+        id: "old-book",
+        kind: "book",
+        title: "הספר מהמדף",
+        note: "מתנה",
+        minutes: 45,
+        energy: "low",
+        place: "home",
+        tags: ["קריאה"],
+        status: "done",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+      },
+      {
+        id: "old-place",
+        kind: "place",
+        title: "המאפייה",
+        tags: [],
+        status: "planned",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+      },
+      {
+        id: "old-wish",
+        kind: "wishlist",
+        title: "עדשה",
+        tags: [],
+        status: "idea",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+      },
+    ]);
+
+    const [book, place, wish] = leisureRepository.load();
+
+    expect(book.kind).toBe("book");
+    expect(book.consumptionStatus).toBe("completed");
+    // The point of the whole change: nothing here ever said "I own it".
+    expect(book.ownershipStatus).toBeUndefined();
+    // And nothing was dropped on the way.
+    expect(book.note).toBe("מתנה");
+    expect(book.minutes).toBe(45);
+    expect(book.status).toBe("done");
+
+    expect(place.kind).toBe("destination");
+    expect(place.legacyKind).toBe("place");
+    expect(place.destinationStatus).toBe("want_to_visit");
+
+    expect(wish.kind).toBe("future_purchase");
+    expect(wish.purchaseStatus).toBe("researching");
+  });
+
+  it("is idempotent through a save and a reload", async () => {
+    const { leisureRepository } = await repositories();
+    write(STORAGE_KEYS.leisure, [
+      {
+        id: "old-series",
+        kind: "series",
+        title: "הסדרה",
+        tags: [],
+        status: "planned",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+      },
+    ]);
+
+    const once = leisureRepository.load();
+    leisureRepository.save(once);
+    expect(leisureRepository.load()).toEqual(once);
+    expect(once[0].legacyKind).toBe("series");
+  });
+
+  it("keeps a choice the user has already made", async () => {
+    const { leisureRepository } = await repositories();
+    write(STORAGE_KEYS.leisure, [
+      {
+        id: "chosen",
+        kind: "book",
+        title: "הרומן",
+        tags: [],
+        status: "done",
+        ownershipStatus: "borrowed",
+        consumptionStatus: "abandoned",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+      },
+    ]);
+
+    const [entry] = leisureRepository.load();
+    expect(entry.ownershipStatus).toBe("borrowed");
+    expect(entry.consumptionStatus).toBe("abandoned");
+  });
+});

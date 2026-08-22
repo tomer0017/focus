@@ -198,6 +198,24 @@ no "coming soon".
 
 ---
 
+### Leisure, later
+
+Documentation only. None of this is in the interface:
+
+- **Sharing one item or a whole collection** — "here is my reading list" —
+  behind the same workspace/page sharing model everything else waits on.
+- **Price and availability.** No tracker, no scraping, no comparison, no
+  drop alerts, no affiliate links, no stock, no checkout. `estimatedBudget` is
+  a number somebody typed and stays one.
+- **Metadata from an address.** A pasted link never becomes a cover, a runtime
+  or an author on its own. It would need a server and a cross-origin proxy, and
+  the kind and the note the user chose are what make an item findable anyway.
+- **Real files.** A document is an address; when uploads exist they follow the
+  object-storage flow in `DATA_MODEL.md` §3.5, and `storageKey` is already
+  reserved for it.
+- **AI suggestions.** "What suits right now?" is arithmetic over hard
+  constraints and stays arithmetic.
+
 ## Not planned
 
 Written down so the answer is on record: real social features, comments,

@@ -5,7 +5,7 @@ import { ShowMore } from "../../components/ui/ShowMore";
 import { InfoNote } from "../../components/ui/InfoNote";
 import { useLocale } from "../../i18n/useLocale";
 import { formatPercent, formatRelativeDay } from "../../lib/format";
-import { progressOf } from "../../lib/checklist";
+import { progressOf, selectHouseholdShoppingLists } from "../../lib/checklist";
 import { useChecklists } from "../../state/checklistsContext";
 import { usePages } from "../../state/pagesContext";
 import { useManage } from "../../state/manageContext";
@@ -32,11 +32,20 @@ export function ShoppingPanel() {
   const [creatingList, setCreatingList] = useState(false);
   const [creatingMenu, setCreatingMenu] = useState(false);
 
+  /*
+   * Household shopping lists, and nothing else.
+   *
+   * This used to be `page.type === "checklist"`, which asked for the storage
+   * shape rather than the purpose — so a camping packing list called "Trip
+   * North" sat on the supermarket screen. A trip's list stays in its trip and
+   * an event's stays in its event; moving something across is an explicit
+   * action, never a side effect of a query. See `checklistContextOf`.
+   */
   const lists = useMemo(
     () =>
-      pages
-        .filter((page) => page.type === "checklist")
-        .sort((a, b) => (b.dueAt ?? b.lastUpdatedAt).localeCompare(a.dueAt ?? a.lastUpdatedAt)),
+      selectHouseholdShoppingLists(pages).sort((a, b) =>
+        (b.dueAt ?? b.lastUpdatedAt).localeCompare(a.dueAt ?? a.lastUpdatedAt)
+      ),
     [pages]
   );
 

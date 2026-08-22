@@ -6,6 +6,53 @@
  * exactly one model and one component. See CLAUDE.md → 80/20.
  */
 
+/**
+ * What a list is *for*.
+ *
+ * A checklist has always recorded what it belongs to; it never recorded what it
+ * was for, and that is the whole reason a camping packing list turned up on the
+ * household shopping screen next to the weekly supermarket run. Nothing was
+ * broken in the rendering — the screen asked for "every list", and a packing
+ * list is one.
+ */
+export type ChecklistPurpose =
+  | "tasks"
+  | "shopping"
+  | "packing"
+  | "event"
+  | "training"
+  | "general";
+
+/**
+ * Whose life the list belongs to.
+ *
+ * A second axis rather than more values on `purpose`, because the two vary
+ * independently: a trip has a packing list *and* can have a shopping list, and
+ * the household shopping screen wants exactly one of those.
+ */
+export type ChecklistScope =
+  | "household"
+  | "trip"
+  | "project"
+  | "event"
+  | "person"
+  | "page";
+
+/**
+ * The pair, together — what a screen has to match before it may show a list.
+ *
+ * Stored on the *page* for page-owned lists (`PageSummary.checklist`), because
+ * the page is the thing a user names, dates and opens, and it exists before its
+ * checklist record does. For a list owned by an entity — `trip:japan-2027`,
+ * `event:wedding` — nothing is stored: the owner key is already an explicit
+ * `EntityReference`, so `checklistContextOf` reads the parent the writer wrote
+ * rather than guessing from a route or a title.
+ */
+export interface ChecklistContext {
+  purpose: ChecklistPurpose;
+  scope: ChecklistScope;
+}
+
 export interface ChecklistItem {
   id: string;
   /** Set once the user writes or edits the item. User content, never translated. */

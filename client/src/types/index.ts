@@ -39,8 +39,11 @@ export type {
 } from "./event";
 export type {
   Checklist,
+  ChecklistContext,
   ChecklistGroup,
   ChecklistItem,
+  ChecklistPurpose,
+  ChecklistScope,
   ChecklistTemplate,
   ChecklistTemplateCategory,
 } from "./checklist";
@@ -119,6 +122,10 @@ export type {
   LeisureKind,
   LeisurePlace,
   LeisureStatus,
+  OwnershipStatus,
+  ConsumptionStatus,
+  DestinationStatus,
+  PurchaseStatus,
   SuggestionPreference,
 } from "./leisure";
 export { LEISURE_KINDS } from "./leisure";

@@ -3,11 +3,307 @@
 Living document. **Update this at the end of every development task.**
 
 **Last updated:** 2026-08-22
-**Task completed:** Task 12 — the learning area rebuilt around a level and the
-material collected at each one: a new list screen, a new page, learning-only
-note templates, four material panels over the existing `SavedItem` model, a
-learning-subject slice, and the removal of the template picker that let a
-supermarket list be created as a study plan.
+**Task completed:** Task 14 — leisure rebuilt as five collections, with
+ownership separated from progress.
+
+---
+
+## Task 14 — leisure and lists
+
+### The defect
+
+`LeisureItem` had one lifecycle field, `status`, with three values —
+`idea · planned · done` — and it was doing two jobs. **A book you own but have
+not read had nowhere to live.** You could file it as an idea or as done, and
+both were false. The same field was also all that separated a place you had
+visited from one you wanted to visit, and a camera you had researched from one
+you had bought.
+
+The screen made it worse rather than hiding it: films, books, places, evening
+ideas and a wishlist shared one grid of cards, behind a five-question form
+asking what would suit right now. It read as a pile of ideas rather than
+somewhere to come back to after a year.
+
+### What changed in the model
+
+Five kinds — `book · movie · destination · future_purchase · idea` — and four
+status vocabularies, each belonging to exactly one axis:
+
+| Field | Values | Applies to |
+|---|---|---|
+| `ownershipStatus` | `wishlist · owned · borrowed · not_applicable` | books |
+| `consumptionStatus` | `not_started · in_progress · completed · abandoned` | books, films |
+| `destinationStatus` | `want_to_visit · visited · revisit` | places |
+| `purchaseStatus` | `researching · want_to_buy · waiting · purchased · abandoned` | future purchases |
+
+Also added: `legacyKind`, `region`, `estimatedBudget`, `currency`, and
+`notes: ProjectNote[]`.
+
+`AXIS_BY_KIND` in `lib/leisureCollections.ts` is the single judge of which field
+carries a kind's status. That is what makes it structurally impossible for one
+collection's filter to match another's items — `visited` cannot match a book
+however the URL is edited.
+
+Nothing new was invented for notes or material. An item's blocks are
+`ProjectNote[]` rendered by the same `<ProjectNotes>` the project and learning
+pages use; its links, documents, pictures and videos are `SavedItem`s attached
+through `contextIds`. The only leisure-specific piece is which note *templates*
+are offered, scoped per kind.
+
+### The migration, and the one place it does nothing
+
+`migrateLeisureItem` renames the old seven kinds to the five, keeping the
+original in `legacyKind` wherever the rename loses a distinction (`series` into
+`movie`, `activity` and `evening` into `idea`). It derives the per-kind status
+from the old one where that is knowable — `done` becomes
+`completed` / `visited` / `purchased`.
+
+It deliberately never produces:
+
+- **`in_progress` or `abandoned`.** Nothing in the old data distinguished
+  "planned to read" from "reading", and nothing recorded giving up at all.
+- **Any ownership.** The old `status` never meant "I own it" and never meant "I
+  want it" — it meant neither, and the honest migration of an unknown is to
+  leave it unrecorded. `ownershipStatus` is absent on every migrated item.
+
+Every other field survives untouched, including `status` itself and the
+suggester's cooldown stamps. It is idempotent: new kinds map to themselves and
+each status is filled only when absent.
+
+### What changed on screen
+
+- `/leisure` is now `CollectionPage`: five tabs, a status filter offering only
+  the states that collection actually uses and only those with something in
+  them, a search over the whole category, and `PagedList` at 20 rows. Category,
+  status and search all live in the URL, so refresh and Back/Forward restore the
+  view.
+- One compact row per item — small thumbnail, kind, title, one clamped line,
+  status chip, up to two tags, when it changed, and an always-visible overflow
+  menu. The old card grid is gone, and `LeisureCard.tsx` with it.
+- **A book's row shows two facts of different weight**: progress as the chip,
+  ownership as a quiet word in the meta column and only when recorded. Two equal
+  badges would be two things to read on every line.
+- New detail screen at `/leisure/:id` — the brief, then **overview · notes ·
+  materials**, opening in view mode with edit one explicit step away.
+- Materials are four panels (links · documents · pictures · videos) over
+  `SavedItem`, with a per-panel add form. Nothing is uploaded and nothing is
+  fetched.
+- A destination offers "plan a trip from here" as an explicit action. No trip is
+  created automatically and nothing is matched by title.
+- The suggester is unchanged and still one press behind its own button. It now
+  also stops offering anything settled on its per-kind axis, so a book you
+  finished is not suggested on a quiet evening.
+
+### Seed data
+
+`MOCK_LEISURE` rewritten in the current vocabulary, 16 items across all five
+tabs — including the three states that were impossible before: owned and unread,
+wanted and unread, owned and finished. The migration is exercised by tests
+against real old payloads rather than by the seed, because a seed can only
+demonstrate one shape and the shape worth testing is the one already in
+somebody's browser.
+
+### Verification
+
+TypeScript (client + server) clean · ESLint clean · **410/410** Vitest tests
+passing, up from 375 · production build clean · `check:links` clean ·
+translation parity and Hebrew plurals clean (37 tests) · source hygiene clean
+(11 tests: no Bootstrap physical utilities, no physical CSS, `localStorage`
+touched in exactly one module, no `alert()`, no inline date formatting,
+`legacy/` excluded) · `legacy/` unchanged · no `fetch`, `XMLHttpRequest` or
+`localhost` reference added anywhere in the new code.
+
+**35 new tests**: 32 in `lib/leisureCollections.test.ts` covering the impossible
+states, axis independence in both directions, per-kind vocabularies, filters
+that cannot cross collections, search across a whole category, migration from
+real old payloads including idempotency and the two things it must never invent,
+and note templates being scoped per kind; 3 in `repositories/migrations.test.ts`
+driving the same migration through actual storage.
+
+**Not verified**: no browser check was run. The sandbox refuses to bind a port,
+so the dev server would not start, and there is no browser in this environment.
+The responsive sweep (1440 / 1024 / 768 / 375 / 320), the RTL and LTR passes, the
+console and network check and the live-site walkthrough are therefore
+**unverified**, and so is the GitHub Pages deployment.
+
+### Still mock or local-only
+
+Files (a document is an address), pictures and videos (addresses with a
+user-chosen platform label), metadata (never fetched), price (a number somebody
+typed — no tracker, no comparison, no alerts), sharing, the database,
+authentication and export. All unchanged by this task.
+
+### Technical debt
+
+- `LeisureItem` still carries the old `status` field alongside the new axes. It
+  is deliberate — the suggester reads it and it is the user's data — but two
+  lifecycle notions now coexist on one type, and a later pass should decide
+  whether `status` becomes suggester-only state under a clearer name.
+- `filterLeisure` in `lib/leisureRules.ts` is still used only by its own tests
+  now that `filterCollection` backs the screen.
+- The ownership filter exists in `filterCollection` and is covered by tests, but
+  the books tab does not yet expose it as a second chip strip — progress is the
+  filter on screen.
+
+### The recommended next action — one
+
+```text
+Dashboard decision screen
+```
+
+---
+
+## Task 13 — consolidation pass, stages 1–5 of 15
+
+This task was briefed as a full consolidation of the app: a shared data core, a
+rebuilt dashboard, a reworked Projects, Learning, Training, Leisure and Family,
+a responsive and heavy-fixture sweep, and a deploy. **Five of the fifteen
+stages are done.** The rest is listed under "Not done" and is untouched — no
+half-migrated model and no half-rewritten screen was left behind.
+
+### Stage 1 — baseline and audit
+
+Baseline before any change: TypeScript clean both sides, ESLint clean,
+**359/359** Vitest tests passing, production build clean, `check:links` clean.
+
+The audit's main finding is that **most of the brief had already landed**, and
+the parts that had are deliberately not being rebuilt:
+
+- `/projects` is already the single canonical index — category tabs, status
+  filter, one compact row per project, search across the whole category, paged,
+  with both filters in the URL. There is no card board and no infinite scroll.
+- The space views already group their sections into topics and link through to
+  `/projects?category=…` rather than reproducing the board, so the "two
+  overviews of the same projects" duplication is already mostly gone. What is
+  left of it is noted below.
+- `EntityReference` is already one weak pointer shape used everywhere, and
+  `checklistOwnerFor` already turns one into a checklist's owner key. Nothing
+  in the app infers a parent from an id prefix, a title or a route at read time.
+- Notes and resources are already one model each — `ProjectNote` and
+  `SavedItem` — with no `ProjectLink`, `LearningVideo` or `FamilyDocument`
+  anywhere. `LearningResource` is the *edge* between a page and a saved item,
+  not a fifth resource type.
+- Nothing merges by name. Pages are `[...ownPages, ...MOCK_PAGES]` overlaid
+  with a diff keyed by id, so a seeded "English" and a user-created "English"
+  are two pages with two ids and are never reconciled by title.
+
+### Stage 2 — `docs/DATA_MODEL.md`
+
+New. Holds the audit table (24 storage keys, their repositories, their readers
+and what each is keyed on), the consolidation decisions and **what deliberately
+stays specialised and why**, the future MongoDB collection map with every
+deviation from the brief justified, the embed-or-reference decisions, an
+index table where each index is named by the screen that needs it, the
+file-storage security flow for a day when files exist, the migration path from
+`localStorage`, and the explicit non-goals.
+
+### Stages 3–5 — the checklist purpose/scope contract
+
+**The defect.** `Trip North` — a camping packing list — appeared on the
+household **Shopping & Menus** screen next to the weekly supermarket run.
+Nothing was wrong with the rendering. One query was wrong:
+
+```
+features/manage/ShoppingPanel.tsx:38
+  pages.filter((page) => page.type === "checklist")
+```
+
+That asks for the *storage shape* and not the *purpose*, and a packing list is
+that shape. A checklist recorded what it belonged to and had no way to say what
+it was for.
+
+**The contract.** Two closed vocabularies — `ChecklistPurpose`
+(`tasks · shopping · packing · event · training · general`) and `ChecklistScope`
+(`household · trip · project · event · person · page`). Two axes rather than one
+enum because they vary independently: a trip has a packing list *and* can have a
+shopping list, and the household screen wants exactly one of those.
+
+**Where it is stored, and the deviation from the brief.** The brief puts both
+fields on the `Checklist` record. Here they sit on `PageSummary.checklist` for
+page-owned lists, because in this codebase the thing a user names, dates, opens
+and deletes is the **page** — `Checklist` is only the groups hanging off an
+owner key, and a page exists before its checklist record does. A list would
+otherwise have no purpose until somebody added a first item.
+
+For a list owned by an entity (`trip:…`, `event:…`, `project:…`, `family:…`)
+nothing is stored at all: the owner key *is* an `EntityReference`, so reading it
+back is reading the parent the writer wrote.
+
+**One judge.** `checklistContextOf(ownerId, page?)` in `lib/checklist.ts`, in
+the same spirit as `urgencyOf`, `matchesLevel` and `isBlocked`. It answers in
+three steps: what the page declared; failing that, what the page's *type*
+implies (a project page's list is that project's tasks, by definition of what a
+project page is); failing that, **unclassified** — which appears on no screen
+that filters. Unclassified is the safe failure, and it is deliberately the
+answer for an undeclared page of type `checklist`, because a shopping list and a
+packing list are the same shape and only the user knows which one they made.
+
+**The migration.** A stored checklist page with no context is filled as
+`shopping`/`household`. That is a statement of fact rather than a guess:
+`NewListModal` is the only code path that has ever created a user-owned
+checklist page, and the only screen that opens it is household shopping. It
+fills the field only when it is absent, so it is idempotent, and it touches no
+other field and no id.
+
+**Seed data.** `before-a-flight` and `trip-north` now declare
+`packing`/`trip`, and two household lists — `weekly-shop` and `holiday-shop` —
+were added with their checklists, because a screen that now answers a real
+question honestly would otherwise answer it with nothing.
+
+**Tests.** `lib/checklistContext.test.ts` (16 tests) proves the isolation
+rather than the function: Trip North and Before a Flight are absent from the
+household list, the household lists are present, an undeclared list is dropped
+rather than assumed, the space a page sits in never decides its purpose, every
+seeded checklist — page-owned and entity-owned — classifies to something
+findable, and the trip and household sets are disjoint. Four more tests in
+`repositories/migrations.test.ts` cover the migration, including idempotency and
+that an existing context is never overwritten.
+
+One of these tests found a real gap during the work: project pages own task
+lists keyed `page:<projectId>`, which the first version of the judge left
+unclassified. That is what the page-type step exists for.
+
+### Results after stages 1–5
+
+TypeScript clean both sides · ESLint clean · **375/375** Vitest tests passing
+(up from 359) · production build clean · `check:links` clean.
+
+### Not done — the remaining ten stages
+
+Untouched, and honestly so. None of these was started:
+
+- **Dashboard** (§6). Not reshaped into the "now / next fortnight / upcoming
+  commitments / in focus" order, and the removals in §6.5 were not made.
+- **Projects** (§7). The index and detail already meet the brief. What remains
+  is the last of the Work & Tech duplication: its "work" topic still renders
+  blocked, active and paused project sections inline as well as linking out.
+- **Learning** (§8). The completion pass — contextual add inside the active
+  material tab, "new note", the repeated per-tab footer, per-level and per-kind
+  empty states.
+- **Training** (§9). Still one active plan (`const [activePlan, ...previous]`).
+  No multiple active/alternative/frozen/completed plans, no A/B/C grouping, no
+  per-plan or per-exercise resources.
+- **Leisure** (§10). No `ownership` axis for books, so "I own it" and "I have
+  read it" cannot be recorded separately — acceptance test 24 does not pass. No
+  purchase-research fields. Its filters are component state, not URL state, so
+  Back/Forward does not restore them (acceptance test 33 fails here).
+- **Family** (§11). Still opt-in sections behind a `SegmentedNav`, not the three
+  areas the brief asks for.
+- **Regression sweep** of Trips/Events/Cooking/Vision (§13), the responsive and
+  accessibility sweep (§15.30–34), the heavy fixtures (§16), the live browser
+  and console sweep, and the GitHub Pages deploy and live verification (§20).
+
+**Nothing was committed or pushed**, because §20 makes the deploy the last step
+of a completed pass and a partial deploy would be a claim this task cannot
+honestly make.
+
+### The recommended next action — one
+
+**Leisure (§10).** It is the only area with a defect at the *model* level rather
+than the layout level: a book's ownership and its reading progress are the same
+field, so "I own it, unread" cannot be written down at all. Every other
+outstanding item is a screen that works and could be better; this one loses
+information the user tried to record.
 
 ---
 

@@ -36,6 +36,10 @@ export const MOCK_CHECKLISTS: Record<string, Checklist> = {
   "page:trip-north": seededFromTemplate("page:trip-north", "trip-camping", 5),
   "trip:japan-2027": seededFromTemplate("trip:japan-2027", "trip-standard", 11),
 
+  // Household shopping — what the Manage → Shopping screen is actually for.
+  "page:weekly-shop": seededFromTemplate("page:weekly-shop", "shop-weekly", 4),
+  "page:holiday-shop": seededFromTemplate("page:holiday-shop", "shop-holiday", 2),
+
   "page:sorcol": {
     ownerId: "page:sorcol",
     updatedAt: new Date().toISOString(),

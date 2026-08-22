@@ -60,6 +60,9 @@ export function NewListModal({ show, onClose, spaceId = "home" }: NewListModalPr
       type: "checklist",
       spaceId,
       title: title.trim() || chosen?.name || t("manage:shopping.newList"),
+      // Declared at creation, not derived later. This screen makes household
+      // shopping lists; a trip's packing list is made inside the trip.
+      checklist: { purpose: "shopping", scope: "household" },
     });
 
     if (templateId) {

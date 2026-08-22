@@ -1,3 +1,4 @@
+import type { ProjectNote } from "./page";
 import type { ThumbKey } from "./savedItem";
 
 /**
@@ -10,23 +11,57 @@ import type { ThumbKey } from "./savedItem";
  * ninety minutes, at home, with no energy left".
  */
 export type LeisureKind =
-  | "movie"
-  | "series"
   | "book"
-  | "place"
-  | "activity"
-  | "evening"
-  | "wishlist";
+  | "movie"
+  | "destination"
+  | "future_purchase"
+  | "idea";
 
 export const LEISURE_KINDS: LeisureKind[] = [
-  "movie",
-  "series",
   "book",
-  "place",
-  "activity",
-  "evening",
-  "wishlist",
+  "movie",
+  "destination",
+  "future_purchase",
+  "idea",
 ];
+
+/**
+ * Whether the thing is yours — and *only* that.
+ *
+ * Kept apart from progress because the two were one field, and one field cannot
+ * say "I own it and have not read it", which is the most common state a shelf
+ * is ever in. `not_applicable` is a real answer for a film you stream; absent
+ * means nobody has recorded it, which is not the same thing and is never
+ * invented by a migration.
+ */
+export type OwnershipStatus = "wishlist" | "owned" | "borrowed" | "not_applicable";
+
+/**
+ * How far through it you are. Books and films share this exactly.
+ *
+ * `abandoned` is not `completed`. Stopping forty pages in is a real outcome and
+ * collapsing it into "done" would put things on the finished shelf that were
+ * never finished — the same reason `ScheduledItem` keeps `cancelled` apart from
+ * `completed`.
+ */
+export type ConsumptionStatus = "not_started" | "in_progress" | "completed" | "abandoned";
+
+/** Somewhere to go. `revisit` is a place you liked enough to return to. */
+export type DestinationStatus = "want_to_visit" | "visited" | "revisit";
+
+/**
+ * A purchase you are thinking about, not a shop.
+ *
+ * `waiting` is deliberate: "decided, but not now" is the state most considered
+ * purchases sit in for months, and without it the only honest options are to
+ * lie about still researching or to drop the item entirely.
+ */
+export type PurchaseStatus =
+  | "researching"
+  | "want_to_buy"
+  | "waiting"
+  | "purchased"
+  | "abandoned";
 
 /** How much of you it takes. The single most useful filter in the set. */
 export type LeisureEnergy = "low" | "medium" | "high";
@@ -63,6 +98,37 @@ export interface LeisureItem {
   /** The user's own words. Searchable, never translated, never prefixed. */
   tags: string[];
   status: LeisureStatus;
+  /**
+   * The kind this item had before the five categories existed.
+   *
+   * Written once by the migration and never read by a screen. It is here so the
+   * mapping is reversible: "series" became "movie" and "evening" became "idea",
+   * and throwing the original away would have made those the only truth. A
+   * migration fills in; it does not destroy.
+   */
+  legacyKind?: string;
+  /** Yours, borrowed, or on a wishlist. Books, mostly. Absent = not recorded. */
+  ownershipStatus?: OwnershipStatus;
+  /** How far through it you are. Books and films. */
+  consumptionStatus?: ConsumptionStatus;
+  /** Been, want to go, want to go back. Destinations. */
+  destinationStatus?: DestinationStatus;
+  /** Where a considered purchase has got to. */
+  purchaseStatus?: PurchaseStatus;
+  /** Roughly what it would cost. A number the user typed, never fetched. */
+  estimatedBudget?: number;
+  /** The currency that budget is in. User content — a code or a symbol. */
+  currency?: string;
+  /** Country or region, for a destination. User content. */
+  region?: string;
+  /**
+   * The item's own blocks, using the shared `ProjectNote` model.
+   *
+   * Not a second note model, and not a set of fixed rubrics: an item with
+   * nothing to say carries none. Templates are offered per kind when a note is
+   * being written — a title and a prompt, never content.
+   */
+  notes?: ProjectNote[];
   /**
    * The last time the suggester offered this, and until when it agreed to stop.
    *

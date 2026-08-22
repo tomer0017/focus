@@ -17,6 +17,7 @@ import type {
   LeisureEnergy,
   LeisureItem,
 } from "../types/leisure";
+import { isSettled } from "./leisureCollections";
 
 /** Ordered so "I have low energy" can accept anything at or below it. */
 const ENERGY_RANK: Record<LeisureEnergy, number> = { low: 0, medium: 1, high: 2 };
@@ -63,7 +64,10 @@ export function isCoolingDown(item: LeisureItem, now: Date = new Date()): boolea
  * one go.
  */
 function passes(item: LeisureItem, context: LeisureContext): boolean {
-  if (item.status === "done") return false;
+  // Finished with, whichever axis says so: read, watched, visited, bought or
+  // given up on. Reading only `status` would keep offering a book somebody
+  // marked completed on its own, per-kind control.
+  if (item.status === "done" || isSettled(item)) return false;
 
   if (context.minutes !== undefined && item.minutes !== undefined && item.minutes > context.minutes) {
     return false;

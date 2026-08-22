@@ -167,7 +167,7 @@ describe("transitions", () => {
 describe("filterLeisure", () => {
   const items = [
     item({ id: "film", kind: "movie", energy: "low", place: "home", tags: ["quiet evening"] }),
-    item({ id: "walk", kind: "activity", energy: "medium", place: "out", status: "planned" }),
+    item({ id: "walk", kind: "idea", energy: "medium", place: "out", status: "planned" }),
   ];
 
   it("filters by kind, energy, place and status", () => {

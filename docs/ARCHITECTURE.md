@@ -461,6 +461,64 @@ material. That is deliberate groundwork and nothing more — there is no share
 button, no permission model and no public projection, and there will not be one
 before a server, a database and users exist. See `docs/FUTURE_ROADMAP.md`.
 
+## Leisure collections
+
+`/leisure` is five collections over one model. `LeisureItem` is a discriminated
+shape rather than five types: every kind shares title, note, picture, tags and
+the suggester's fields, and differs only in **which status vocabulary applies**.
+
+```
+LeisurePage (/leisure)
+  ?kind= · ?status= · ?q=          ← the whole view state, in the URL
+  → filterCollection(items, {kind, status, query})   lib/leisureCollections.ts
+  → PagedList, 20 rows             → LeisureRow → /leisure/:id
+
+LeisureDetailPage (/leisure/:id)
+  overview   → the facts this kind actually has
+  notes      → ProjectNote[] on the item, rendered by <ProjectNotes>
+  materials  → SavedItem[] resolved by savedItemsFor(item.id)
+```
+
+**The status axis is resolved in one place.** `AXIS_BY_KIND` maps a kind to the
+field its primary status lives in, and `primaryStatusOf` / `setPrimaryStatus`
+read and write through it. Nothing else branches on kind to find a status, which
+is what makes it structurally impossible for one collection's filter to match
+another's items.
+
+**Ownership is a second, independent field.** `ownershipStatus` is never derived
+from `consumptionStatus` and never written by a status change. That
+independence is the reason the area was rebuilt.
+
+### Relationships
+
+An item owns its notes and references its material:
+
+- **Notes** are embedded (`LeisureItem.notes: ProjectNote[]`), the same
+  arrangement pages use. They are never read without the item and are reordered
+  as a unit, so one write per edit is right.
+- **Material** is *referenced*. A `SavedItem` lists the item's id in
+  `contextIds`, which is the app's one association mechanism — the same one
+  pages, events and routines use. A link attached to a leisure item is the same
+  entity everywhere else it appears, and attaching it copies nothing.
+- **Nothing is matched by title, route or id prefix.** The parent is the id in
+  `contextIds`, written explicitly when the material is created.
+- **A destination does not own a trip.** Turning one into a trip is an explicit
+  user action; there is no reference between them and none is inferred.
+
+### Repository path and the future API seam
+
+Unchanged, and that is the point:
+
+```
+LeisurePage → useLeisure() → LeisureProvider → leisureRepository → localStore
+```
+
+`migrateLeisureItem` lives in `lib/` rather than inside the repository so it can
+be tested against real old payloads directly. When the API lands,
+`leisureRepository` becomes an `ApiRepository<LeisureItem[]>` with the same
+`load`/`save` contract and no screen changes — and the queries the screen needs
+are single indexed finds on `{ workspaceId, kind, status }`, not aggregations.
+
 ## Checklist pages
 
 `PageDetailPage` dispatches on `page.type`:

@@ -6733,3 +6733,36 @@ button.focus-route__button:hover {
   gap: 8px;
   flex-wrap: wrap;
 }
+
+/*
+ * The leisure brief: a small picture, the kind, the status pair and a line.
+ *
+ * The status *pair* is why this has a block of its own. A book carries two
+ * independent facts — whether you own it and how far through it you are — and
+ * they sit side by side as two chips of different weight rather than being
+ * merged into one word. Everything below them is the same shape for all five
+ * collections, so a screen never rearranges itself as you change tab.
+ */
+.focus-leisure-brief {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 10px 16px;
+  margin-block-end: 18px;
+}
+
+.focus-leisure-brief__facts {
+  flex: 1 1 260px;
+  min-inline-size: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px 20px;
+}
+
+/* The chips share a line and wrap; they never stretch to equal widths. */
+.focus-leisure-brief__status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-block-end: 6px;
+}

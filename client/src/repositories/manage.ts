@@ -1,5 +1,6 @@
 import { createRepository, type Repository } from "./createRepository";
 import { normaliseUrl } from "../lib/links";
+import { migrateLeisureItem } from "../lib/leisureCollections";
 import { STORAGE_KEYS } from "../lib/storage/keys";
 import { DEFAULT_SECTIONS } from "../types/family";
 import { MOCK_FAMILY_PROFILES } from "../mocks/family";
@@ -146,11 +147,18 @@ export const menusRepository: Repository<Menu[]> = createRepository<Menu[]>(
 export const leisureRepository: Repository<LeisureItem[]> = createRepository<LeisureItem[]>(
   STORAGE_KEYS.leisure,
   () => MOCK_LEISURE,
+  /*
+   * Leisure gained five clear categories and a status per category, and — the
+   * point of the whole change — ownership as a fact separate from progress.
+   *
+   * `migrateLeisureItem` does the renaming and the fill-in; it is in `lib` so
+   * it can be tested against real old payloads rather than only through a
+   * repository. Ownership is deliberately *not* derived: the old `status` never
+   * meant "I own it", so leaving it unrecorded is the only honest answer.
+   */
   (items) =>
     items.map((item) => ({
-      ...item,
-      tags: item.tags ?? [],
-      status: item.status ?? "idea",
+      ...migrateLeisureItem(item),
       url: normaliseUrl(item.url),
       imageUrl: normaliseUrl(item.imageUrl),
     }))
@@ -185,6 +193,17 @@ export const recentTemplatesRepository: Repository<string[]> = createRepository<
 export const ownPagesRepository: Repository<PageSummary[]> = createRepository<PageSummary[]>(
   STORAGE_KEYS.ownPages,
   () => [],
+  /*
+   * Checklist pages gained a purpose and a scope, and a page written before
+   * that has neither.
+   *
+   * Filling in `shopping`/`household` is a statement of fact rather than a
+   * guess: `NewListModal` is the only code path that has ever created a
+   * user-owned checklist page, and the only screen that opens it is household
+   * shopping. Seeded checklist pages declare their own context and are not
+   * reachable from here. Idempotent by construction — the field is filled only
+   * when it is absent, so a second run produces the same page as the first.
+   */
   (pages) =>
     pages.map((page) => ({
       ...page,
@@ -192,5 +211,8 @@ export const ownPagesRepository: Repository<PageSummary[]> = createRepository<Pa
       visibility: page.visibility ?? "private",
       visionImageUrl: normaliseUrl(page.visionImageUrl),
       visionLinkUrl: normaliseUrl(page.visionLinkUrl),
+      ...(page.type === "checklist" && !page.checklist
+        ? { checklist: { purpose: "shopping", scope: "household" } as const }
+        : {}),
     }))
 );

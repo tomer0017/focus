@@ -309,6 +309,7 @@ export function PagesProvider({ children }: { children: ReactNode }) {
         categoryId: draft.categoryId,
         visionImageUrl: normaliseUrl(draft.visionImageUrl),
         learning: draft.learning,
+        checklist: draft.checklist,
         lastUpdatedAt: now,
         favorite: false,
         visibility: "private",

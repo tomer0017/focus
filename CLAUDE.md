@@ -81,7 +81,7 @@ new need can be expressed with an existing model, it must be.
 | `Commitment` | `types/finance.ts` | An insurance policy or a subscription — one model, two kinds |
 | `MoneyEntry` | `types/finance.ts` | One line in or out |
 | `Medication` | `types/health.ts` | A medicine or vitamin, exactly as the user was told it |
-| `LeisureItem` | `types/leisure.ts` | Something to do: a film, a book, a place, an idea |
+| `LeisureItem` | `types/leisure.ts` | One saved thing: a book, a film, a place, a purchase being considered, an idea |
 | `Menu` | `types/menu.ts` | A meal that comes round again, and what to buy for it |
 | `LearningResource` | `types/page.ts` | How one learning page files one saved item: its level, a note, a position |
 | `EntityReference` | `types/reference.ts` | A weak pointer from one thing to another |
@@ -172,6 +172,24 @@ preparation window stays quiet until the week before.
 infrastructure, so a reminder is something the app shows you the next time you
 open it. Every surface that renders one also renders that limitation. Never
 imply a notification will arrive while the tab is closed.
+
+**A checklist says what it is for, not only what it belongs to.** A packing
+list and a shopping list are the same *shape*, so a screen that asks for "pages
+of type `checklist`" gets both — which is exactly how a camping trip ended up on
+the household supermarket screen. Two axes fix it: `ChecklistPurpose`
+(`tasks · shopping · packing · event · training · general`) and `ChecklistScope`
+(`household · trip · project · event · person · page`). Two rather than one,
+because a trip has a packing list *and* can have a shopping list.
+
+It is stored on the **page** (`PageSummary.checklist`) for page-owned lists,
+because the page is what a user names, dates and opens, and it exists before its
+checklist record does. For an entity-owned list nothing is stored: the owner key
+*is* an `EntityReference`, so reading `trip:japan-2027` back as "packing, scoped
+to a trip" is reading what the writer wrote. `checklistContextOf` is the single
+judge, and an undeclared page of type `checklist` is **unclassified** — it shows
+on no screen that filters, which is the safe failure. A trip's list stays in its
+trip; moving an item to the household list is an explicit action, never a query
+side effect.
 
 **Checklists are keyed by owner** (`project:sorcol`, `trip:japan-2027`), so no
 entity carries a checklist id. Built-in template groups and items store a
@@ -340,6 +358,38 @@ A shopping list already sitting on a learning page is **not** deleted by a
 migration. `isForeignChecklist` recognises it, the page names it for what it is,
 and removing it is the user's decision behind a confirmation.
 
+**Leisure is five collections, and ownership is not progress.** Books · films
+and series · places · future purchases · ideas, one tab at a time. The rule with
+a defect behind it: `status` used to be `idea | planned | done` for everything,
+so *"I own this book and have not read it"* could not be written down — you
+could call it an idea or call it done, and neither was true.
+
+So there are now two independent axes. `ownershipStatus`
+(`wishlist · owned · borrowed · not_applicable`) says whether the thing is
+yours; `consumptionStatus` (`not_started · in_progress · completed · abandoned`)
+says how far through it you are. Changing one never touches the other, and
+ownership is tracked only where it means something — a streamed film is not
+owned and a place cannot be. Places and purchases get their own vocabularies
+(`DestinationStatus`, `PurchaseStatus`) because "visited" is not a state a book
+can be in; `AXIS_BY_KIND` in `lib/leisureCollections.ts` is the single judge of
+which field a kind's status lives in, so a filter can never mix two collections.
+
+`abandoned` is not `completed`, for the reason `cancelled` is not `completed` on
+a scheduled item: giving up forty pages in is a real outcome, and collapsing it
+would put things on the finished shelf that were never finished.
+
+**A leisure item reuses the shared models and adds none.** Its blocks are
+`ProjectNote[]` rendered by the same `<ProjectNotes>` the project and learning
+pages use; its links, documents, pictures and videos are `SavedItem`s attached
+through `contextIds`. There is no `LeisureLink`, no `LeisureDocument` and no
+second note model — the only leisure-specific thing is *which* note templates
+are offered, and those are scoped per kind, because "pros and cons" is the
+right question for a camera and the wrong one for a novel.
+
+**A destination never becomes a trip on its own.** Making one is an explicit
+action the user takes; nothing is created automatically and nothing is matched
+by title.
+
 **"What suits right now?" is arithmetic, not AI.** Hard constraints filter (a
 two-hour film does not "partially fit" ninety minutes), what is left is ranked,
 and **exactly one** thing is offered with at most two reasons. Returning nothing
@@ -384,6 +434,7 @@ focus/
 ├── scripts/check-links.mjs ← fails on placeholder destinations
 ├── docs/
 │   ├── PROJECT_STATE.md   ← living state: update at the end of every task
+│   ├── DATA_MODEL.md      ← what is stored, who owns it, the future Mongo shape
 │   └── ARCHITECTURE.md    ← system shape, boundaries, future auth
 ├── client/                ← React + TypeScript + Vite + Bootstrap
 │   └── src/
@@ -872,8 +923,17 @@ Material is four panels — links · documents · pictures · videos — one ope
 time. "I studied today" stays live in view mode; adding, filing and deleting are
 behind the one edit action.
 
-**Leisure (`/leisure`)** puts "what suits right now?" at the top — because that
-is the question people arrive with — and the full tagged list beneath it.
+**Leisure and lists (`/leisure`, `/leisure/:id`)** is five collections behind
+one tab strip, a status filter that only offers the states that collection uses,
+a search over the whole category, and twenty compact rows at a time. Category,
+filter, search and page all live in the URL. The suggester — "what suits right
+now?" — is still here and still works, one press behind its own button rather
+than a five-question form at the top of the screen: it is a question you
+sometimes want to be asked, not the identity of the area.
+
+An item's own screen opens in view mode with the facts, then **overview ·
+notes · materials**. A book shows ownership and progress as two separate chips,
+which is the whole point of the area.
 
 **Reminders (`/reminders`)** is the one screen that lists what has been snoozed.
 Everything else the overview shows, plus that — because an app where "later"
@@ -1037,6 +1097,12 @@ its script is still a notice; do not report that half as passing.
     empty thing the user fills is the honest answer.
 22. **A level is a lens, not a folder.** One control filters a whole screen, and
     unlevelled content is general — visible at every setting, labelled as such.
+23. **Ownership is never progress.** Two independent axes, never one field, and
+    a migration never invents either from data that did not record it.
+24. **A list query names a purpose and a scope, never a type.** `type` is the
+    storage shape; a screen showing checklists must go through
+    `checklistContextOf`. An unclassified list appears nowhere rather than
+    somewhere plausible.
 
 ---
 

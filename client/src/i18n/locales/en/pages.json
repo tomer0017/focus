@@ -314,5 +314,67 @@
       }
     }
   },
-  "progressCount": "{{done}}/{{total}} tasks"
+  "progressCount": "{{done}}/{{total}} tasks",
+  "leisureNotes": {
+    "whyRead": {
+      "title": "Why I wanted to read it",
+      "hint": "Where the recommendation came from, or what drew you to it."
+    },
+    "stoppedAt": {
+      "title": "Where I stopped",
+      "hint": "Chapter, page, or just what was happening."
+    },
+    "ideas": {
+      "title": "Ideas worth keeping",
+      "hint": "The parts you would want to find again."
+    },
+    "summary": {
+      "title": "What I made of it",
+      "hint": "In your own words, once you have finished."
+    },
+    "whyWatch": {
+      "title": "Why I wanted to see it",
+      "hint": "Who recommended it, or what caught your eye."
+    },
+    "thoughts": {
+      "title": "What I thought",
+      "hint": "Worth writing down before it fades."
+    },
+    "recommendTo": {
+      "title": "Who to recommend it to",
+      "hint": "And who would definitely not enjoy it."
+    },
+    "whyGo": {
+      "title": "Why go",
+      "hint": "What makes this worth the journey."
+    },
+    "placesThere": {
+      "title": "Places to see there",
+      "hint": "The ones you would be sorry to miss."
+    },
+    "worthKnowing": {
+      "title": "Worth knowing",
+      "hint": "Opening times, seasons, the thing nobody tells you."
+    },
+    "whyNeed": {
+      "title": "Why I need it",
+      "hint": "The problem it actually solves."
+    },
+    "prosCons": {
+      "title": "Pros and cons",
+      "hint": "What you found out, on both sides."
+    },
+    "checkedSoFar": {
+      "title": "What I have checked",
+      "hint": "So you do not repeat the research next year."
+    },
+    "beforeBuying": {
+      "title": "Before buying",
+      "hint": "What to confirm first."
+    },
+    "whatItIs": {
+      "title": "What it is",
+      "hint": "Enough to remember the idea later."
+    }
+  }
 }
