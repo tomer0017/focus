@@ -20,12 +20,14 @@ import {
   medicationsFor,
   nextAttentionFor,
   sortProfiles,
+  taskPreview,
 } from "./familySelectors";
 import { nextOccurrenceAfter } from "./recurrence";
 import { completeOccurrence, isOpen } from "./scheduled";
 import { ageAtNextBirthday, birthdayEventFor, isDerivedBirthday, withBirthdays } from "./birthdays";
 import { filterMaterials, paginate } from "./projectMaterials";
 import type {
+  Checklist,
   FamilyProfile,
   Medication,
   QuickLogEntry,
@@ -408,5 +410,111 @@ describe("the index", () => {
   it("puts people before animals", () => {
     const ordered = sortProfiles(people);
     expect(ordered.at(-1)?.type).toBe("pet");
+  });
+});
+
+describe("the profile's task preview", () => {
+  /*
+   * A regression from a real browser session, not from reasoning.
+   *
+   * The preview showed outstanding items only, so a row **vanished the instant
+   * it was ticked**: nothing confirmed the tick had registered, and a mistaken
+   * one could not be undone without opening the whole list. Ticking is the one
+   * thing this preview exists for, and it was the one thing it handled badly.
+   */
+  const list = (items: { id: string; done: boolean }[]): Checklist => ({
+    ownerId: "family:grandma",
+    groups: [
+      {
+        id: "g1",
+        title: "Pharmacy",
+        items: items.map((entry) => ({ id: entry.id, text: entry.id, done: entry.done })),
+      },
+    ],
+    updatedAt: "2026-01-01T00:00:00.000Z",
+  });
+
+  const none: ReadonlySet<string> = new Set();
+
+  it("shows what is still to do", () => {
+    const { visible } = taskPreview(
+      list([
+        { id: "a", done: false },
+        { id: "b", done: true },
+        { id: "c", done: false },
+      ]),
+      none,
+      3
+    );
+    expect(visible.map((entry) => entry.item.id)).toEqual(["a", "c"]);
+  });
+
+  it("keeps a row visible after it is ticked, so the tick can be undone", () => {
+    // The defect: without the pin this returns ["c"] and "a" is unreachable.
+    const after = list([
+      { id: "a", done: true },
+      { id: "b", done: true },
+      { id: "c", done: false },
+    ]);
+    const { visible } = taskPreview(after, new Set(["a"]), 3);
+    expect(visible.map((entry) => entry.item.id)).toEqual(["a", "c"]);
+  });
+
+  it("holds the row's original place rather than moving it", () => {
+    const { visible } = taskPreview(
+      list([
+        { id: "a", done: false },
+        { id: "b", done: true },
+        { id: "c", done: false },
+      ]),
+      new Set(["b"]),
+      3
+    );
+    expect(visible.map((entry) => entry.item.id)).toEqual(["a", "b", "c"]);
+  });
+
+  it("counts only what is genuinely outstanding", () => {
+    // "and 4 more" must never include something the user just ticked.
+    const { visible, outstanding } = taskPreview(
+      list([
+        { id: "a", done: true },
+        { id: "b", done: false },
+        { id: "c", done: false },
+        { id: "d", done: false },
+        { id: "e", done: false },
+      ]),
+      new Set(["a"]),
+      3
+    );
+    expect(visible.map((entry) => entry.item.id)).toEqual(["a", "b", "c"]);
+    expect(outstanding).toBe(4);
+    expect(outstanding - visible.length).toBe(1);
+  });
+
+  it("caps the preview however many are pinned", () => {
+    const { visible } = taskPreview(
+      list([
+        { id: "a", done: true },
+        { id: "b", done: true },
+        { id: "c", done: true },
+        { id: "d", done: false },
+      ]),
+      new Set(["a", "b", "c"]),
+      3
+    );
+    expect(visible).toHaveLength(3);
+  });
+
+  it("shows nothing for a profile with no list at all", () => {
+    expect(taskPreview(undefined, none, 3)).toEqual({ visible: [], outstanding: 0 });
+  });
+
+  it("shows nothing once everything is done and nothing is pinned", () => {
+    const done = list([
+      { id: "a", done: true },
+      { id: "b", done: true },
+    ]);
+    expect(taskPreview(done, none, 3).visible).toEqual([]);
+    expect(taskPreview(done, none, 3).outstanding).toBe(0);
   });
 });

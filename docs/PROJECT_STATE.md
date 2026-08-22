@@ -2,9 +2,120 @@
 
 Living document. **Update this at the end of every development task.**
 
-**Last updated:** 2026-08-22
-**Task completed:** Task 19 — the family task list restored, and household
-shopping rebuilt around list kinds, rounds and a validated menu target.
+**Last updated:** 2026-08-23
+**Task completed:** Task 20 — the first real browser verification pass. One
+defect found and fixed; five apparent failures proved to be harness bugs.
+
+---
+
+## Task 20 — browser verification
+
+### What was actually run
+
+A real headless Chrome 148, driven by `playwright-core` installed **outside the
+repository** (scratch directory) against the browser cache already present at
+`~/Library/Caches/ms-playwright`. No dependency was added to the project.
+
+| Pass | Target | Coverage |
+|---|---|---|
+| Route sweep | live GitHub Pages | 20 routes × 5 widths × 2 languages = **200 loads** |
+| Route sweep | local production build | the same **200 loads** after the fix |
+| Interaction flows | live | 24 assertions across family, shopping, menus, leisure, modals |
+| Accessibility | local | 8 routes, focus, keyboard, dialog semantics |
+| Regression fixture | live | a pre-Task-18 family checklist injected into storage |
+
+Widths: 1440×900, 1024×768, 768×1024, 375×812, 320×568. Languages: Hebrew/RTL
+and English/LTR.
+
+### Results
+
+**Zero horizontal overflow, zero console errors, zero failed requests, zero raw
+translation keys, no blank routes** — across all 400 route loads. Overflow was
+measured from element bounding boxes rather than `scrollWidth`, which
+misreports under RTL.
+
+### The one real defect, and its fix
+
+**Route:** `/family/:id` · **both languages** · **all widths**.
+**Steps:** open a profile with a task list, tick an item in the collapsed
+preview.
+**Expected:** the row registers as ticked and can be unticked.
+**Actual:** the row **disappeared instantly**. The write was correct — storage
+went `done: false → true` — but the preview filtered to outstanding items only,
+so ticking unmounted the row. Nothing confirmed the tick, and a mistaken one
+could not be undone without opening the whole list. Ticking is the one thing
+that preview exists for.
+
+**Root cause:** `ProfileTasks` rendered `items.filter(i => !i.done)`.
+
+**Fix:** the selection moved into a pure `taskPreview()` in
+`lib/familySelectors.ts`, which keeps an item visible while it is *pinned* —
+ticked during this sitting. Unticking releases the pin. The "and N more" count
+still counts only genuinely outstanding items, so it never includes something
+just ticked.
+
+**Regression cover:** 7 unit tests on `taskPreview`, plus browser assertions
+re-run in both languages at 1440, 375 and 320 confirming the row stays, reads as
+ticked, can be undone, and survives a refresh.
+
+### Five apparent failures that were harness bugs, not defects
+
+Recorded because each is a trap worth not repeating:
+
+1. **"Both responsive filter controls in the tree."** The wrapper is
+   `display:none`; I inspected the inner `<select>`, whose own display is
+   `block`. The app is correct.
+2. **"Focus does not enter the dialog."** It does — on react-bootstrap's modal
+   wrapper. My assertion demanded `.modal-content` specifically.
+3. **"Tab never reaches Save."** Save was **disabled** because the form was
+   empty. After typing a title, Tab reached it in 5 hops. Correct behaviour.
+4. **"Projects archive shows nothing."** The default category genuinely has no
+   completed projects. With a category that does: 1 row.
+5. **"Search does not filter."** I had grabbed the **global header search**
+   instead of the screen's own. With the right input: 3 → 1 → 0 rows.
+
+### Also fixed
+
+The whole first sweep ran in **Hebrew twice** — seeding `focus.language` as a
+raw string is discarded, because every stored value is wrapped in `{ v, data }`.
+Once corrected, the English half was genuinely exercised for the first time.
+
+### One small addition
+
+A seeded family task list (`family:grandma`). The restored surface had **no seed
+data at all**, so it rendered "add a task" on every profile and could only be
+verified with an injected fixture. A feature nobody can see is a feature nobody
+can check.
+
+### Verification
+
+TypeScript (client + server) clean · ESLint clean · **559/559** Vitest tests
+passing, up from 552 · production build clean · `check:links` clean ·
+translation parity clean · source hygiene clean · `legacy/` unchanged · **no new
+repository, storage key, dependency or direct `localStorage` access**.
+
+### What was not verified
+
+- **Native drag-and-drop on the projects board.** Not exercised with a real
+  pointer session; the board's keyboard and select fallbacks were not
+  individually driven either.
+- **Heavy fixtures in the browser** (70 completed projects, 100 leisure items).
+  These exist as unit tests; the seeded data is smaller, so paging was observed
+  only at seed scale.
+- **Trips outfits, bookings modal and day rail**, beyond loading every trip
+  route at every width.
+- **Real touch input.** Widths were emulated; no touch device was used.
+- **Screen readers.** Accessible names, dialog roles and focus order were
+  asserted programmatically, not heard.
+
+Screenshots and the raw sweep JSON: `tmp-verification/task12/` and
+`tmp-verification/task12-local/` (gitignored).
+
+### The recommended next action — one
+
+```text
+Drive the projects board reordering with a real pointer session
+```
 
 ---
 

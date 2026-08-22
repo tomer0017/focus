@@ -1,6 +1,7 @@
 import type { Checklist } from "../types";
 import { fromTemplate } from "../lib/checklist";
 import { BUILT_IN_TEMPLATES } from "./checklistTemplates";
+import { daysAgo } from "./relativeDates";
 
 /**
  * Seeded checklists, keyed by owner. Trips and checklist pages start from a
@@ -40,6 +41,31 @@ export const MOCK_CHECKLISTS: Record<string, Checklist> = {
   "page:weekly-shop": seededFromTemplate("page:weekly-shop", "shop-weekly", 4),
   "page:holiday-shop": seededFromTemplate("page:holiday-shop", "shop-holiday", 2),
   "page:cleaning-supplies": seededFromTemplate("page:cleaning-supplies", "shop-cleaning", 3),
+
+  /*
+   * A profile's own list.
+   *
+   * Seeded because the family task surface had nothing to render out of the
+   * box: it was restored in Task 11 after a release without it, and a feature
+   * nobody can see is a feature nobody can check. Owned by `family:grandma` —
+   * the same owner key every other profile list uses.
+   */
+  "family:grandma": {
+    ownerId: "family:grandma",
+    groups: [
+      {
+        id: id("group"),
+        title: "מה להביא",
+        items: [
+          { id: id("item"), text: "כדורים ללחץ דם — לאסוף מבית המרקחת", done: false },
+          { id: id("item"), text: "חלב ולחם", done: true },
+          { id: id("item"), text: "הנעליים מהתיקון", done: false },
+          { id: id("item"), text: "לשאול על התור לרופאה", done: false },
+        ],
+      },
+    ],
+    updatedAt: daysAgo(2, 16),
+  },
 
   "page:sorcol": {
     ownerId: "page:sorcol",

@@ -631,6 +631,37 @@ editing" because the edits saved as they were made.
 The exception stays the same: a dialog that collects a draft — the scheduled
 item, the commitment, the medication, the profile — genuinely discards on Cancel.
 
+## Browser verification
+
+Unit tests prove logic. A bundle grep proves code shipped. **Neither proves a
+person can use the screen**, and six releases went out on that assumption before
+anyone looked.
+
+There is no browser dependency in this repository and there does not need to be:
+a Playwright browser cache already exists on the machine
+(`~/Library/Caches/ms-playwright`), and `playwright-core` can be installed into
+a scratch directory outside the repo to drive it. Two facts make that workable
+and are worth writing down, because both cost time to rediscover:
+
+- **The sandbox blocks port binding by default.** A local static server and a
+  headless browser both need it. Run those commands with the sandbox explicitly
+  disabled; it is not a hard blocker, and earlier tasks reported it as one.
+- **Stored values are wrapped in `{ v, data }`.** Seeding `localStorage` from a
+  test harness with a raw string is silently discarded on read — a whole
+  language sweep once ran in Hebrew twice without noticing.
+
+Rules for any browser pass:
+
+- "Passed" means observed. A synthetic `dispatchEvent` is not a pointer test.
+- Measure overflow from **element bounding boxes**, not `scrollWidth`, which
+  misreports under RTL where content legitimately sits at negative x.
+- Target controls by accessible name. There are two `input[type="search"]` on
+  most screens — the global header search and the screen's own — and grabbing
+  the wrong one produces a convincing false failure.
+- When a check fails, **prove it against the app before changing code**. In the
+  first full pass, five of six apparent failures were harness bugs.
+- Screenshots and reports go to `tmp-verification/`, which is gitignored.
+
 ## Testing
 
 `npm test` runs a real Vitest suite. It is **not** a placeholder any more, and

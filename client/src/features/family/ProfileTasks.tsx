@@ -3,6 +3,7 @@ import Button from "react-bootstrap/Button";
 import { useTranslation } from "react-i18next";
 import { ProgressBar } from "../../components/ui/ProgressBar";
 import { progressOf } from "../../lib/checklist";
+import { taskPreview } from "../../lib/familySelectors";
 import { useChecklists } from "../../state/checklistsContext";
 import { ChecklistSection } from "../checklist/ChecklistSection";
 
@@ -38,14 +39,23 @@ export function ProfileTasks({ profileId, isEditing }: ProfileTasksProps) {
   const { t } = useTranslation(["family", "common"]);
   const { getChecklist, update } = useChecklists();
   const [open, setOpen] = useState(false);
+  /*
+   * Items ticked in this sitting, kept in the preview after they are done.
+   *
+   * Without this the row vanishes the instant it is ticked — the filter below
+   * only wants outstanding items — and that has two costs a browser pass made
+   * obvious: there is no confirmation the tick registered, and a mistaken tick
+   * cannot be undone without opening the whole list. Pinning them keeps the
+   * window stable for as long as you are looking at it, and a reload starts
+   * clean.
+   */
+  const [justTicked, setJustTicked] = useState<Set<string>>(() => new Set());
 
   const ownerId = `family:${profileId}`;
   const checklist = getChecklist(ownerId);
   const progress = progressOf(checklist);
 
-  const outstanding = (checklist?.groups ?? [])
-    .flatMap((group) => group.items.map((item) => ({ item, groupId: group.id })))
-    .filter((entry) => !entry.item.done);
+  const { visible, outstanding } = taskPreview(checklist, justTicked, PREVIEW);
 
   /*
    * Nothing here yet: one small action, not a bordered panel announcing an
@@ -88,11 +98,11 @@ export function ProfileTasks({ profileId, isEditing }: ProfileTasksProps) {
             />
           )}
 
-          {outstanding.length === 0 ? (
+          {visible.length === 0 ? (
             <p className="focus-dash-empty">{t("family:tasks.allDone")}</p>
           ) : (
             <ul className="focus-plan-exercises list-unstyled mb-0">
-              {outstanding.slice(0, PREVIEW).map(({ item, groupId }) => (
+              {visible.map(({ item, groupId }) => (
                 <li key={item.id} className="focus-plan-exercise">
                   <div className="form-check mb-0">
                     <input
@@ -100,7 +110,15 @@ export function ProfileTasks({ profileId, isEditing }: ProfileTasksProps) {
                       type="checkbox"
                       className="form-check-input"
                       checked={item.done}
-                      onChange={() =>
+                      onChange={() => {
+                        setJustTicked((current) => {
+                          const next = new Set(current);
+                          // Unticking releases the pin: the row is outstanding
+                          // again and holds its place on its own.
+                          if (item.done) next.delete(item.id);
+                          else next.add(item.id);
+                          return next;
+                        });
                         update(ownerId, (current) => ({
                           ...current,
                           groups: current.groups.map((group) =>
@@ -114,8 +132,8 @@ export function ProfileTasks({ profileId, isEditing }: ProfileTasksProps) {
                                 }
                           ),
                           updatedAt: new Date().toISOString(),
-                        }))
-                      }
+                        }));
+                      }}
                     />
                     <label className="form-check-label" htmlFor={`task-${item.id}`} dir="auto">
                       {item.text}
@@ -126,9 +144,9 @@ export function ProfileTasks({ profileId, isEditing }: ProfileTasksProps) {
             </ul>
           )}
 
-          {outstanding.length > PREVIEW && (
+          {outstanding > visible.length && (
             <p className="focus-dash-more mb-0">
-              {t("family:tasks.andMore", { count: outstanding.length - PREVIEW })}
+              {t("family:tasks.andMore", { count: outstanding - visible.length })}
             </p>
           )}
         </>

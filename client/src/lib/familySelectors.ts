@@ -14,6 +14,7 @@ import type { EntityReference } from "../types/reference";
 import type { FamilyProfile, FamilySection, FamilySectionKind } from "../types/family";
 import type { ScheduledItem } from "../types/scheduled";
 import type { QuickLogEntry } from "../types/quickLog";
+import type { Checklist, ChecklistItem } from "../types/checklist";
 import type { Medication } from "../types/health";
 import type { ProjectNoteTemplate } from "./projectNotes";
 
@@ -284,3 +285,42 @@ export const FAMILY_NOTE_TEMPLATES: ProjectNoteTemplate[] = [
   { id: "forTheDoctor", titleKey: "familyNotes.forTheDoctor.title", hintKey: "familyNotes.forTheDoctor.hint" },
   { id: "background", titleKey: "familyNotes.background.title", hintKey: "familyNotes.background.hint" },
 ];
+
+/* ------------------------------------------------------- task preview -- */
+
+export interface TaskPreviewEntry {
+  item: ChecklistItem;
+  groupId: string;
+}
+
+/**
+ * The handful of tasks a profile shows before you open the whole list.
+ *
+ * The subtlety is `pinned`, and it comes from a browser pass rather than from
+ * reasoning: showing "outstanding items" alone means a row **disappears the
+ * instant you tick it**. Nothing confirms the tick registered, and a mistaken
+ * one cannot be undone without opening the full list — so ticking, the one
+ * thing this preview exists for, was the one thing it handled badly.
+ *
+ * `pinned` holds the ids ticked while the preview has been on screen. They keep
+ * their place, ticked, until the page is left. Unticking releases the pin
+ * because the row is outstanding again and holds its place on its own.
+ */
+export function taskPreview(
+  checklist: Checklist | undefined,
+  pinned: ReadonlySet<string>,
+  limit: number
+): { visible: TaskPreviewEntry[]; outstanding: number } {
+  const all = (checklist?.groups ?? []).flatMap((group) =>
+    group.items.map((item) => ({ item, groupId: group.id }))
+  );
+
+  const candidates = all.filter((entry) => !entry.item.done || pinned.has(entry.item.id));
+
+  return {
+    visible: candidates.slice(0, limit),
+    // The honest count of what is still to do — pinned rows are done and are
+    // not counted, so "and 4 more" never includes something already ticked.
+    outstanding: all.filter((entry) => !entry.item.done).length,
+  };
+}
