@@ -58,12 +58,12 @@ jobs:
         # vite.config.ts sets base to /focus/ for a production build.
         run: npm run build
 
-      # `enablement` turns Pages on and points it at Actions using the
-      # workflow's own token, so the repository needs no manual setup. It is a
-      # no-op once Pages is already configured that way.
+      # Requires Pages to be switched on for the repository, with its source
+      # set to GitHub Actions (Settings -> Pages -> Build and deployment).
+      # `enablement: true` was tried here and the action still failed, so the
+      # setting has to be made once by hand; it is not something this workflow
+      # can do for itself with the default token.
       - uses: actions/configure-pages@v5
-        with:
-          enablement: true
 
       - uses: actions/upload-pages-artifact@v3
         with:
