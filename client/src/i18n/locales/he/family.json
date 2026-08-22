@@ -173,5 +173,17 @@
     "hideHistory": "הסתרת ההיסטוריה",
     "done": "בוצע ובוטל",
     "empty": "עדיין אין כלום בלוח הזמנים של הפרופיל הזה."
+  },
+  "tasks": {
+    "title": "משימות",
+    "open": "פתיחת הרשימה",
+    "close": "סגירת הרשימה",
+    "addFirst": "הוספת משימה",
+    "progress": "משימות שהושלמו",
+    "allDone": "הכול מסומן.",
+    "andMore_one": "ועוד אחת",
+    "andMore_two": "ועוד {{count}}",
+    "andMore_many": "ועוד {{count}}",
+    "andMore_other": "ועוד {{count}}"
   }
 }

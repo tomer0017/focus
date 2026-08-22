@@ -3,8 +3,114 @@
 Living document. **Update this at the end of every development task.**
 
 **Last updated:** 2026-08-22
-**Task completed:** Task 18 — family rebuilt around scheduling and materials,
-and the two materials components merged into one.
+**Task completed:** Task 19 — the family task list restored, and household
+shopping rebuilt around list kinds, rounds and a validated menu target.
+
+---
+
+## Task 19 — the family checklist regression, and household shopping
+
+### The regression, and its exact cause
+
+Task 18 rebuilt the family profile around three tabs and dropped the opt-in
+section list that used to render the profile's checklist. The data was never
+touched — it has always been at `family:<profileId>` — but for one release
+there was **no surface** for it. Nothing migrated it, nothing deleted it; the
+component that displayed it simply stopped being rendered.
+
+Restored as `<ProfileTasks>` at the foot of the schedule tab: progress, the
+three outstanding items tickable where they stand, and the full shared
+`<ChecklistSection>` behind "open the list". Empty, it is one small "add a task"
+link rather than a bordered panel. Deliberately last and quiet — a profile is
+mostly about what is coming.
+
+No `FamilyTask`, no `FamilyChecklist`, no new repository, no new storage key,
+and nothing copied into `FamilyProfile`.
+
+### Trip North: already fixed, and now guarded twice
+
+The brief describes Trip North appearing in household shopping. That was fixed
+in Task 13 by `checklistContextOf` and `selectHouseholdShoppingLists`, and this
+task **confirmed it by test** rather than re-fixing it: the seeded Trip North
+page is `packing`/`trip`, is absent from the shopping screen, and is still fully
+intact as a page for Trips.
+
+What this task added is the **second** door. A menu could be pointed at any
+checklist page and would merge groceries into it — the same bug through a
+different route. `canReceiveShopping` now validates the target through the same
+judge before a single item is written.
+
+### Household shopping
+
+- `ChecklistContext` gained `listType` (`weekly · monthly · holiday · reusable ·
+  oneTime`), `occasion` (free text, never a calendar key) and `cycleStartedAt`.
+  No `RecurrenceRule`: a shopping list has no next occurrence and nothing fires
+  from it.
+- The shopping screen is two tabs — lists and menus — with type/occasion
+  filters, search across the whole collection, 20-row paging, all in the URL.
+  It was two panels stacked on one page with six rows and a "show more" each.
+- **"Start the next round"** unticks every item in place, keeps them all, and
+  runs only from a confirmed action. A weekly list stays one page for ever.
+- Creating a list asks for a name, a kind and — only for a holiday — an
+  occasion. A "cleaning supplies" template was added as the clearest reusable
+  case.
+- The menu's generate flow now picks its target from household lists only,
+  and the confirmation states three numbers: new, already on the list, and
+  repeats the menu itself folded together.
+
+### Migration
+
+Unchanged in shape and still idempotent. The one rule worth restating: a stored
+checklist page with no context becomes `shopping`/`household` because that is
+the only path that ever created one — and gains **no** `listType` and **no**
+`occasion`, because those are unknowable and "Weekly shopping" in a title is not
+evidence. Tested with the brief's full fixture set.
+
+### Verification
+
+TypeScript (client + server) clean · ESLint clean · **552/552** Vitest tests
+passing, up from 522 · production build clean · `check:links` clean ·
+translation parity clean · source hygiene clean · `legacy/` unchanged · **no new
+repository, storage key, dependency or direct `localStorage` access**.
+
+**30 new tests**: 25 in `lib/householdShopping.test.ts` — Trip North off the
+screen and intact as a page, every other owner excluded, an unclassified list
+failing safely and never read from its title, type filters that cannot leak,
+`startNextCycle` keeping every item and the same page, `canReceiveShopping`
+refusing a packing list and an unclassified page, the three-count preview,
+checked items surviving a regeneration, a shrinking menu deleting nothing,
+idempotent generation, and 100 items in one list — plus 5 migration fixtures
+covering a bare household list, a packing list, a project, an entity-owned
+family list and a menu's remembered target.
+
+**Not verified: no browser check.** The sandbox refuses to bind a port and there
+is no browser in this environment. The responsive sweep (1440 / 1024 / 768 /
+375 / 320), RTL and LTR, console and network, and every interaction listed in
+the brief are **unverified**. Manual checklist in the task report.
+
+### Deliberate deviations
+
+- **No `RecurrenceRule` on a shopping list.** `listType` is a label; a rule
+  would imply a scheduler that must not exist. Documented in `DATA_MODEL.md`.
+- **No per-holiday templates** (Rosh Hashanah, Passover, Shabbat). The generic
+  holiday template plus a user-typed occasion covers them without baking a
+  calendar into the app. "Cleaning supplies" was added.
+- **No archived/completed filter.** The page model has no archived state for
+  checklist pages, and inventing one was outside this task.
+
+### Technical debt
+
+- `ChecklistPageView` still renders saved inspiration, which is right for a trip
+  packing list and slightly odd on a supermarket list. It renders nothing when
+  there is none, so it is invisible in practice.
+- `FamilyProfile.savedItemIds` and `activeSections` remain vestigial from
+  Task 18.
+
+### The recommended next action — one
+
+```text
+Browser verification pass across all rebuilt screens
+```
 
 ---
 

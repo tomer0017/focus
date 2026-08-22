@@ -736,3 +736,117 @@ describe("training plans already in storage", () => {
     expect(trainingPlansRepository.load()).toEqual(once);
   });
 });
+
+describe("checklist pages of every origin, migrated together", () => {
+  /*
+   * The brief's fixture list, in one payload: a household list written before
+   * `listType` existed, a trip packing list, a project, a family-owned list, and
+   * one nobody ever classified. The migration must leave every one of them
+   * exactly where it belongs — and must not invent a classification for the
+   * last.
+   */
+  const payload = [
+    {
+      id: "own-weekly",
+      type: "checklist",
+      spaceId: "home",
+      status: "active",
+      title: "קניות שבועיות",
+      // Written before the context block existed at all.
+      lastUpdatedAt: "2026-01-01T00:00:00.000Z",
+      favorite: false,
+      visibility: "private",
+    },
+    {
+      id: "own-packing",
+      type: "checklist",
+      spaceId: "trips",
+      status: "active",
+      title: "ציוד לצפון",
+      checklist: { purpose: "packing", scope: "trip" },
+      lastUpdatedAt: "2026-01-01T00:00:00.000Z",
+      favorite: false,
+      visibility: "private",
+    },
+    {
+      id: "own-project",
+      type: "project",
+      spaceId: "home",
+      status: "active",
+      title: "מדף",
+      lastUpdatedAt: "2026-01-01T00:00:00.000Z",
+      favorite: false,
+      visibility: "private",
+    },
+  ];
+
+  it("fills a bare checklist page as household shopping and leaves the rest alone", async () => {
+    const { ownPagesRepository } = await repositories();
+    write(STORAGE_KEYS.ownPages, payload);
+
+    const [weekly, packing, project] = ownPagesRepository.load();
+
+    // The only path that ever created one of these was the shopping screen.
+    expect(weekly.checklist).toEqual({ purpose: "shopping", scope: "household" });
+    // A declared packing list is never reclassified.
+    expect(packing.checklist).toEqual({ purpose: "packing", scope: "trip" });
+    // A project is not a checklist page and gains nothing.
+    expect(project.checklist).toBeUndefined();
+  });
+
+  it("never invents a list type or an occasion", async () => {
+    // "Weekly shopping" in the title is not evidence of anything. Guessing from
+    // a title is exactly the mistake this whole boundary exists to prevent.
+    const { ownPagesRepository } = await repositories();
+    write(STORAGE_KEYS.ownPages, payload);
+
+    const [weekly] = ownPagesRepository.load();
+    expect(weekly.checklist?.listType).toBeUndefined();
+    expect(weekly.checklist?.occasion).toBeUndefined();
+    expect(weekly.checklist?.cycleStartedAt).toBeUndefined();
+  });
+
+  it("leaves an entity-owned checklist record untouched", async () => {
+    const { ownPagesRepository } = await repositories();
+    // Family and trip lists live under an owner key, not as pages at all.
+    write(STORAGE_KEYS.checklists, {
+      "family:grandma": {
+        ownerId: "family:grandma",
+        groups: [{ id: "g", title: "קניות", items: [{ id: "i", text: "חלב", done: true }] }],
+        updatedAt: "2026-01-01T00:00:00.000Z",
+      },
+    });
+    write(STORAGE_KEYS.ownPages, []);
+
+    // Loading pages does not touch checklist records.
+    expect(ownPagesRepository.load()).toEqual([]);
+  });
+
+  it("keeps a menu's remembered list", async () => {
+    const { menusRepository } = await repositories();
+    write(STORAGE_KEYS.menus, [
+      {
+        id: "shabbat",
+        kind: "shabbat",
+        dishes: [],
+        listPageId: "own-weekly",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+      },
+    ]);
+
+    expect(menusRepository.load()[0].listPageId).toBe("own-weekly");
+  });
+
+  it("is idempotent across every one of them", async () => {
+    const { ownPagesRepository } = await repositories();
+    write(STORAGE_KEYS.ownPages, payload);
+
+    const once = ownPagesRepository.load();
+    ownPagesRepository.save(once);
+    const twice = ownPagesRepository.load();
+
+    expect(twice).toEqual(once);
+    expect(ownPagesRepository.load()).toEqual(once);
+  });
+});

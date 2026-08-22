@@ -195,7 +195,7 @@ export function FamilyProfilePage() {
         aria-labelledby={`family-tab-${tab}`}
         className="focus-collection__body"
       >
-        {tab === "schedule" && <ProfileSchedule profile={profile} />}
+        {tab === "schedule" && <ProfileSchedule profile={profile} isEditing={editing} />}
 
         {tab === "notes" && (
           <ProjectNotes

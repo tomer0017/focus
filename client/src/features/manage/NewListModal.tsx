@@ -8,6 +8,7 @@ import { TemplatePicker, type PickerTemplate } from "../../components/ui/Templat
 import { useChecklists } from "../../state/checklistsContext";
 import { useLeisure } from "../../state/leisureContext";
 import { usePages } from "../../state/pagesContext";
+import { CHECKLIST_LIST_TYPES, type ChecklistListType } from "../../types/checklist";
 import type { SpaceId } from "../../types";
 
 interface NewListModalProps {
@@ -34,11 +35,16 @@ export function NewListModal({ show, onClose, spaceId = "home" }: NewListModalPr
 
   const [title, setTitle] = useState("");
   const [templateId, setTemplateId] = useState<string | undefined>(undefined);
+  const [listType, setListType] = useState<ChecklistListType>("weekly");
+  /* Only asked for when the type is a holiday — nothing else has an occasion. */
+  const [occasion, setOccasion] = useState("");
 
   useEffect(() => {
     if (!show) return;
     setTitle("");
     setTemplateId(undefined);
+    setListType("weekly");
+    setOccasion("");
   }, [show]);
 
   const shoppingTemplates: PickerTemplate[] = templates
@@ -62,7 +68,12 @@ export function NewListModal({ show, onClose, spaceId = "home" }: NewListModalPr
       title: title.trim() || chosen?.name || t("manage:shopping.newList"),
       // Declared at creation, not derived later. This screen makes household
       // shopping lists; a trip's packing list is made inside the trip.
-      checklist: { purpose: "shopping", scope: "household" },
+      checklist: {
+        purpose: "shopping",
+        scope: "household",
+        listType,
+        occasion: listType === "holiday" && occasion.trim() ? occasion.trim() : undefined,
+      },
     });
 
     if (templateId) {
@@ -99,6 +110,41 @@ export function NewListModal({ show, onClose, spaceId = "home" }: NewListModalPr
                 onChange={(event) => setTitle(event.target.value)}
               />
             </div>
+
+            <div>
+              <label htmlFor="list-type" className="form-label fw-medium">
+                {t("manage:shopping.filters.type")}
+              </label>
+              <select
+                id="list-type"
+                className="form-select"
+                value={listType}
+                onChange={(event) => setListType(event.target.value as ChecklistListType)}
+              >
+                {CHECKLIST_LIST_TYPES.map((value) => (
+                  <option key={value} value={value}>
+                    {t(`manage:shopping.listTypes.${value}`)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* A holiday list is the only kind with an occasion to name. */}
+            {listType === "holiday" && (
+              <div>
+                <label htmlFor="list-occasion" className="form-label fw-medium">
+                  {t("manage:shopping.occasion")}
+                </label>
+                <input
+                  id="list-occasion"
+                  className="form-control"
+                  dir="auto"
+                  value={occasion}
+                  onChange={(event) => setOccasion(event.target.value)}
+                />
+                <p className="form-text mb-0">{t("manage:shopping.occasionHint")}</p>
+              </div>
+            )}
 
             <div>
               <p className="form-label fw-medium mb-1">

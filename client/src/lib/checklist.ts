@@ -1,6 +1,7 @@
 import type {
   Checklist,
   ChecklistContext,
+  ChecklistListType,
   ChecklistGroup,
   ChecklistItem,
   ChecklistTemplate,
@@ -149,6 +150,83 @@ export function selectHouseholdShoppingLists(pages: PageSummary[]): PageSummary[
         scope: "household",
       })
   );
+}
+
+
+/**
+ * Every item unticked, and the round stamped.
+ *
+ * This is what "start the next round" does, and it is the entire recurrence
+ * mechanism for a household list. A weekly shop stays **one page**: finishing
+ * it does not create next week's, because a list that spawns a copy every seven
+ * days leaves you scrolling a year of dead supermarket runs to find the one you
+ * are holding.
+ *
+ * It never runs on a timer and never runs on page open — a list that emptied
+ * itself while you were reading it in the shop would be the worst possible
+ * failure of this feature. It is called from one confirmed action.
+ *
+ * The items themselves are kept, including anything the user added by hand:
+ * the point of a reusable list is that it already knows what you buy.
+ */
+export function startNextCycle(checklist: Checklist, now: Date = new Date()): Checklist {
+  return {
+    ...checklist,
+    groups: checklist.groups.map((group) => ({
+      ...group,
+      items: group.items.map((item) => (item.done ? { ...item, done: false } : item)),
+    })),
+    updatedAt: now.toISOString(),
+  };
+}
+
+/**
+ * Household shopping lists, narrowed.
+ *
+ * `selectHouseholdShoppingLists` decides *whether* a page belongs on the screen
+ * at all — that is the safety boundary, and it is the only thing standing
+ * between the supermarket screen and a camping packing list. This narrows what
+ * is already known to belong there, which is a different job with much lower
+ * stakes.
+ */
+export interface ShoppingFilter {
+  listType?: ChecklistListType;
+  query?: string;
+}
+
+export function filterShoppingLists(
+  pages: PageSummary[],
+  { listType, query }: ShoppingFilter
+): PageSummary[] {
+  const term = query?.trim().toLowerCase();
+
+  return selectHouseholdShoppingLists(pages).filter((page) => {
+    if (listType && page.checklist?.listType !== listType) return false;
+    if (term) {
+      const haystack = [page.title, page.description, page.checklist?.occasion]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      if (!haystack.includes(term)) return false;
+    }
+    return true;
+  });
+}
+
+/** How many household lists sit in each type — the counts beside the chips. */
+export function countByListType(pages: PageSummary[]): Record<ChecklistListType, number> {
+  const counts: Record<ChecklistListType, number> = {
+    weekly: 0,
+    monthly: 0,
+    holiday: 0,
+    reusable: 0,
+    oneTime: 0,
+  };
+  for (const page of selectHouseholdShoppingLists(pages)) {
+    const type = page.checklist?.listType;
+    if (type) counts[type] += 1;
+  }
+  return counts;
 }
 
 /* ------------------------------------------------------------- pure edits -- */

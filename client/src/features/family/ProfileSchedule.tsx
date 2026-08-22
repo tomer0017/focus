@@ -16,6 +16,7 @@ import type { FamilyProfile, QuickLogKind, ScheduledItem } from "../../types";
 import { MedicationFormModal } from "../manage/MedicationFormModal";
 import { ScheduledFormModal } from "../manage/ScheduledFormModal";
 import { ScheduledRow } from "../manage/ScheduledRow";
+import { ProfileTasks } from "./ProfileTasks";
 import { QuickLogModal } from "./QuickLogModal";
 
 /** The kinds of quick log a baby or a pet actually accumulates. */
@@ -26,6 +27,8 @@ const RECENT_LOGS = 5;
 
 interface ProfileScheduleProps {
   profile: FamilyProfile;
+  /** The profile's edit mode, passed through to the shared checklist. */
+  isEditing: boolean;
 }
 
 /**
@@ -43,7 +46,7 @@ interface ProfileScheduleProps {
  * Nothing here is medical advice. Every value is what the user typed, repeated
  * back unchanged.
  */
-export function ProfileSchedule({ profile }: ProfileScheduleProps) {
+export function ProfileSchedule({ profile, isEditing }: ProfileScheduleProps) {
   const { t } = useTranslation(["family", "manage", "common"]);
   const { locale } = useLocale();
   const { logs } = useFamily();
@@ -181,6 +184,13 @@ export function ProfileSchedule({ profile }: ProfileScheduleProps) {
           )}
         </>
       )}
+
+      {/*
+        Tasks sit last and quietest. A profile is mostly about what is coming;
+        the shopping list for a grandparent matters and does not outrank the
+        appointment on Thursday.
+      */}
+      <ProfileTasks profileId={profile.id} isEditing={isEditing} />
 
       <ScheduledFormModal
         show={adding || Boolean(editingItem)}

@@ -461,6 +461,54 @@ material. That is deliberate groundwork and nothing more — there is no share
 button, no permission model and no public projection, and there will not be one
 before a server, a database and users exist. See `docs/FUTURE_ROADMAP.md`.
 
+## Household shopping and menus
+
+```
+ShoppingPanel (/manage?view=shopping)   ?area=lists|menus · ?type= · ?kind= · ?q=
+  lists → filterShoppingLists(pages, …)      lib/checklist.ts
+            └ selectHouseholdShoppingLists   ← the safety boundary
+  menus → useManage().menus
+
+ChecklistPageView (/pages/:id, type checklist)
+  identity band  listType + occasion + progress
+  "start the next round"  → startNextCycle(checklist)   confirmed, never automatic
+  <ChecklistSection ownerId={`page:${id}`} />
+
+MenuDetailPage (/manage/menus/:id)
+  target picker  householdLists = selectHouseholdShoppingLists(pages)
+  preview        mergePreview(menu, entries, targetList) → {added, already, duplicated}
+  write          canReceiveShopping(target) → mergeMenuIntoChecklist(…)
+```
+
+### The boundary, in two places
+
+`checklistContextOf` is the single judge, and it is consulted at **both** points
+where a household list can be reached:
+
+1. **The screen** — `selectHouseholdShoppingLists` decides what is listed. This
+   is what keeps a camping packing list off the supermarket screen.
+2. **The menu's target** — `canReceiveShopping` decides what may be written
+   into. Without it the same bug returns through a different door: a menu
+   pointed at a packing list, quietly appending groceries.
+
+An unclassified list satisfies neither, so it appears nowhere and receives
+nothing. That is the safe failure, and it is never resolved by reading a title.
+
+### Recurrence without duplication
+
+`startNextCycle` unticks every item and stamps `cycleStartedAt`. That is the
+whole mechanism. There is no scheduler, no occurrence document, no generated
+page per week, and no automatic reset — a list that emptied itself while its
+owner was reading it in the shop would be the worst failure this feature could
+have.
+
+### The family task list
+
+`family:<profileId>` is the same shared `Checklist`. `<ProfileTasks>` renders a
+collapsed preview — progress plus the three outstanding items — and hands over
+to `<ChecklistSection>` when opened. No new model, no new key, and the profile
+never holds a copy of its own tasks.
+
 ## Family
 
 A profile is a **context**, and everything attached to it lives in the slice

@@ -5,7 +5,7 @@ import { usePages } from "../../state/pagesContext";
 import { useChecklists } from "../../state/checklistsContext";
 import { useLocale } from "../../i18n/useLocale";
 import { formatDate, formatRelativeDay } from "../../lib/format";
-import { progressOf } from "../../lib/checklist";
+import { progressOf, startNextCycle } from "../../lib/checklist";
 import { notesForPage } from "../../lib/projectNotes";
 import { Icon } from "../../components/ui/Icon";
 import { BackButton } from "../../components/ui/BackButton";
@@ -14,6 +14,7 @@ import { ProgressBar } from "../../components/ui/ProgressBar";
 import { SavedItemCard } from "../../components/ui/SavedItemCard";
 import { SpaceBadge } from "../../components/ui/Badges";
 import { ChecklistSection } from "../checklist/ChecklistSection";
+import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { ProjectNotes } from "./ProjectNotes";
 import type { PageSummary, SavedItem } from "../../types";
 
@@ -38,11 +39,12 @@ const INSPIRATION_KINDS: SavedItem["kind"][] = ["inspiration", "image", "product
  * stays, day plans, outfits — is a `Trip`, and lives on `/trips/:id`.
  */
 export function ChecklistPageView({ page }: { page: PageSummary }) {
-  const { t } = useTranslation(["pages", "checklist", "common"]);
+  const { t } = useTranslation(["pages", "checklist", "common", "manage"]);
   const { locale } = useLocale();
   const { savedItemsFor, setNotes } = usePages();
-  const { getChecklist } = useChecklists();
+  const { getChecklist, update } = useChecklists();
   const [isEditing, setIsEditing] = useState(false);
+  const [confirmingCycle, setConfirmingCycle] = useState(false);
 
   const ownerId = `page:${page.id}`;
   const related = useMemo(() => savedItemsFor(page.id), [page.id, savedItemsFor]);
@@ -59,6 +61,17 @@ export function ChecklistPageView({ page }: { page: PageSummary }) {
         meta={
           <>
             <SpaceBadge spaceId={page.spaceId} />
+            {/* What kind of list this is — the weekly shop, the Passover run. */}
+            {page.checklist?.listType && (
+              <span className="focus-chip focus-chip--muted">
+                {t(`manage:shopping.listTypes.${page.checklist.listType}`, { ns: "manage" })}
+              </span>
+            )}
+            {page.checklist?.occasion && (
+              <span className="focus-chip focus-chip--muted" dir="auto">
+                {page.checklist.occasion}
+              </span>
+            )}
             {page.dueAt && (
               <span className="text-secondary small">
                 <time dateTime={page.dueAt}>
@@ -91,6 +104,24 @@ export function ChecklistPageView({ page }: { page: PageSummary }) {
         </div>
       )}
 
+      {/*
+        Starting the next round: one confirmed action, and only offered once
+        there is something ticked to clear. A recurring list stays **one page** —
+        finishing the weekly shop must never create next week's, or a year of
+        dead supermarket runs sits between you and the one you are holding.
+      */}
+      {page.checklist?.purpose === "shopping" && progress.done > 0 && (
+        <p className="focus-dash-more">
+          <button
+            type="button"
+            className="btn btn-sm btn-outline-secondary"
+            onClick={() => setConfirmingCycle(true)}
+          >
+            {t("checklist:cycle.start")}
+          </button>
+        </p>
+      )}
+
       {/* 1. What you wrote down. Absent when there is nothing written. */}
       <ProjectNotes
         notes={notes}
@@ -118,6 +149,18 @@ export function ChecklistPageView({ page }: { page: PageSummary }) {
         {/* Tickable while reading; renaming, reordering and deleting appear
             only in edit mode. Ticking something off is not editing. */}
         <ChecklistSection ownerId={ownerId} mode={isEditing ? "edit" : "view"} />
+
+      <ConfirmDialog
+        show={confirmingCycle}
+        title={t("checklist:cycle.title")}
+        body={t("checklist:cycle.body", { count: progress.done })}
+        confirmLabel={t("checklist:cycle.confirm")}
+        onConfirm={() => {
+          update(ownerId, (current) => startNextCycle(current));
+          setConfirmingCycle(false);
+        }}
+        onCancel={() => setConfirmingCycle(false)}
+      />
       </section>
     </div>
   );

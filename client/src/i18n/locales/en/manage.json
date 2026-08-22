@@ -225,7 +225,28 @@
     "newMenu": "New menu",
     "empty": "No lists yet",
     "emptyMenus": "No menus yet",
-    "templateIndependence": "Changing this list never changes the template it came from."
+    "templateIndependence": "Changing this list never changes the template it came from.",
+    "chooseArea": "What to show",
+    "searchLists": "Search shopping lists",
+    "searchMenus": "Search menus",
+    "noMatches": "Nothing matches that",
+    "emptyHint": "A shopping list is a name and the things you buy. Start from a template or an empty list.",
+    "emptyMenusHint": "A menu is the dishes that come round again — and the shopping they need.",
+    "occasion": "Which occasion",
+    "occasionHint": "Your own words — Passover, Rosh Hashanah. Focus keeps no holiday calendar.",
+    "openList": "Open the list",
+    "filters": {
+      "all": "All",
+      "type": "Kind",
+      "occasion": "Occasion"
+    },
+    "listTypes": {
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "holiday": "Holiday",
+      "reusable": "Reusable",
+      "oneTime": "One-off"
+    }
   },
   "menu": {
     "title": "Menu",
@@ -251,7 +272,15 @@
     "openList": "Open the shopping list",
     "empty": "No dishes yet",
     "deleteTitle": "Delete this menu?",
-    "deleteBody": "“{{title}}” will be removed. Any shopping list you already made from it stays."
+    "deleteBody": "“{{title}}” will be removed. Any shopping list you already made from it stays.",
+    "chooseList": "Which list should get these",
+    "aNewList": "A new shopping list",
+    "previewAdded_one": "{{count}} new item",
+    "previewAdded_other": "{{count}} new items",
+    "previewAlready_one": "{{count}} already on the list",
+    "previewAlready_other": "{{count}} already on the list",
+    "previewDuplicated_one": "{{count}} repeat folded into one",
+    "previewDuplicated_other": "{{count}} repeats folded in"
   },
   "menuKinds": {
     "shabbat": "Shabbat",

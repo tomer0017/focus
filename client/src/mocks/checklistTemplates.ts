@@ -84,6 +84,28 @@ const SHOPPING_TEMPLATES: ChecklistTemplate[] = [
       group("groups.dairy", ["cheeseBoard", "cream"]),
     ],
   },
+  {
+    /*
+     * A reusable list rather than a shopping run: the same eight things, bought
+     * again whenever they run out. It is the clearest case for "start the next
+     * round" — the list already knows what you buy.
+     */
+    id: "shop-cleaning",
+    nameKey: "templates.shopCleaning",
+    category: "shopping",
+    groups: [
+      group("groups.cleaning", [
+        "dishSoap",
+        "laundry",
+        "floorCleaner",
+        "bleach",
+        "sponges",
+        "binBags",
+        "paperTowels",
+        "toiletPaper",
+      ]),
+    ],
+  },
 ];
 
 export const BUILT_IN_TEMPLATES: ChecklistTemplate[] = [

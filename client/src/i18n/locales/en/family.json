@@ -169,5 +169,15 @@
     "hideHistory": "Hide history",
     "done": "Done and cancelled",
     "empty": "Nothing scheduled for this profile yet."
+  },
+  "tasks": {
+    "title": "Tasks",
+    "open": "Open the list",
+    "close": "Close the list",
+    "addFirst": "Add a task",
+    "progress": "Tasks done",
+    "allDone": "Everything is ticked off.",
+    "andMore_one": "and {{count}} more",
+    "andMore_other": "and {{count}} more"
   }
 }

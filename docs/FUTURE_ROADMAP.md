@@ -198,6 +198,20 @@ no "coming soon".
 
 ---
 
+### Holiday dates, later
+
+Focus has no calendar and does not know when Passover falls. A holiday shopping
+list or menu carries a **name the user typed** and, optionally, a date they
+entered. A future server could resolve holiday dates and offer a preparation
+window from them; nothing about that is built, and no date is ever invented on
+the client.
+
+Also documented rather than built for household shopping: a bounded history of
+past rounds (what was bought last week), and reminders that a weekly list is due
+again. Both need a server — the first to avoid an unbounded array on the
+client, the second because a reminder that only fires while the tab is open is
+not a reminder.
+
 ### Areas still to be reworked
 
 Documentation only — none of this is started:

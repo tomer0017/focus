@@ -12,8 +12,9 @@ import { PageHeader } from "../../components/ui/PageHeader";
 import { StatRow } from "../../components/ui/StatRow";
 import { useLocale } from "../../i18n/useLocale";
 import { formatRelativeDay } from "../../lib/format";
-import { mergeMenuIntoChecklist, newLineCount } from "../../lib/menus";
+import { canReceiveShopping, mergeMenuIntoChecklist, mergePreview } from "../../lib/menus";
 import { MENU_COURSES } from "../../types/menu";
+import { selectHouseholdShoppingLists } from "../../lib/checklist";
 import { useChecklists } from "../../state/checklistsContext";
 import { useManage } from "../../state/manageContext";
 import { usePages } from "../../state/pagesContext";
@@ -30,6 +31,8 @@ import { MenuFormModal } from "./MenuFormModal";
  * is the difference between a feature you can use every Friday and one you use
  * once and then stop trusting.
  */
+const NEW_LIST = "__new__";
+
 export function MenuDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation(["manage", "common", "pages"]);
@@ -45,6 +48,15 @@ export function MenuDetailPage() {
   const [addingDish, setAddingDish] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [confirmingList, setConfirmingList] = useState(false);
+  /*
+   * Which household list receives the items.
+   *
+   * Chosen, not assumed. The menu remembers its last target in `listPageId`, and
+   * that is the default — but a menu must never be able to write into whatever
+   * checklist page happens to be at hand, which is how a packing list would
+   * quietly acquire fourteen groceries.
+   */
+  const [targetId, setTargetId] = useState<string>("");
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const menu = menus.find((entry) => entry.id === id);
@@ -64,10 +76,25 @@ export function MenuDetailPage() {
     () => pages.find((page) => page.id === menu?.listPageId && page.type === "checklist"),
     [pages, menu?.listPageId]
   );
-  const existingList = existingListPage ? checklists[`page:${existingListPage.id}`] : undefined;
+  /* Only lists the shopping screen would itself show may be written into. */
+  const householdLists = useMemo(() => selectHouseholdShoppingLists(pages), [pages]);
 
-  const pending = useMemo(
-    () => (menu ? newLineCount(menu, collectionEntries, existingList) : 0),
+  /* The remembered target, if it is still a valid household list. */
+  const remembered = canReceiveShopping(existingListPage) ? existingListPage : undefined;
+
+  const target = useMemo(() => {
+    if (targetId === NEW_LIST) return undefined;
+    const chosen = householdLists.find((page) => page.id === targetId);
+    return chosen ?? remembered;
+  }, [householdLists, targetId, remembered]);
+
+  const existingList = target ? checklists[`page:${target.id}`] : undefined;
+
+  const preview = useMemo(
+    () =>
+      menu
+        ? mergePreview(menu, collectionEntries, existingList)
+        : { added: 0, already: 0, duplicated: 0 },
     [menu, collectionEntries, existingList]
   );
 
@@ -87,7 +114,7 @@ export function MenuDetailPage() {
 
   const buildList = (): void => {
     const page =
-      existingListPage ??
+      target ??
       createPage({
         type: "checklist",
         spaceId: "home",
@@ -115,6 +142,7 @@ export function MenuDetailPage() {
       listPageId: page.id,
     });
     setConfirmingList(false);
+    setTargetId("");
     navigate(`/pages/${page.id}`);
   };
 
@@ -284,13 +312,54 @@ export function MenuDetailPage() {
         show={confirmingList}
         title={t("manage:menu.makeListTitle")}
         body={
-          pending === 0
+          preview.added === 0
             ? t("manage:menu.makeListNothing")
-            : t("manage:menu.makeListBody", { count: pending, list: listTitle })
+            : t("manage:menu.makeListBody", {
+                count: preview.added,
+                list: target?.title ?? t("manage:menu.aNewList"),
+              })
+        }
+        extra={
+          <div className="focus-form-stack">
+            <div>
+              <label htmlFor="menu-target" className="form-label fw-medium">
+                {t("manage:menu.chooseList")}
+              </label>
+              <select
+                id="menu-target"
+                className="form-select"
+                value={targetId || target?.id || NEW_LIST}
+                onChange={(event) => setTargetId(event.target.value)}
+              >
+                {/* Only household shopping lists. A packing list is not offered. */}
+                {householdLists.map((page) => (
+                  <option key={page.id} value={page.id}>
+                    {page.title}
+                  </option>
+                ))}
+                <option value={NEW_LIST}>{t("manage:menu.aNewList")}</option>
+              </select>
+            </div>
+
+            {/*
+              What this will actually do, in three numbers — a decision rather
+              than a reflex. Nothing already on the list is touched, ticked or
+              not, and an ingredient two dishes share is folded into one line.
+            */}
+            <p className="form-text mb-0">
+              {t("manage:menu.previewAdded", { count: preview.added })}
+              {preview.already > 0 && ` · ${t("manage:menu.previewAlready", { count: preview.already })}`}
+              {preview.duplicated > 0 &&
+                ` · ${t("manage:menu.previewDuplicated", { count: preview.duplicated })}`}
+            </p>
+          </div>
         }
         confirmLabel={t("manage:menu.makeList")}
         onConfirm={buildList}
-        onCancel={() => setConfirmingList(false)}
+        onCancel={() => {
+          setConfirmingList(false);
+          setTargetId("");
+        }}
       />
 
       <ConfirmDialog

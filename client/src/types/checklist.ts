@@ -48,9 +48,50 @@ export type ChecklistScope =
  * `EntityReference`, so `checklistContextOf` reads the parent the writer wrote
  * rather than guessing from a route or a title.
  */
+/**
+ * How often a household list comes round.
+ *
+ * A *label*, not a recurrence engine. "Weekly shop" and "the Passover run" are
+ * how people describe these lists, and that description is all the screen needs
+ * to group and filter them. There is deliberately no `RecurrenceRule` here: a
+ * shopping list has no next occurrence to compute and nothing fires from it —
+ * the user starts the next round when they are ready, and the app never does it
+ * for them.
+ */
+export type ChecklistListType = "weekly" | "monthly" | "holiday" | "reusable" | "oneTime";
+
+export const CHECKLIST_LIST_TYPES: ChecklistListType[] = [
+  "weekly",
+  "monthly",
+  "holiday",
+  "reusable",
+  "oneTime",
+];
+
 export interface ChecklistContext {
   purpose: ChecklistPurpose;
   scope: ChecklistScope;
+  /**
+   * How often this list comes round. Household shopping only; absent everywhere
+   * else, and absent is a real answer meaning "nobody said".
+   */
+  listType?: ChecklistListType;
+  /**
+   * Which occasion, in the user's own words — "Passover", "Rosh Hashanah".
+   *
+   * Free text and never a calendar key: Focus has no holiday calendar and must
+   * not invent one. A date, if the list has one, lives in `PageSummary.dueAt`
+   * where every other dated page keeps it.
+   */
+  occasion?: string;
+  /**
+   * ISO 8601 of when the current round started.
+   *
+   * Written only by "start the next round", which is an explicit action behind
+   * a confirmation. Nothing resets a list on a timer, and nothing resets one
+   * while it is on screen.
+   */
+  cycleStartedAt?: string;
 }
 
 export interface ChecklistItem {

@@ -312,6 +312,35 @@ zero, or the monthly figure would jump every time a single payment is recorded.
 plus a checklist keyed to it, which is what a packing list already was. Ticking,
 groups, templates, progress and the detail screen all come free.
 
+**A household list says what kind it is.** `ChecklistContext.listType` —
+`weekly · monthly · holiday · reusable · oneTime` — plus an `occasion` in the
+user's own words for a holiday run. It is a **label, not a recurrence engine**:
+a shopping list has no next occurrence to compute and nothing fires from it.
+There is no holiday calendar and there must not be one; "Passover" is text
+somebody typed.
+
+**A recurring list stays one page.** Finishing the weekly shop never creates
+next week's — a list that spawns a copy every seven days leaves you scrolling a
+year of dead supermarket runs to find the one in your hand. "Start the next
+round" unticks every item, keeps them all including anything added by hand, and
+runs **only** from a confirmed action. Nothing resets on a timer and nothing
+resets while the list is on screen.
+
+**A menu may only write into a household shopping list.** `canReceiveShopping`
+validates the target before a single item is merged — otherwise a menu could be
+pointed at a packing list and would cheerfully append fourteen groceries to it.
+The target is chosen, never assumed, and the confirmation states three numbers:
+what is new, what the list already has, and what the menu itself repeated.
+
+**A family profile keeps its task list.** `family:<profileId>` is the same
+shared checklist every other owner uses, shown as a quiet block at the foot of
+the schedule tab: progress, the next three outstanding items tickable where they
+stand, and the full `<ChecklistSection>` behind "open the list". It sits last
+because a profile is mostly about what is coming — but it must be *there*.
+Rebuilding the profile page around three tabs once dropped this surface for a
+release while the data sat untouched in storage, which is the kind of regression
+that only shows up when somebody goes looking for their shopping list.
+
 **A menu never touches a list on its own.** Generating shopping is an explicit
 action with a count in front of it, and the merge is idempotent: an item already
 on the list — ticked or not — is left exactly as it is, two dishes needing eggs

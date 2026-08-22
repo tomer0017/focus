@@ -225,7 +225,28 @@
     "newMenu": "תפריט חדש",
     "empty": "אין עדיין רשימות",
     "emptyMenus": "אין עדיין תפריטים",
-    "templateIndependence": "שינוי ברשימה הזו לעולם לא משנה את התבנית שממנה היא נוצרה."
+    "templateIndependence": "שינוי ברשימה הזו לעולם לא משנה את התבנית שממנה היא נוצרה.",
+    "chooseArea": "מה להציג",
+    "searchLists": "חיפוש ברשימות הקניות",
+    "searchMenus": "חיפוש בתפריטים",
+    "noMatches": "אין משהו שמתאים לזה",
+    "emptyHint": "רשימת קניות היא שם והדברים שקונים. אפשר להתחיל מתבנית או מרשימה ריקה.",
+    "emptyMenusHint": "תפריט הוא המנות שחוזרות — והקניות שהן דורשות.",
+    "occasion": "לאיזה מועד",
+    "occasionHint": "במילים שלך — פסח, ראש השנה. ל־Focus אין לוח חגים.",
+    "openList": "פתיחת הרשימה",
+    "filters": {
+      "all": "הכול",
+      "type": "סוג",
+      "occasion": "מועד"
+    },
+    "listTypes": {
+      "weekly": "שבועית",
+      "monthly": "חודשית",
+      "holiday": "חג",
+      "reusable": "חוזרת",
+      "oneTime": "חד־פעמית"
+    }
   },
   "menu": {
     "title": "תפריט",
@@ -251,7 +272,21 @@
     "openList": "פתיחת רשימת הקניות",
     "empty": "אין עדיין מנות",
     "deleteTitle": "למחוק את התפריט?",
-    "deleteBody": "‏„{{title}}” יוסר. רשימת קניות שכבר יצרת ממנו נשארת."
+    "deleteBody": "‏„{{title}}” יוסר. רשימת קניות שכבר יצרת ממנו נשארת.",
+    "chooseList": "לאיזו רשימה להוסיף",
+    "aNewList": "רשימת קניות חדשה",
+    "previewAdded_one": "פריט אחד חדש",
+    "previewAdded_two": "{{count}} פריטים חדשים",
+    "previewAdded_many": "{{count}} פריטים חדשים",
+    "previewAdded_other": "{{count}} פריטים חדשים",
+    "previewAlready_one": "אחד כבר ברשימה",
+    "previewAlready_two": "{{count}} כבר ברשימה",
+    "previewAlready_many": "{{count}} כבר ברשימה",
+    "previewAlready_other": "{{count}} כבר ברשימה",
+    "previewDuplicated_one": "כפילות אחת אוחדה",
+    "previewDuplicated_two": "{{count}} כפילויות אוחדו",
+    "previewDuplicated_many": "{{count}} כפילויות אוחדו",
+    "previewDuplicated_other": "{{count}} כפילויות אוחדו"
   },
   "menuKinds": {
     "shabbat": "שבת",

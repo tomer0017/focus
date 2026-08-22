@@ -42,6 +42,7 @@ export type {
   ChecklistContext,
   ChecklistGroup,
   ChecklistItem,
+  ChecklistListType,
   ChecklistPurpose,
   ChecklistScope,
   ChecklistTemplate,

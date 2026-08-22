@@ -130,6 +130,40 @@ trip cannot satisfy it, whatever it is called and whichever space it sits in.
 Trip lists stay inside the trip; event lists stay inside the event. Moving an
 item between them is an explicit user action, never a query side effect.
 
+### 2.1a Household shopping: a label, not a scheduler
+
+`ChecklistContext` gained three optional fields, all on household lists only:
+
+| Field | Values | Why |
+|---|---|---|
+| `listType` | `weekly · monthly · holiday · reusable · oneTime` | How the user describes the list. Drives grouping and filtering, nothing else. |
+| `occasion` | free text | "Passover" in the user's words. **Never** a calendar key. |
+| `cycleStartedAt` | ISO 8601 | When the current round started. One writer: the confirmed "start the next round". |
+
+**No `RecurrenceRule` here, deliberately.** A shopping list has no next
+occurrence to compute and nothing fires from it; `listType` is a description, so
+adding a rule would imply a scheduler that must not exist. The brief allowed an
+"optional recurrence" — this is that, at the smallest size that does the job.
+
+**No occurrence documents and no generated pages.** A weekly list is one page
+for ever. `startNextCycle` unticks its items in place; a missed week produces
+nothing at all, because nothing runs unless a person presses a button.
+
+**No holiday calendar.** Focus does not know when Passover is and must not
+guess. A holiday list carries a name the user typed and, if it has a date, uses
+`PageSummary.dueAt` like every other dated page. Server-side calendar
+integration is documented in `FUTURE_ROADMAP.md`, not built.
+
+**The boundary is checked twice**, at the screen and at the menu's write target
+(`canReceiveShopping`). Both go through `checklistContextOf`; neither reads a
+title. An unclassified list appears nowhere and receives nothing.
+
+**Migration fills only what the origin proves.** A stored checklist page with no
+context becomes `shopping`/`household`, because the shopping screen is the only
+code path that ever created one. It gains **no** `listType` and **no**
+`occasion` — those are unknowable from stored data, and "Weekly shopping" in the
+title is not evidence. Tested.
+
 ### 2.1b Family: a profile owns nothing it can share
 
 A `FamilyProfile` is a context. Nothing about a dentist appointment, a
@@ -372,6 +406,9 @@ below exists speculatively — each is named by the screen that needs it.
 | Notes/resources of one parent, in order | Every detail screen | `{ workspaceId: 1, "parent.entityType": 1, "parent.entityId": 1, order: 1 }` |
 | What is due or overdue | Overview, Reminders, bell | `{ workspaceId: 1, nextOccurrenceAt: 1, status: 1 }` |
 | Lists for a purpose and scope | Manage → Shopping | `{ workspaceId: 1, purpose: 1, scope: 1, status: 1 }` |
+| Household lists of one kind | Shopping list tab | `{ ownerId: 1, type: 1, "checklist.purpose": 1, "checklist.scope": 1, "checklist.listType": 1 }` on `pages` |
+| Menus by occasion | Menus tab | `{ ownerId: 1, kind: 1, updatedAt: -1 }` on `menus` |
+| One list's items | List detail | `{ ownerId: 1, "owner.kind": 1, "owner.id": 1 }` on `checklists`; `{ checklistId: 1, order: 1 }` if items are split later |
 | One person's obligations | Family profile | `{ workspaceId: 1, "parent.entityType": 1, "parent.entityId": 1, nextOccurrenceAt: 1 }` |
 | Resources of one kind on one page | Learning material panels | `{ workspaceId: 1, "parent.entityId": 1, kind: 1, order: 1 }` |
 | Plans by state, newest first | Training plans tab | `{ ownerId: 1, status: 1, updatedAt: -1 }` on `training_plans` |

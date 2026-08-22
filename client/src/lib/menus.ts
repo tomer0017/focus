@@ -7,10 +7,11 @@
  * concrete — you are standing in a supermarket, and the list you are reading
  * has each item twice because you opened the menu again on the way there.
  */
-import { checklistId } from "./checklist";
+import { checklistContextOf, checklistId } from "./checklist";
 import type { Checklist, ChecklistGroup, ChecklistItem } from "../types/checklist";
 import type { CollectionEntry } from "../types/savedItem";
 import type { Menu, MenuCourse, MenuDish } from "../types/menu";
+import type { PageSummary } from "../types/page";
 
 /** Menus own their dishes, so one write covers a whole edit — as trips do. */
 export function menuId(prefix: string): string {
@@ -142,4 +143,79 @@ export function newLineCount(
     }
   }
   return count;
+}
+
+/**
+ * What generating would actually do, before it does anything.
+ *
+ * Three numbers, because "14 items will be added" is a decision and "generate?"
+ * is a reflex:
+ *
+ * - `added` — lines not on the list yet.
+ * - `already` — lines the list already has, which are left exactly as they are,
+ *   ticked or not.
+ * - `duplicated` — lines the menu itself repeats, because two dishes needing
+ *   eggs should produce one entry and the user deserves to know one was folded.
+ *
+ * Nothing here writes. `mergeMenuIntoChecklist` does the writing, and it makes
+ * the same decisions from the same inputs.
+ */
+export interface MergePreview {
+  added: number;
+  already: number;
+  duplicated: number;
+}
+
+export function mergePreview(
+  menu: Menu,
+  entries: CollectionEntry[],
+  existing: Checklist | undefined
+): MergePreview {
+  const onList = new Set(
+    (existing?.groups ?? []).flatMap((group) =>
+      group.items.map((item) => normalise(item.text ?? item.textKey ?? ""))
+    )
+  );
+
+  const seen = new Set<string>();
+  let added = 0;
+  let already = 0;
+  let duplicated = 0;
+
+  for (const [, lines] of shoppingLinesFor(menu, entries)) {
+    for (const line of lines) {
+      const key = normalise(line);
+      if (!key) continue;
+
+      if (onList.has(key)) {
+        already += 1;
+        continue;
+      }
+      if (seen.has(key)) {
+        duplicated += 1;
+        continue;
+      }
+      seen.add(key);
+      added += 1;
+    }
+  }
+
+  return { added, already, duplicated };
+}
+
+/**
+ * Whether a menu may write its shopping into this page.
+ *
+ * The guard that keeps the Trip North class of bug from coming back through a
+ * different door: a menu could otherwise be pointed at any `checklist` page,
+ * including a packing list, and would then merrily append fourteen groceries to
+ * it. The target must be a page the household shopping screen would itself show.
+ *
+ * `undefined` page means "no target chosen", which is not a valid target.
+ */
+export function canReceiveShopping(page: PageSummary | undefined): boolean {
+  if (!page || page.type !== "checklist") return false;
+
+  const context = checklistContextOf(`page:${page.id}`, page);
+  return context.purpose === "shopping" && context.scope === "household";
 }

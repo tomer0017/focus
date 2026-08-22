@@ -40,7 +40,8 @@
     "frozen": "קפואים",
     "household": "לבית",
     "drinks": "שתייה",
-    "holidayTable": "לשולחן"
+    "holidayTable": "לשולחן",
+    "cleaning": "ניקיון"
   },
   "templates": {
     "tripCamping": "טיול אוהלים בארץ",
@@ -51,7 +52,8 @@
     "shopWeekly": "קנייה שבועית",
     "shopMonthly": "קנייה חודשית",
     "shopHoliday": "קנייה לחג",
-    "shopHosting": "אירוח"
+    "shopHosting": "אירוח",
+    "shopCleaning": "חומרי ניקוי"
   },
   "items": {
     "adapter": "מתאם שקע",
@@ -159,7 +161,7 @@
     "cereal": "דגני בוקר",
     "chicken": "עוף",
     "mince": "בשר טחון",
-    "dishSoap": "סבון כלים",
+    "dishSoap": "נוזל כלים",
     "binBags": "שקיות אשפה",
     "laundry": "אבקת כביסה",
     "flour": "קמח",
@@ -192,12 +194,21 @@
     "nibbles": "חטיפים",
     "napkins": "מפיות",
     "cheeseBoard": "מגש גבינות",
-    "cream": "שמנת"
+    "cream": "שמנת",
+    "floorCleaner": "מנקה רצפות",
+    "bleach": "אקונומיקה",
+    "paperTowels": "מגבות נייר"
   },
   "progressFor": "התקדמות ב{{name}}",
   "shoppingTemplates": "רשימות קניות",
   "tripTemplates": "רשימות ציוד",
   "fromMenu": "נבנתה מתפריט",
   "independence": "עריכת הרשימה הזו לא משנה את התבנית.",
-  "noChecklistHintOwnOnly": "את הרשימה כותבים לבד — שום דבר לא נוצר אוטומטית."
+  "noChecklistHintOwnOnly": "את הרשימה כותבים לבד — שום דבר לא נוצר אוטומטית.",
+  "cycle": {
+    "start": "התחלת סבב חדש",
+    "title": "להתחיל סבב חדש?",
+    "body": "{{count}} הפריטים המסומנים יבוטלו. שום דבר לא נמחק, והרשימה נשארת אותה רשימה.",
+    "confirm": "התחלת הסבב"
+  }
 }
