@@ -948,28 +948,15 @@ the one new package in this task.
 
 ## Current blocker
 
-**GitHub Pages has to be switched to "GitHub Actions" by hand, once.**
+**None.**
 
-Settings → Pages → Build and deployment → Source: **GitHub Actions**. Then
-re-run the workflow (Actions → "Deploy frontend to GitHub Pages" → Run
-workflow), or push anything to `main`.
+The task-11 blocker is resolved: GitHub Pages was switched to "GitHub Actions"
+as its source, the workflow now completes, and
+<https://tomer0017.github.io/focus/> is live and was verified in a real browser
+this task — see below.
 
-Until that is done, `actions/configure-pages` fails and the deploy job is
-skipped, so <https://tomer0017.github.io/focus/> does not exist yet. Everything
-before that step passes in CI: `npm ci`, typecheck, lint, **324 tests**,
-`check:links` and the build.
-
-`gh` is not installed on the machine this was set up from, and
-`configure-pages` with `enablement: true` was tried and failed the same way —
-the default `GITHUB_TOKEN` cannot create the Pages site here. So this is a
-one-time manual setting, not a source change. The workflow itself needs nothing.
-
-**The live URL has therefore not been verified.** What was verified is the same
-build served as plain static files under `/focus/` — see below.
-
-Nothing else in the product is blocked. Task 12 is complete and verified
-locally and in a real browser; what remains unverified is anything that depends
-on the Pages setting above.
+Nothing in the product is blocked. Task 12 is complete and verified both
+locally and against the published site.
 
 ## Recommended next action
 
@@ -1062,6 +1049,25 @@ Measured, not assumed:
   horizontal overflow at 320px.
 - **The create modal**: at 320×568 the footer is on screen and the body scrolls;
   Escape closes it and nothing is created.
+
+**The published site, verified after the deploy.** The same 90-load sweep was
+re-run with `BASE=https://tomer0017.github.io/focus` and returned the same
+result: **0 problems, 0 console errors, 0 failed requests**, no horizontal
+overflow at any width in either language. Additionally, on the live origin:
+
+- `#/learning` entered **directly by URL**, then reloaded — both render.
+- Opening English from a row, then Back and Forward — the level filter is
+  restored from the URL and the "beginner" chip comes back active.
+- Assets load from `https://tomer0017.github.io/focus/assets/…`. **Zero
+  requests to `localhost:5001`** or anywhere else.
+- "I studied today" persisted across a reload, in `focus.pages.overrides` on the
+  live origin.
+
+One behaviour worth recording rather than discovering later: the level, subject,
+group and material filters are written with `replace: true`, so changing a
+filter does **not** add a history entry. Back leaves the page rather than
+stepping through filter states, which is the intended trade — a history full of
+filter changes is a back button that stops working as a way out.
 
 **Not verified, and not claimed.** No screen-reader pass. No touch-device
 testing on real hardware. No axe/Lighthouse audit. Keyboard reachability was
