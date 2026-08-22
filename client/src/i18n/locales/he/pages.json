@@ -1,0 +1,258 @@
+{
+  "resumeBrief": "תקציר חזרה",
+  "tabs": {
+    "tasks": "משימות",
+    "materials": "חומרים",
+    "inspiration": "השראה",
+    "history": "היסטוריה"
+  },
+  "empty": {
+    "materials": "עדיין לא נשמרו מסמכים, קישורים או הערות לעמוד הזה.",
+    "inspiration": "עדיין לא נשמרו תמונות או דוגמאות לעמוד הזה."
+  },
+  "edit": {
+    "title": "עריכת עמוד",
+    "titleField": "כותרת",
+    "titleHint": "השם של העמוד.",
+    "purposeHint": "למה העמוד הזה קיים בכלל.",
+    "currentStateHint": "איפה הדברים עומדים כרגע.",
+    "stoppedAtHint": "הנקודה המדויקת שבה נעצרת, כדי שתוכל להמשיך משם.",
+    "blockerHint": "מה מונע התקדמות.",
+    "nextActionHint": "הצעד הבא היחיד.",
+    "lastDecisionHint": "החלטה ששווה לא לפתוח מחדש בהמשך.",
+    "outcomeHint": "איך זה נראה כשזה גמור.",
+    "doneSoFarHint": "מה כבר מאחוריך.",
+    "afterThatHint": "השלב שאחרי הבא.",
+    "openFields": "מצב, חסם ופעולה הבאה"
+  },
+  "quickSave": {
+    "title": "שמירה מהירה",
+    "name": "מה זה",
+    "url": "קישור",
+    "kind": "סוג",
+    "space": "תחום",
+    "category": "קטגוריה",
+    "note": "למה שמרת",
+    "noteHint": "שורה אחת עכשיו חוסכת עשר דקות ניחושים בעוד חצי שנה. לא נטענת תצוגה מקדימה מהקישור."
+  },
+  "schedule": {
+    "everyNDays": "כל כמה ימים",
+    "weekdays": "ימים מסוימים בשבוע",
+    "monthly": "פעם בחודש",
+    "none": "ללא תזמון קבוע",
+    "reminderOnly": "תזכורת בלבד",
+    "everyNDaysValue_one": "כל יום",
+    "everyNDaysValue_two": "כל יומיים",
+    "everyNDaysValue_many": "כל {{count}} ימים",
+    "everyNDaysValue_other": "כל {{count}} ימים",
+    "weekdaysValue_one": "פעם בשבוע",
+    "weekdaysValue_two": "פעמיים בשבוע",
+    "weekdaysValue_many": "{{count}} פעמים בשבוע",
+    "weekdaysValue_other": "{{count}} פעמים בשבוע",
+    "monthlyValue": "פעם בחודש, ב־{{day}} בחודש",
+    "noneValue": "ללא תזמון קבוע",
+    "reminderOnlyValue": "תזכורת בלבד"
+  },
+  "routineForm": {
+    "createTitle": "פעילות חוזרת חדשה",
+    "editTitle": "עריכת פעילות חוזרת",
+    "name": "שם",
+    "domain": "סוג",
+    "description": "תיאור",
+    "schedule": "כל כמה זמן",
+    "everyNDays": "מספר ימים",
+    "dayOfMonth": "יום בחודש",
+    "startDate": "תאריך התחלה",
+    "notes": "הערות"
+  },
+  "routine": {
+    "lastDone": "בוצע לאחרונה {{when}}",
+    "neverDone": "עדיין לא בוצע",
+    "noPlannedDate": "אין תאריך מתוכנן",
+    "nextPlanned": "הבא {{when}}",
+    "overdue": "באיחור",
+    "doneToday": "בוצע היום",
+    "history": "היסטוריית ביצוע",
+    "documents": "מסמכים וקישורים",
+    "notes": "הערות",
+    "delete": "מחיקת הפעילות"
+  },
+  "calendar": {
+    "previousMonth": "החודש הקודם",
+    "nextMonth": "החודש הבא",
+    "previousYear": "השנה הקודמת",
+    "nextYear": "השנה הבאה",
+    "stateDone": "בוצע",
+    "statePlanned": "מתוכנן",
+    "stateOpen": "לא סומן",
+    "doneThisMonth_one": "פעם אחת החודש",
+    "doneThisMonth_two": "פעמיים החודש",
+    "doneThisMonth_many": "{{count}} פעמים החודש",
+    "doneThisMonth_other": "{{count}} פעמים החודש",
+    "month": "חודש",
+    "year": "שנה"
+  },
+  "training": {
+    "title": "אימונים",
+    "lead": "איפה האימונים עומדים באמת: מה הבא, מה היה האחרון ואיזו תוכנית רצה עכשיו.",
+    "nextSession": "האימון הבא",
+    "lastSession": "האימון האחרון",
+    "thisMonth": "החודש",
+    "activePlan": "תוכנית האימונים הפעילה",
+    "previousPlans": "תוכניות קודמות",
+    "references": "טכניקה והערות",
+    "history": "היסטוריית אימונים",
+    "chooseRoutine": "בחירת פעילות",
+    "emptyTitle": "עדיין אין פעילויות אימון",
+    "emptyHint": "הוסף אחת וכל אימון שתסמן יופיע כאן.",
+    "markToday": "סמן את האימון של היום",
+    "todayDone": "האימון של היום בוצע",
+    "undoToday": "ביטול",
+    "runningNow": "רץ עכשיו",
+    "planStarted": "התחיל",
+    "planWeek": "שבוע",
+    "weekNumber_one": "שבוע {{count}}",
+    "weekNumber_two": "שבוע {{count}}",
+    "weekNumber_many": "שבוע {{count}}",
+    "weekNumber_other": "שבוע {{count}}",
+    "openPlan": "פתיחת התוכנית",
+    "hidePlan": "סגירת התוכנית",
+    "noPlanDetail": "לא נכתבו פרטים לתוכנית הזאת.",
+    "chooseArea": "מה להציג",
+    "areas": {
+      "training": "אימונים",
+      "treatments": "טיפולים ומעקבים",
+      "history": "היסטוריה"
+    },
+    "noTreatments": "אין טיפולים או מעקבים פתוחים."
+  },
+  "contentTabs": "תוכן הפרויקט",
+  "brief": {
+    "why": "למה זה קיים",
+    "stage": "שלב נוכחי"
+  },
+  "history": {
+    "lastUpdated": "עודכן לאחרונה"
+  },
+  "notes": {
+    "add": "הוספת פתק",
+    "blank": "פתק ריק",
+    "pickTemplate": "אפשר להתחיל מפתק ריק, או מאחד מאלה:",
+    "titleLabel": "כותרת הפתק",
+    "titlePlaceholder": "תנו לפתק הזה שם",
+    "contentLabel": "תוכן הפתק",
+    "moveUp": "העברת {{name}} למעלה",
+    "moveDown": "העברת {{name}} למטה",
+    "remove": "מחיקת {{name}}",
+    "legacy": {
+      "why": "למה זה קיים",
+      "outcome": "איך נראית הצלחה",
+      "doneSoFar": "מה כבר בוצע",
+      "afterThat": "ואחר כך",
+      "lastDecision": "החלטה אחרונה"
+    },
+    "templates": {
+      "idea": {
+        "title": "רעיון הפרויקט",
+        "hint": "כאן אפשר לתאר את הרעיון הכללי ואת התוצאה שאליה אתם שואפים."
+      },
+      "process": {
+        "title": "תהליך הפרויקט",
+        "hint": "כאן אפשר לרשום את שלבי הביצוע לפי הסדר."
+      },
+      "state": {
+        "title": "מצב הפרויקט",
+        "hint": "כאן אפשר לתעד איפה הפרויקט עומד כרגע ומה כבר בוצע."
+      },
+      "stuck": {
+        "title": "איפה זה נתקע",
+        "hint": "כאן אפשר לרשום מה מונע את ההתקדמות — תלות בספק, החלטה חסרה או עיכוב אפשרי."
+      },
+      "decisions": {
+        "title": "החלטות חשובות",
+        "hint": "החלטות ששווה לא לפתוח מחדש בעוד חצי שנה."
+      },
+      "measurements": {
+        "title": "מידות ונתונים",
+        "hint": "מידות, כמויות, דגמים — כל מה שצריך לחפש שוב ושוב."
+      },
+      "budget": {
+        "title": "תקציב",
+        "hint": "כמה זה אמור לעלות, וכמה כבר יצא."
+      },
+      "toCheck": {
+        "title": "רעיונות לבדיקה",
+        "hint": "דברים ששווה לבדוק לפני שמתחייבים אליהם."
+      },
+      "nextAction": {
+        "title": "הפעולה הבאה",
+        "hint": "הצעד הקונקרטי הבא, אחד בלבד."
+      }
+    },
+    "title": "פתקים"
+  },
+  "images": {
+    "visionTitle": "התמונה שאליה שואפים",
+    "addVision": "הוספת תמונה",
+    "replaceVision": "החלפת התמונה",
+    "remove": "הסרה",
+    "addressLabel": "כתובת התמונה",
+    "addressHint": "קישור ישיר לתמונה. נשמרת רק הכתובת — לעולם לא התמונה עצמה.",
+    "fromSaved": "או משהו שכבר שמרתם",
+    "noneSelected": "לא נבחר דבר",
+    "pageLink": "או עמוד שאין מאחוריו תמונה",
+    "pageLinkHint": "לוח פינטרסט, למשל. הוא נשמר כקישור ומוצג כקישור — לא ממציאים עבורו תמונה.",
+    "openBoard": "פתיחת הלוח",
+    "visionAlt": "התמונה שאליה {{name}} שואף",
+    "storageHint": "נשמר בדפדפן הזה בלבד.",
+    "progressHeading": "איך זה מתקדם",
+    "progressTitle": "תמונת מצב",
+    "addProgress": "הוספת תמונה",
+    "editProgress": "עריכת התמונה",
+    "removeProgress": "הסרת התמונה",
+    "moveEarlier": "העברת התמונה מוקדם יותר",
+    "moveLater": "העברת התמונה מאוחר יותר",
+    "capturedAt": "מתי צולמה",
+    "noteLabel": "מה השתנה"
+  },
+  "checklistPage": {
+    "inspiration": "מה מדמיינים",
+    "list": "הרשימה"
+  },
+  "learning": {
+    "title": "לימודים",
+    "lead": "מה אתה לומד, איפה נעצרת, ומה הפעולה הבאה.",
+    "empty": "עדיין לא לומדים כלום",
+    "emptyHint": "עמוד לימוד מחזיק את הרמה, היעד, איפה נעצרת והמשאבים ששמרת.",
+    "add": "עמוד לימוד חדש",
+    "level": "רמה",
+    "levels": {
+      "beginner": "מתחילים",
+      "intermediate": "בינוני",
+      "advanced": "מתקדם",
+      "all": "כל הרמות"
+    },
+    "goal": "לאן אני חותר",
+    "method": "איך אני לומד את זה",
+    "lastStudied": "למדתי לאחרונה {{when}}",
+    "neverStudied": "לא נרשמה עדיין שום למידה",
+    "markStudied": "למדתי היום",
+    "studiedToday": "נרשם להיום",
+    "resources": "משאבים שמורים",
+    "refresher": "מסלול רענון 80/20",
+    "refresherHint": "הדרך הקצרה לחזור אחרי הפסקה ארוכה. רשימה שאתה כותב — שום דבר לא נוצר אוטומטית.",
+    "createRefresher": "יצירת רשימת רענון",
+    "noLms": "אין שיעורים, אין ציונים, אין מבחנים. זה פרויקט שבמקרה עוסק בלימוד משהו.",
+    "titleField": "מה אתה לומד",
+    "descriptionField": "למה",
+    "groups": {
+      "active": "לומד עכשיו",
+      "paused": "ממתין",
+      "completed": "הושלם"
+    },
+    "chooseGroup": "מה להציג",
+    "levelLabel": "סינון לפי רמה",
+    "noneInGroup": "אין כאן מסלולי לימוד."
+  },
+  "progressCount": "{{done}}/{{total}} משימות"
+}

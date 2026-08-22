@@ -1,0 +1,35 @@
+{
+  /*
+   * Tests are their own project.
+   *
+   * They need Node's `fs` (the source-hygiene scan reads the tree) and Vitest's
+   * globals, and the app must not: adding either to `tsconfig.app.json` would
+   * make `readFileSync` type-check inside a React component, which is a rule the
+   * storage boundary depends on. Keeping them apart is cheaper than a lint rule
+   * saying "don't do that".
+   */
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.test.tsbuildinfo",
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "types": ["node"],
+
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "resolveJsonModule": true,
+
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true
+  },
+  "include": ["src/**/*.test.ts", "src/**/*.test.tsx"]
+}

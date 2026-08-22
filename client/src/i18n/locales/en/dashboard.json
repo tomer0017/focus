@@ -1,0 +1,55 @@
+{
+  "title": "Overview",
+  "sections": {
+    "upcoming": "Today & upcoming",
+    "attention": "Needs attention",
+    "continue": "Pick up where you left off",
+    "quickAccess": "Quick access",
+    "saved": "Recently saved",
+    "activeProjects": "Active projects",
+    "stuckProjects": "Waiting or stuck",
+    "pausedProjects": "Parked",
+    "completedProjects": "Done",
+    "routines": "Routines",
+    "events": "Coming up",
+    "trainingPlans": "Training plans",
+    "inspiration": "Inspiration",
+    "products": "Saved products",
+    "trips": "Upcoming trips",
+    "checklists": "Checklists",
+    "places": "Places",
+    "notes": "Notes from past trips",
+    "gear": "Gear",
+    "recipes": "Recipes",
+    "yourTrips": "Your trips"
+  },
+  "insight": {
+    "sessionsThisMonth_one": "{{count}} training session this month",
+    "sessionsThisMonth_other": "{{count}} training sessions this month",
+    "openTraining": "Open training"
+  },
+  "emptySpace": {
+    "title": "Nothing here yet",
+    "hint": "Pages you add to {{space}} will show up here."
+  },
+  "emptyOverview": {
+    "title": "Nothing needs you right now",
+    "hint": "When something is scheduled or blocked, it appears here."
+  },
+  "checklistProgress": "{{done}} of {{total}}",
+  "moreCount": "{{count}} more",
+  "topics": {
+    "work": "Projects and lists",
+    "rhythm": "Trips and dates",
+    "saved": "Saved content",
+    "collection": "Recipes and places"
+  },
+  "chooseTopic": "What to show",
+  "openProjects": "All projects in this category",
+  "chooseGroup": "What to show",
+  "groups": {
+    "today": "Today",
+    "week": "This week",
+    "later": "Later"
+  }
+}

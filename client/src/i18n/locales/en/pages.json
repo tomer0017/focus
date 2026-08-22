@@ -1,0 +1,250 @@
+{
+  "resumeBrief": "Resume brief",
+  "tabs": {
+    "tasks": "Tasks",
+    "materials": "Materials",
+    "inspiration": "Inspiration",
+    "history": "History"
+  },
+  "empty": {
+    "materials": "No documents, links or notes saved to this page yet.",
+    "inspiration": "No images or examples saved to this page yet."
+  },
+  "edit": {
+    "title": "Edit page",
+    "titleField": "Title",
+    "titleHint": "What this page is called.",
+    "purposeHint": "Why this page exists at all.",
+    "currentStateHint": "Where things stand right now.",
+    "stoppedAtHint": "The exact point you stopped, so you can pick the thread back up.",
+    "blockerHint": "What is stopping progress.",
+    "nextActionHint": "The single next step.",
+    "lastDecisionHint": "A decision worth not re-arguing later.",
+    "outcomeHint": "What it looks like when this is finished.",
+    "doneSoFarHint": "What is already behind you.",
+    "afterThatHint": "The step after the next one.",
+    "openFields": "State, blocker and next action"
+  },
+  "quickSave": {
+    "title": "Quick save",
+    "name": "What is it",
+    "url": "Link",
+    "kind": "Kind",
+    "space": "Space",
+    "category": "Category",
+    "note": "Why you kept it",
+    "noteHint": "One line now saves ten minutes of guessing in six months. No preview is fetched from the link."
+  },
+  "schedule": {
+    "everyNDays": "Every few days",
+    "weekdays": "Certain days of the week",
+    "monthly": "Once a month",
+    "none": "No fixed rhythm",
+    "reminderOnly": "Reminder only",
+    "everyNDaysValue_one": "Every day",
+    "everyNDaysValue_other": "Every {{count}} days",
+    "weekdaysValue_one": "{{count}} day a week",
+    "weekdaysValue_other": "{{count}} days a week",
+    "monthlyValue": "Monthly, on the {{day}}",
+    "noneValue": "No fixed rhythm",
+    "reminderOnlyValue": "Reminder only"
+  },
+  "routineForm": {
+    "createTitle": "New routine",
+    "editTitle": "Edit routine",
+    "name": "Name",
+    "domain": "Type",
+    "description": "Description",
+    "schedule": "How often",
+    "everyNDays": "Number of days",
+    "dayOfMonth": "Day of the month",
+    "startDate": "Start date",
+    "notes": "Notes"
+  },
+  "routine": {
+    "lastDone": "Last done {{when}}",
+    "neverDone": "Never done yet",
+    "noPlannedDate": "No planned date",
+    "nextPlanned": "Next {{when}}",
+    "overdue": "Overdue",
+    "doneToday": "Done today",
+    "history": "Completion history",
+    "documents": "Documents and links",
+    "notes": "Notes",
+    "delete": "Delete routine"
+  },
+  "calendar": {
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "previousYear": "Previous year",
+    "nextYear": "Next year",
+    "stateDone": "Done",
+    "statePlanned": "Planned",
+    "stateOpen": "Not marked",
+    "doneThisMonth_one": "{{count}} time this month",
+    "doneThisMonth_other": "{{count}} times this month",
+    "month": "Month",
+    "year": "Year"
+  },
+  "training": {
+    "title": "Training",
+    "lead": "Where the training actually stands: what is next, what was last, and which plan is running.",
+    "nextSession": "Next session",
+    "lastSession": "Last session",
+    "thisMonth": "This month",
+    "activePlan": "Active training plan",
+    "previousPlans": "Previous plans",
+    "references": "Technique and notes",
+    "history": "Training history",
+    "chooseRoutine": "Choose a routine",
+    "emptyTitle": "No training routines yet",
+    "emptyHint": "Add one and every session you log will show up here.",
+    "markToday": "Mark today's session",
+    "todayDone": "Today's session is done",
+    "undoToday": "Undo",
+    "runningNow": "Running now",
+    "planStarted": "Started",
+    "planWeek": "Week",
+    "weekNumber_one": "Week {{count}}",
+    "weekNumber_other": "Week {{count}}",
+    "openPlan": "Open the plan",
+    "hidePlan": "Hide the plan",
+    "noPlanDetail": "No details were written for this plan.",
+    "chooseArea": "What to show",
+    "areas": {
+      "training": "Training",
+      "treatments": "Treatments and follow-ups",
+      "history": "History"
+    },
+    "noTreatments": "No open treatments or follow-ups."
+  },
+  "contentTabs": "Project content",
+  "brief": {
+    "why": "Why this exists",
+    "stage": "Where it stands"
+  },
+  "history": {
+    "lastUpdated": "Last updated"
+  },
+  "notes": {
+    "add": "Add a note",
+    "blank": "Blank note",
+    "pickTemplate": "Start from a blank note, or from one of these:",
+    "titleLabel": "Note title",
+    "titlePlaceholder": "Give this note a name",
+    "contentLabel": "Note text",
+    "moveUp": "Move {{name}} up",
+    "moveDown": "Move {{name}} down",
+    "remove": "Delete {{name}}",
+    "legacy": {
+      "why": "Why this exists",
+      "outcome": "What success looks like",
+      "doneSoFar": "What is already done",
+      "afterThat": "And after that",
+      "lastDecision": "Last decision"
+    },
+    "templates": {
+      "idea": {
+        "title": "The idea",
+        "hint": "Describe the general idea and the result you are aiming at."
+      },
+      "process": {
+        "title": "The process",
+        "hint": "List the steps, in the order you mean to do them."
+      },
+      "state": {
+        "title": "Where it stands",
+        "hint": "Where the project is right now, and what is already done."
+      },
+      "stuck": {
+        "title": "Where it is stuck",
+        "hint": "What is holding this up — a supplier, a decision you have not made, something that might slow it down later."
+      },
+      "decisions": {
+        "title": "Decisions",
+        "hint": "Decisions worth not re-arguing in six months."
+      },
+      "measurements": {
+        "title": "Measurements and numbers",
+        "hint": "Sizes, quantities, model numbers — whatever you keep having to look up."
+      },
+      "budget": {
+        "title": "Budget",
+        "hint": "What this is expected to cost, and what has been spent."
+      },
+      "toCheck": {
+        "title": "Ideas to look into",
+        "hint": "Things worth checking before you commit to them."
+      },
+      "nextAction": {
+        "title": "Next action",
+        "hint": "The single next concrete step."
+      }
+    },
+    "title": "Notes"
+  },
+  "images": {
+    "visionTitle": "The picture you are aiming at",
+    "addVision": "Add a picture",
+    "replaceVision": "Replace the picture",
+    "remove": "Remove",
+    "addressLabel": "Picture address",
+    "addressHint": "A direct link to an image. Only the address is stored — never the picture itself.",
+    "fromSaved": "Or something you already saved",
+    "noneSelected": "Nothing selected",
+    "pageLink": "Or a page with no picture of its own",
+    "pageLinkHint": "A Pinterest board, for instance. It is kept as a link and shown as one — no thumbnail is invented for it.",
+    "openBoard": "Open the board",
+    "visionAlt": "The picture {{name}} is aiming at",
+    "storageHint": "Saved in this browser only.",
+    "progressHeading": "How it is going",
+    "progressTitle": "A picture of the work",
+    "addProgress": "Add a picture",
+    "editProgress": "Edit this picture",
+    "removeProgress": "Remove this picture",
+    "moveEarlier": "Move this picture earlier",
+    "moveLater": "Move this picture later",
+    "capturedAt": "When it was taken",
+    "noteLabel": "What changed"
+  },
+  "checklistPage": {
+    "inspiration": "What you are picturing",
+    "list": "The list"
+  },
+  "learning": {
+    "title": "Learning",
+    "lead": "What you are learning, where you stopped, and what to do next.",
+    "empty": "Nothing being learned yet",
+    "emptyHint": "A learning page keeps the level, the goal, where you stopped and the resources you saved.",
+    "add": "New learning page",
+    "level": "Level",
+    "levels": {
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced",
+      "all": "All levels"
+    },
+    "goal": "What I'm aiming for",
+    "method": "How I'm learning it",
+    "lastStudied": "Last studied {{when}}",
+    "neverStudied": "No session recorded yet",
+    "markStudied": "I studied today",
+    "studiedToday": "Recorded for today",
+    "resources": "Saved resources",
+    "refresher": "80/20 refresher",
+    "refresherHint": "The short path back in after a long gap. A list you write yourself — nothing is generated.",
+    "createRefresher": "Create a refresher list",
+    "noLms": "No lessons, no grades, no tests. This is a project that happens to be about learning something.",
+    "titleField": "What are you learning",
+    "descriptionField": "Why",
+    "groups": {
+      "active": "Learning now",
+      "paused": "On hold",
+      "completed": "Finished"
+    },
+    "chooseGroup": "What to show",
+    "levelLabel": "Filter by level",
+    "noneInGroup": "Nothing here yet."
+  },
+  "progressCount": "{{done}}/{{total}} tasks"
+}

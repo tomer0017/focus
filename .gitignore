@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+coverage/
+
+# Environment — never commit real values. See server/.env.example.
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# Claude Code: the project permissions (.claude/settings.json) ARE committed;
+# the per-machine overrides are not.
+.claude/settings.local.json
+
+# Verification artefacts (screenshots, scratch) — not committed
+tmp-verification/
+tmp-verification-*/
+rendered-shots/
+playwright-report/
+test-results/
+
+# design-sync: staged converter scripts, build output and machine state.
+# .design-sync/config.json, NOTES.md, conventions.md and previews/ ARE committed.
+.ds-sync/
+ds-bundle/
+.design-sync/.cache/
+.design-sync/learnings/
+.design-sync/node_modules
+client/design-sync/focus-styles.css
+.design-shots/
+
+# A stray nested repository used to live at client/.git; it was renamed rather
+# than deleted (see README / PROJECT_STATE). Never let it back into this tree.
+client/.git.disabled-nested-repo/

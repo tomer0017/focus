@@ -1,0 +1,57 @@
+{
+  "title": "סקירה כללית",
+  "sections": {
+    "upcoming": "היום ובקרוב",
+    "attention": "דורש תשומת לב",
+    "continue": "המשך מאיפה שעצרת",
+    "quickAccess": "גישה מהירה",
+    "saved": "נשמר לאחרונה",
+    "activeProjects": "פרויקטים פעילים",
+    "stuckProjects": "תקוע או ממתין",
+    "pausedProjects": "מוקפא",
+    "completedProjects": "הושלם",
+    "routines": "פעילויות חוזרות",
+    "events": "אירועים קרובים",
+    "trainingPlans": "תוכניות אימון",
+    "inspiration": "השראה",
+    "products": "מוצרים ששמרתי",
+    "trips": "נסיעות קרובות",
+    "checklists": "צ׳קליסטים",
+    "places": "מקומות",
+    "notes": "הערות מטיולים קודמים",
+    "gear": "ציוד",
+    "recipes": "מתכונים",
+    "yourTrips": "הטיולים שלך"
+  },
+  "insight": {
+    "sessionsThisMonth_one": "אימון אחד החודש",
+    "sessionsThisMonth_two": "שני אימונים החודש",
+    "sessionsThisMonth_many": "{{count}} אימונים החודש",
+    "sessionsThisMonth_other": "{{count}} אימונים החודש",
+    "openTraining": "לאזור האימונים"
+  },
+  "emptySpace": {
+    "title": "עדיין אין כאן דבר",
+    "hint": "עמודים שתוסיף ל{{space}} יופיעו כאן."
+  },
+  "emptyOverview": {
+    "title": "אין כרגע משהו שדורש אותך",
+    "hint": "כשמשהו נקבע לתאריך או נתקע, הוא יופיע כאן."
+  },
+  "checklistProgress": "{{done}} מתוך {{total}}",
+  "moreCount": "עוד {{count}}",
+  "topics": {
+    "work": "פרויקטים ורשימות",
+    "rhythm": "טיולים ותאריכים",
+    "saved": "תוכן שמור",
+    "collection": "מתכונים ומקומות"
+  },
+  "chooseTopic": "מה להציג",
+  "openProjects": "כל הפרויקטים בקטגוריה",
+  "chooseGroup": "מה להציג",
+  "groups": {
+    "today": "היום",
+    "week": "השבוע",
+    "later": "בהמשך"
+  }
+}

@@ -1,0 +1,11 @@
+{
+    "login": {
+      "title": "Login",
+      "username": "Username",
+      "password": "Password",
+      "submit": "Login"
+    },
+    "dashboard": {
+      "title": "My Paintings"
+    }
+  }

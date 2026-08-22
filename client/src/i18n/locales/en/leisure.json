@@ -1,0 +1,111 @@
+{
+  "title": "Leisure",
+  "lead": "Films, books, places and ideas — with enough tags to find one when you need it.",
+  "add": "Add an idea",
+  "edit": "Edit",
+  "empty": "Nothing saved yet",
+  "emptyHint": "Save a film, a book, a place or an idea for an evening.",
+  "noMatches": "Nothing matches these filters",
+  "kinds": {
+    "movie": "Film",
+    "series": "Series",
+    "book": "Book",
+    "place": "Place",
+    "activity": "Activity",
+    "evening": "Evening idea",
+    "wishlist": "Wishlist"
+  },
+  "fields": {
+    "title": "What is it",
+    "kind": "Kind",
+    "note": "Note",
+    "url": "Link",
+    "imageUrl": "Picture address",
+    "minutes": "Roughly how long",
+    "minutesUnit": "minutes",
+    "energy": "Energy needed",
+    "company": "Works with",
+    "place": "Where",
+    "cost": "Cost",
+    "tags": "Tags",
+    "tagsHint": "Your own words. Type one and press Enter.",
+    "status": "State"
+  },
+  "energy": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High"
+  },
+  "company": {
+    "alone": "Alone",
+    "partner": "With a partner",
+    "family": "With family",
+    "friends": "With friends"
+  },
+  "place": {
+    "home": "At home",
+    "out": "Out"
+  },
+  "cost": {
+    "free": "Free",
+    "cheap": "Cheap",
+    "moderate": "Moderate",
+    "expensive": "Expensive"
+  },
+  "status": {
+    "idea": "Idea",
+    "planned": "Planned",
+    "done": "Done"
+  },
+  "filters": {
+    "kind": "Kind",
+    "energy": "Energy",
+    "place": "Where",
+    "status": "State",
+    "all": "All"
+  },
+  "suggest": {
+    "title": "What suits right now?",
+    "lead": "Tell it roughly where you are and it offers one thing.",
+    "minutes": "Time free",
+    "minutesAny": "However long",
+    "energy": "Energy",
+    "energyAny": "Any",
+    "company": "Who with",
+    "companyAny": "Doesn't matter",
+    "place": "Where",
+    "placeAny": "Either",
+    "load": "How busy are you",
+    "loadBusy": "Swamped",
+    "loadNormal": "Normal",
+    "loadFree": "Free",
+    "ask": "Suggest something",
+    "again": "Suggest something else",
+    "accept": "That'll do",
+    "notNow": "Not now",
+    "mute": "Stop suggesting for a while",
+    "muted": "Suggestions are paused until {{when}}",
+    "unmute": "Turn suggestions back on",
+    "nothing": "Nothing on your list fits that",
+    "nothingHint": "Rather than offering something that doesn't, it offers nothing.",
+    "busyHint": "You said you're swamped, so nothing is being suggested.",
+    "why": "Why this",
+    "reasons": {
+      "fitsTime": "fits the time you have",
+      "lowEnergy": "asks nothing of you",
+      "atHome": "at home",
+      "outside": "gets you out",
+      "withCompany": "works with who you're with",
+      "cheap": "costs little or nothing",
+      "untried": "never suggested before"
+    },
+    "noAi": "This is a short set of rules, not a recommendation engine. Nothing is sent anywhere."
+  },
+  "actions": {
+    "markDone": "Mark done",
+    "plan": "Plan it",
+    "deleteTitle": "Delete this idea?",
+    "deleteBody": "“{{title}}” will be removed from your list."
+  },
+  "suggestMe": "What suits right now?"
+}

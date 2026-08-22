@@ -1,0 +1,45 @@
+{
+  "title": "Projects",
+  "lead": "A category, then a state. The archive stays reachable without flooding the screen.",
+  "columnEmpty": "Nothing here.",
+  "statusFor": "Status for {{name}}",
+  "moveUp": "Move {{name}} up",
+  "moveDown": "Move {{name}} down",
+  "reasonFor": "Why {{name}} is parked",
+  "completedOn": "Completed {{when}}",
+  "pauseReason": {
+    "title": "Why is it parked?",
+    "label": "Reason",
+    "hint": "Optional. The one line that stops you re-deciding this in three months."
+  },
+  "empty": {
+    "title": "No projects yet",
+    "hint": "Projects you add will appear here, in one of the three columns."
+  },
+  "categories": {
+    "personal": "Personal",
+    "tech": "Tech",
+    "physical": "Physical",
+    "manage": "Manage categories",
+    "choose": "Choose a category",
+    "newName": "Category name",
+    "nameOf": "Name of {{name}}",
+    "none": "Uncategorised",
+    "label": "Category",
+    "count_one": "One project",
+    "count_other": "{{count}} projects",
+    "inUse_one": "Cannot delete — one project is still in it",
+    "inUse_other": "Cannot delete — {{count}} projects are still in it",
+    "hint": "Changes save as you make them. Only an empty category can be deleted.",
+    "addNew": "New category…"
+  },
+  "filters": {
+    "label": "Filter by state",
+    "blocked": "Stuck"
+  },
+  "searchLabel": "Search projects",
+  "noMatches": "No project matches that search.",
+  "noneInStatus": "Nothing in this state.",
+  "moveTo": "Move to {{status}}",
+  "editReason": "Edit the parked reason"
+}

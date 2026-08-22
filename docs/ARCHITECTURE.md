@@ -1,0 +1,1102 @@
+# Architecture
+
+Short description of the system's shape and its boundaries.
+For what is built versus planned, see [PROJECT_STATE.md](PROJECT_STATE.md).
+
+## System shape
+
+Two independent applications in one repository, each with its own
+`package.json` and `node_modules`. No monorepo tooling, no workspaces — the
+repo started this way and nothing yet justifies the extra machinery.
+
+```mermaid
+flowchart LR
+  U[User] --> C["client — React + Vite + Bootstrap<br/>:5173"]
+  C --> R["repositories/ — the persistence seam"]
+  R --> L[("localStorage<br/>focus.*")]
+  R --> M["mocks/ — seed data"]
+  C -. "not connected yet" .-> S["server — Express + TypeScript"]
+  S -. "not connected yet" .-> D[(MongoDB Atlas)]
+  S --> H["GET /health"]
+```
+
+Solid arrows are wired today. Dashed arrows are planned.
+
+## Client / server boundaries
+
+**The client owns** routing, rendering, layout, client-side search and
+filtering, and derived view data (`lib/pageSelectors.ts`). It holds no
+authority: any rule it enforces is a convenience, re-checked on the server.
+
+**The server owns** the HTTP contract, input validation, authentication,
+authorisation, and every database access. It is the only component that can
+decide what a user is allowed to see or change.
+
+**Neither owns** shared domain types today — they live in `client/src/types/`
+and move to a shared package when the API is built. See CLAUDE.md → Type
+placement.
+
+## Presentation layers
+
+The client is deliberately layered so that swapping the data source later
+touches one file, not the UI:
+
+```
+types/         domain shapes        (no React, no i18next)
+mocks/         seed data            (replaced by the API)
+lib/           pure logic           selectors, Intl formatting, schedules,
+                                    board rules, event templates
+lib/storage/   the only localStorage access in the app
+repositories/  Repository<T> per slice — load / save
+state/         one provider per slice — the only place data is held
+features/      sections/ + screens  composition only
+components/    ui/ + layout/        presentation primitives
+i18n/          language + direction
+```
+
+`lib/` never imports from `features/`, and nothing outside `state/` holds
+application data. `features/sections/` holds the shared section components; the
+screens choose which sections to render and in what order.
+
+The dependency direction is strict and one-way:
+
+```
+components → state → repositories → lib/storage → localStorage
+                          ↑
+                       mocks (seed only)
+```
+
+A component that reads `window.localStorage` is a bug. A `lib/` module that
+imports a provider is a bug.
+
+## Data models
+
+```mermaid
+classDiagram
+  class PageSummary {
+    id, type, spaceId
+    status: active|paused|completed
+    blocker?  (separate from status)
+    currentState?, stoppedAt?, nextAction?
+    completedAt?, pausedReason?, boardOrder?
+    notes?: ProjectNote[]  (undefined != [])
+    visionImageUrl?, visionSavedItemId?, visionLinkUrl?
+    progressImages?: ProjectProgressImage[]
+  }
+  class ProjectNote {
+    id, order
+    title?   (the user's words)
+    titleKey? (a template's, dropped on rename)
+    content
+  }
+  class ProjectProgressImage {
+    id, order
+    imageUrl? | savedItemId? | linkUrl?
+    note?, capturedAt?
+  }
+  class Routine {
+    id, title, domain, spaceId
+    schedule: RoutineScheduleRule
+    startDate
+    completions: RoutineCompletion[]
+    documentIds: string[]
+  }
+  class FocusEvent {
+    id, kind, title, startsAt, spaceId
+    nextAction?
+    sections: EventSection[]
+    prepDaysBefore?  (absent = nothing to prepare)
+    importance?: low|normal|high
+    reminders?: EventReminder[]
+  }
+  class EventReminder {
+    id
+    hoursBefore? | at?
+    label?, handled?, snoozedUntil?
+  }
+  class EventSection {
+    id, kind, order
+    titleOverride?
+    items?, body?, amount?
+    savedItemIds?, collectionEntryIds?, visionBoardId?
+  }
+  class SavedItem {
+    id, kind, source, url, thumb
+    category?
+    contextIds: string[]
+  }
+  class VisionBoard {
+    id, title, year
+    tiles: VisionTile[]
+  }
+  class VisionTile {
+    id, thumb, size, order
+    caption?, category?
+    savedItemId?, linkedPageId?
+  }
+  FocusEvent "1" *-- "many" EventSection
+  VisionBoard "1" *-- "many" VisionTile
+  EventSection ..> SavedItem : references by id
+  EventSection ..> VisionBoard : references by id
+  Routine ..> SavedItem : documentIds
+  VisionTile ..> SavedItem : savedItemId
+  VisionTile ..> PageSummary : linkedPageId
+  SavedItem ..> PageSummary : contextIds
+```
+
+Dashed arrows are **references by id**, and that is the whole point: a recipe
+attached to a holiday, a plan attached to a routine and a picture on a vision
+board are all the same stored entity seen from three places. Nothing is copied.
+
+## Shared checklist
+
+One model, one component, one provider, used by trips, projects and (next)
+events.
+
+```
+types/checklist.ts        Checklist · ChecklistGroup · ChecklistItem · ChecklistTemplate
+lib/checklist.ts          pure edits: toggle, add, update, remove, move,
+                          collapse, fromTemplate, toTemplate, duplicate, progressOf
+state/ChecklistsProvider  Record<ownerId, Checklist> + personal templates
+components/ui/Checklist   the UI; every control is a real control
+features/checklist/…      creating one: template · copy · empty · save template
+```
+
+Two decisions carry the design:
+
+- **Keyed by owner** (`project:sorcol`, `trip:japan-2027`), so no entity has to
+  carry a checklist id, and a list can be attached to anything that has an id.
+- **Built-in templates store translation keys**, not words. A group has a
+  `titleKey` and an item a `textKey` until the user edits it, at which point it
+  becomes `title` / `text` and the key is dropped. That is what lets five trip
+  templates ship in Hebrew and English without either language ending up in
+  somebody's stored data.
+
+The provider exposes a single `update(ownerId, change)` that applies a pure
+function from `lib/checklist.ts`. The rules live in `lib/`; the provider only
+persists.
+
+## Recipes, tags and references
+
+`CollectionEntry` is one model for recipes **and** places. Recipe-shaped fields
+(ingredients, steps, times, rating) are optional; a place simply has none.
+
+```mermaid
+flowchart LR
+  R["CollectionEntry (recipe)"] -->|pageId| C["PageSummary (collection)"]
+  E["EventSection"] -.->|collectionEntryIds| R
+  R -.->|savedItemIds| S["SavedItem"]
+  R -->|tags| T["free-text tags"]
+```
+
+Dashed arrows are references by id. A holiday menu points at a recipe; it never
+holds a copy of one, so improving the recipe improves the menu.
+
+**Status is two fields.** `status: want_to_try | tried` and
+`recommended: boolean`. The board's three columns are a view over the pair:
+
+| Dropped into | `status` | `recommended` |
+|---|---|---|
+| Want to try | `want_to_try` | `false` |
+| Tried | `tried` | `false` |
+| Recommended | `tried` | `true` |
+
+Taking a recipe out of "recommended" therefore clears the flag and leaves it
+tried — it cannot silently un-try something. That is the entire reason
+"recommended" is not a third status.
+
+## Trips
+
+```mermaid
+classDiagram
+  class Trip {
+    id, title, countries
+    startDate, endDate, status
+    nextAction?, notes?
+  }
+  class TripDestination {
+    id, name, country
+    arriveOn?, leaveOn?
+    imageUrl?, thumb?
+    goodToKnow[], clothing?
+    savedItemIds[]
+  }
+  class TripDayPlan {
+    id, date, destinationId
+    morning?, afternoon?, evening?
+    alternatives?, bookings?, clothing?, notes?
+  }
+  class TripFood {
+    id, destinationId, name, kind
+    address?, note?, url?, day?
+    status: option|planned|visited
+  }
+  class TripFlight
+  class TripStay
+  Trip "1" *-- "many" TripDestination
+  Trip "1" *-- "many" TripDayPlan
+  Trip "1" *-- "many" TripFood
+  Trip "1" *-- "many" TripFlight
+  Trip "1" *-- "many" TripStay
+  TripDestination ..> SavedItem : savedItemIds
+  Trip ..> Checklist : "trip:{id}"
+```
+
+Composition, not separate slices: destinations, days and food are never read
+without the trip, so one write per edit cannot leave them disagreeing. Morning,
+afternoon and evening are three *fields on a day*, not three systems — the same
+reason clothing, bookings and notes sit in the same card.
+
+There is no map and no calendar integration. An address and a note is what
+people actually re-read; a map would be a different product.
+
+## Vision board pictures
+
+A tile carries `thumb` (local artwork), `imageUrl` (remote), or both. Only the
+address of a remote picture is stored — never the bytes, never a data URI — so
+a board with thirty pictures is still a few kilobytes and a picture the user
+removes is genuinely gone.
+
+`<BoardImage>` resolves the three cases in order: a valid remote address, then
+local artwork, then a visible placeholder. A remote image that fails to load
+falls back rather than rendering a broken-image icon, because a tile that
+vanishes silently looks like data loss.
+
+## Project page composition
+
+```
+vision picture   optional; where the project is going
+brief (no tab)   where it stands · where you stopped · blocker · next action
+notes            ProjectNote[] — as many or as few as the project has
+progress         ProjectProgressImage[] — where it is now
+tabs
+  tasks          the shared Checklist, keyed page:{id}
+  materials      saved items that are not pictures — documents, links, notes
+  inspiration    saved items that are: inspiration, image, product
+  history        updates, status changes, completion dates
+```
+
+There is deliberately no Overview tab: it would repeat the brief above it. There
+is no Future tab either — it held one optional field, which is an ordinary note
+now.
+
+### Notes vs fields: where the line is
+
+The page used to render nine fixed rubrics. Six are now free-form notes; four
+remain structured fields. **The dividing line is whether anything other than
+this page reads the value.**
+
+| Field | Read by | Verdict |
+|---|---|---|
+| `currentState` | overview, board | field |
+| `stoppedAt` | overview's "pick up where you left off" | field |
+| `blocker` | overview's attention list, `isBlocked()` | field |
+| `nextAction` | overview, every board card | field |
+| `description`, `outcome`, `doneSoFar`, `afterThat`, `lastDecision` | this page only | note |
+
+Converting the first four to prose would have emptied half the overview and left
+`isBlocked()` with nothing to test. The other five fed nothing, which is exactly
+what made them safe to free.
+
+### The legacy conversion is an adapter
+
+```
+notesForPage(page)
+  page.notes !== undefined  → return it (including [])
+  page.notes === undefined  → derive from legacy fields, skipping empty ones
+```
+
+Nothing is rewritten on load and no legacy field is dropped from the type or the
+data. The first edit persists the derived list, so conversion happens once, per
+page, on demand — a page nobody opens is never touched.
+
+`undefined` and `[]` mean different things and are never collapsed: absent is
+"never edited, read the old fields", empty is "the user deleted them all". A
+migration that defaulted `notes` to `[]` would silently erase every project
+written before the change, which is why `pageOverridesRepository`'s migration
+maps `override.notes?.map(...)` and never supplies a fallback.
+
+A template-seeded note stores a `titleKey` and no `title`; renaming drops the
+key and stores the user's words. Same rule as event sections and checklist
+groups: a template writes no language into stored data.
+
+### Project pictures
+
+`visionImageUrl` / `visionSavedItemId` / `visionLinkUrl` are written together by
+`setVisionImage`, so a new choice replaces the old one rather than layering a URL
+over a stale saved-item reference. `resolveImage` turns a source into
+`{ imageUrl, thumb }` and hands both to `<BoardImage>`, which tries the address
+and falls back to seeded artwork **only when there is no address at all**. A
+source that is a page rather than a picture stays a link.
+
+## Checklist pages
+
+`PageDetailPage` dispatches on `page.type`:
+
+```
+type === "checklist"  → ChecklistPageView
+everything else       → the project composition above
+```
+
+```
+ChecklistPageView   title · date · overall progress
+                    notes           ProjectNote[], same component as projects
+                    inspiration     saved items, visible on arrival
+                    list            ChecklistSection, mode = view | edit
+```
+
+No tabs. The two things somebody opens a packing list to do are look at the gear
+they saved and tick things off, and a tab hides one behind the other. It reuses
+the existing `Checklist` model, component and repository — there is no second
+checklist engine — and it is **not** a trip planner. A real trip is a `Trip`.
+
+## Event timing
+
+`lib/eventTiming.ts` is the only judge of how loudly an event asks.
+
+```
+urgencyOf(event, now)          first match wins, top to bottom
+  days < 0                              → done
+  all tasks ticked, nothing overdue     → done
+  days <= 1, or a reminder is overdue   → critical
+  days < 7                              → soon
+  prepDaysBefore set, within it,
+    and importance !== "low"            → preparing
+  otherwise                             → neutral
+```
+
+The order *is* the logic: "it already happened" beats "something is overdue", and
+an event with every box ticked is finished however close it is.
+
+**Why `prepDaysBefore` exists.** Days remaining cannot separate a flight in two
+months (nothing to do) from a 60th birthday in two months (book the hall). Only
+the user knows, so they say it. An event that says nothing stays quiet until the
+week before — which is why the field is optional and absent is meaningful, not a
+missing value to be defaulted.
+
+`importance: "low"` skips the preparation window entirely, so a small distant
+occasion never sits in the same list as a wedding.
+
+### Reminders
+
+```
+EventReminder   hoursBefore (relative, survives the event moving)
+              | at          (absolute)
+              + handled, snoozedUntil
+reminderTime(event, reminder)  resolves one against the event
+dueReminders(event, now)       due, not handled, not snoozed past now
+```
+
+Relative is the default because "24 hours before" survives the event being
+moved and an absolute date does not.
+
+`<ReminderAlerts>` renders every due reminder across every event, on the
+overview and the events screen — a reminder you have to go looking for has
+already failed. It renders nothing on a day with nothing due.
+
+**Every surface that shows a reminder also states its limit.** There is no
+server, no service worker and no push infrastructure: a reminder appears while
+Focus is open and nowhere else. A reminder people believe will wake them and
+does not is worse than no reminder.
+
+### Colour is never the signal
+
+Five states, and each is rendered as an icon *and* a word *and* a colour. The
+colour is an accent — a left border and a small chip — never a wash across a
+card. See CLAUDE.md hard rule 9.
+
+## Modal structure
+
+Every dialog wraps header, body and footer in one `<form>`, so a single submit
+handler covers the whole thing and Enter works from any field.
+
+```
+.modal-dialog        max-block-size: calc(100dvh - 2 × margin)
+.modal-content       flex column, overflow hidden, same cap
+.modal-content > form  flex column, flex: 1 1 auto, min-block-size: 0
+.modal-header          flex: 0 0 auto
+.modal-body            flex: 1 1 auto, min-block-size: 0, overflow-y: auto
+.modal-footer          flex: 0 0 auto
+```
+
+The form is the reason this stylesheet block exists. Bootstrap's `scrollable`
+puts `overflow-y: auto` on `.modal-body` and a capped height on
+`.modal-content`, which works only while the body is a **flex item of the content
+box**. With a form in between, the body was a flex item of nothing: it grew to
+fit its content, the content box clipped the overflow, and the footer — with the
+save button in it — ended up below the viewport with no way to scroll to it.
+Nine dialogs carried `scrollable` and it had never done anything.
+
+Making the form layout-transparent fixes all of them at once; restructuring nine
+dialogs would have risked nine submit handlers to fix one stylesheet problem. It
+is applied to **every** modal, not only the `scrollable` ones, so the class of
+bug cannot return — a short dialog is unaffected because the body only scrolls
+once it has to.
+
+`dvh` rather than `vh`: when a phone keyboard opens, `vh` keeps reporting the
+full screen and puts the footer back underneath it.
+
+`.focus-url-preview img` is capped at 240px with `object-fit: contain`. The
+picture is being *checked*, not displayed; cropping the middle out of a tall
+image is the wrong answer to "is this the right address?".
+
+## Compact presentation
+
+Two places where density is the design, not a side effect:
+
+**Recipe cards.** Picture, name, two clamped lines, total time, a recommended
+badge, three tags with `+N`. No minimum height, and `align-items: start` on the
+grid so a two-line card is never stretched to match a neighbour full of tags —
+that stretch is what produced the column of white this rule exists to prevent.
+Below 576px the picture moves beside the text. The board and the grid are two
+arrangements of the same cards under the same filters; the order arrows are
+disabled in the grid, because a grid has no column for order to mean anything in.
+
+**Related content** (`<RelatedLinks>`) is a row per item — thumbnail, name,
+source, and a one-line note only when there is one — capped with "show N more".
+It lives in the recipe's side column. As full-width cards, seven attachments
+pushed the method off the screen and left white space beside them. No
+description, and no metadata beyond the source the user chose: neither helps
+anyone decide whether to click.
+
+## View and edit modes
+
+Several screens keep the same data behind two presentations.
+
+```
+EventDetailPage    isEditing → EventSectionCard mode="view" | "edit"
+                              + EventPreparation, reminder deletion
+RecipeDetailPage   editingNotes → the personal panel reads or edits
+PageDetailPage     isEditing → ProjectNotes, vision and progress controls
+ChecklistPageView  isEditing → ProjectNotes + ChecklistSection mode
+```
+
+The rule is what counts as *structural*. Ticking a task, marking a recipe cooked
+today and logging a training session are all facts, available while reading.
+Renaming a section, reordering it, deleting an item, editing free text: those
+need edit mode. The mode lives in component state, not in the URL or in storage
+— it is a way of looking at a screen, not a property of the data.
+
+Both save through the repository as changes are made, so the exit is "Done
+editing". The trip editor is the exception: it is a modal holding a draft, so
+Cancel genuinely discards and Save writes once.
+
+Event section items still use the section's own `EventTask[]` rather than the
+checklist repository. They render through the **shared** `Checklist` component
+via `lib/eventChecklist.ts`, which maps a section's flat list to a one-group
+checklist and back. Migrating the storage would mean rewriting stored events and
+minting an owner id per section, for no behaviour the user can see — so the
+adapter stands and the remaining debt is recorded in PROJECT_STATE.md.
+
+## Trip editing
+
+```
+TripEditModal          title · countries · cover · dates · status · next action
+                       · notes · every flight · every stay
+DestinationFormModal   city · country · picture · arrive/leave · worth knowing
+                       · clothing · the stay in that city
+day controls           add · remove · reorder · move to another destination
+```
+
+Every one of them builds a **whole collection** and calls `updateTrip` once.
+There is deliberately no `addDestination` / `removeDay` / `updateFlight` in the
+context: the forms already have the new array, one write cannot leave two
+arrays disagreeing, and the context stays small enough to read.
+
+Reordering days swaps their **dates** rather than adding an order field. Days
+are displayed in date order, so a separate order would let the itinerary and the
+calendar tell two different stories.
+
+## Outfits and packing
+
+```mermaid
+flowchart LR
+  O["TripOutfit"] -->|dayIds| D["TripDayPlan"]
+  O -->|destinationId| C["TripDestination"]
+  O -->|savedItemId| S["SavedItem"]
+  O -->|clothingItems| G["garment names"]
+  G -->|merged by normalised name| P["packing suggestions"]
+  P -->|on request only| L["Checklist (trip:{id})"]
+```
+
+An outfit belongs to the trip, like destinations and days. It carries a picture
+*reference* — an image address, a saved item, or a page link with no picture —
+and never a copy of an image.
+
+`packingSuggestions(trip)` merges the garments of every **selected** look:
+ideas are ideas. Quantities take the maximum across looks, not the sum, because
+three looks needing walking shoes need one pair. The derivation is one-way by
+design: `addSuggestionsToChecklist` adds only what is missing, and nothing ever
+reaches back to delete a checklist item when a look changes. Once an item is on
+the list it is the user's line.
+
+The quantity is stored in the item's **note**, not appended to its text. Writing
+"black shirt ×2" as the words means the next run compares "black shirt" against
+"black shirt ×2", finds no match, and adds a duplicate — which is exactly the
+bug the acceptance tour caught.
+
+## Image URL handling
+
+```
+lib/links.ts           isExternalUrl · normaliseUrl · isImageUrl
+UrlImageField          entry, live preview, inline error
+BoardImage             remote → seeded artwork → neutral placeholder
+```
+
+`BoardImage` resolves in that order, with one hard rule: **artwork is never a
+fallback for a remote picture that failed.** A drawing where a photograph
+should be looks like the photograph, and the user never learns the link is
+broken. A failed remote image gets a placeholder that says so, and the address
+stays editable in the form it came from.
+
+Only addresses are stored. Nothing is downloaded, nothing is base64-encoded,
+and no metadata is fetched from any service.
+
+## Storage adapter
+
+```
+lib/storage/keys.ts        every key, one namespace: focus.*
+lib/storage/localStore.ts  readJson / writeJson / removeKey — the only place
+                           window.localStorage is touched
+repositories/createRepository.ts   Repository<T> = { load, save }
+repositories/index.ts      routines · events · visionBoards · pageOverrides ·
+                           savedItems · visionDaily · entries (recipes) ·
+                           checklists · checklistTemplates · trips
+                           (ten `focus.*` keys plus the language preference)
+```
+
+Three properties make this a seam rather than a habit:
+
+1. **Versioned payloads.** Everything is stored as `{ v, data }`. A payload
+   written by an older `STORAGE_VERSION` is discarded and the seed is used
+   again — a schema change can never leave a user on a broken shape.
+
+   Because discarding is destructive, the version is bumped only when a field
+   **changes meaning or type**, never when one is added. Additive optional
+   fields are handled by a migration instead; bumping for those would delete a
+   user's data to avoid guessing at data that needs no guessing. `STORAGE_VERSION`
+   is still `1`, and every change through task 6 has been additive.
+2. **Diffs, not copies, for seeded data.** Pages store a `PageOverride` per
+   changed page. Storing whole pages would freeze the demo content at whatever
+   it looked like on a user's first visit.
+3. **Failures are silent and total.** Every call is wrapped in `try/catch`;
+   in private mode the app runs entirely in memory and nothing breaks.
+4. **Migrations run on every load**, over stored and seeded data alike, via the
+   third argument to `createRepository`. Two are live: collection entries
+   splitting the old three-way `state` into `status` + `recommended`, and every
+   URL-bearing slice passing its addresses through `normaliseUrl` so a
+   placeholder written by an older build stops being treated as a destination.
+   A migration fills in defaults; it never drops a field or changes an id.
+   A third is live as of task 5: trips gain an empty `outfits` array, so a trip
+   stored before outfits existed opens unchanged. Two more arrived in task 6:
+   events gain an empty `reminders` array (every screen maps over it), and page
+   overrides normalise note and picture ordering and pass their addresses
+   through `normaliseUrl`.
+
+   **The one thing a migration here must not do** is default `notes` to `[]`.
+   Absent means "never edited, read the legacy fields"; empty means "the user
+   deleted them all". Collapsing the two would erase the content of every
+   project written before notes existed. `prepDaysBefore` is the same shape of
+   trap: absent means "nothing to prepare" and must stay absent.
+
+Replacing this with the API is a change to `repositories/index.ts` and nothing
+above it: `load()` becomes a query, `save()` becomes a mutation.
+
+## Routine completion history
+
+A schedule and a history are different facts and are stored separately.
+
+- `RoutineScheduleRule` produces **planned** days. `lib/routineSchedule.ts`
+  walks forward day by day from the start date or the last completion.
+- `completions` is a list of **calendar days** (`YYYY-MM-DD`, local), because
+  "I went to the gym" is a fact about a day. Deriving keys from
+  `Date.toISOString()` would shift them for every user east of UTC, which is
+  every user this app is written for — hence `lib/dateKey.ts`.
+- `everyNDays` anchors on the **last completion**, so a missed session moves the
+  plan forward rather than accumulating a backlog of impossible catch-up days.
+- The calendar renders three states — done, today, planned ahead — and nothing
+  for a day that simply was not done. Marking those red is what makes people
+  stop opening the screen.
+
+## Project status flow
+
+```mermaid
+stateDiagram-v2
+  [*] --> active
+  active --> paused : park, optional reason
+  paused --> active : restart
+  active --> completed : stamp completedAt
+  paused --> completed : stamp completedAt
+  completed --> active : clears completedAt
+```
+
+`blocker` is orthogonal to all of it: an active project with a blocker is the
+normal case. Order within a column is `boardOrder`, rewritten for both affected
+columns on every move so the stored order stays canonical. Every transition is
+reachable by keyboard through the card's status `<select>`; drag and drop is an
+accelerator, never the only route.
+
+## Event templates
+
+`lib/eventTemplates.ts` maps an `EventKind` to an ordered list of
+`EventSectionKind`. Creating an event instantiates those sections with ids and
+order, and **no titles**.
+
+That last part is the design decision worth keeping: a section renders
+`titleOverride ?? t("events:sectionKinds." + kind)`. Seeding a template
+therefore writes no language into stored data, and a board created in Hebrew
+reads correctly in English. A title is only stored once the user renames it — at
+which point it is user content and is never translated again.
+
+## Daily vision board
+
+Stored preference: `{ enabled, boardId, lastShownDate }`, default `enabled:
+false`.
+
+The modal opens when the preference is on, the board has tiles, and
+`lastShownDate` is not today. It records the date **on open**, not on close, so
+closing the tab does not earn a second showing; and the decision is made once
+per session behind a ref, because recording the date immediately makes the
+opening condition false. "Do not show again" turns the preference off rather
+than snoozing it.
+
+## Internationalization layer
+
+Two languages, Hebrew (default) and English, from **one** codebase and **one**
+layout.
+
+```
+i18n/index.ts     init + stored preference + applyDocumentLanguage()
+i18n/useLocale.ts language, dir, isRtl, BCP-47 locale, setLanguage()
+i18n/locales/     en|he × common|dashboard|pages
+lib/format.ts     every date, number and percentage, driven by the locale
+```
+
+i18next is the only store for the current language — no extra React context was
+added, because `useTranslation()` already re-renders consumers on change.
+`useLocale()` is a thin wrapper that also performs the two side effects a change
+requires: persisting to `localStorage` (`focus.language`) and stamping the
+document.
+
+**UI strings vs user content** is a hard boundary. Everything in
+`i18n/locales/` is interface chrome and is translated. Everything in
+`mocks/` — page titles, states, blockers, notes — is the user's own words and is
+never translated, never duplicated per language, and never stored twice. When
+the API arrives, user content comes back from the server in whatever language it
+was written in; only the surrounding chrome switches.
+
+## Direction-driven layout
+
+Direction is a single attribute on the document root:
+
+```html
+<html lang="he" dir="rtl">   <!-- Hebrew -->
+<html lang="en" dir="ltr">   <!-- English -->
+```
+
+Everything else follows from it:
+
+- `index.css` is written entirely in **CSS logical properties**, so the sidebar
+  sits on the inline-start edge and the browser decides which side that is.
+- Bootstrap's **LTR build is used in both directions**. That is safe only
+  because the app uses none of Bootstrap's physical utilities (`ms-*`, `me-*`,
+  `text-start`, `float-*`) and because flexbox and grid are direction-aware by
+  themselves. Loading Bootstrap's RTL build at runtime was tried and rejected:
+  appended after the bundle, it overrode the app's own stylesheet.
+- Only genuinely directional icons mirror, via `<Icon flipForRtl />`.
+- The one component that must be told a side — the offcanvas drawer — reads
+  `useLocale().isRtl`.
+
+The preference is applied in `main.tsx` before the first render, so the layout
+never paints in the wrong direction and then flips.
+
+## Screen composition
+
+Two kinds of screen, one set of section components.
+
+```mermaid
+flowchart TD
+  S["features/sections/*<br/>Upcoming · Attention · Continue<br/>ChipList · SavedItems · CollectionEntries"]
+  D["Overview<br/>DashboardPage"] --> S
+  V["Space views<br/>SpaceView (one component)"] --> S
+  C["lib/spaceLayout.ts<br/>SPACE_SECTIONS config"] --> V
+```
+
+`SpaceView` renders whatever `SPACE_SECTIONS[spaceId]` lists, in order. Cooking
+therefore shows recipe states, Trips shows places and past notes, and Work &
+Tech shows stuck/active/parked projects — without a per-space component. Adding
+or reordering a space's sections is a config edit.
+
+Two invariants hold on every screen and are enforced structurally rather than by
+convention:
+
+- **Empty sections do not render.** `<Section hasContent={…}>` returns `null`,
+  so there is no heading and no placeholder box. A whole-screen `EmptyState`
+  appears only when a screen genuinely has nothing.
+- **No page is shown twice.** Section order is priority order: `SpaceView`
+  resolves each section's page list once, in order, removing anything an earlier
+  section already displayed. `DashboardPage` applies the same rule across the
+  upcoming strip, attention list, resume list and quick access.
+
+## Shared life primitives
+
+The ongoing-management, family and leisure areas are built from a small set of
+shared shapes rather than one system per need. Five new models, and the reason
+each earns its own identity:
+
+| Model | Why it is not something else |
+|---|---|
+| `ScheduledItem` | A single obligation with a due date and no ceremony. A `Routine` is recurring *activity with a history*; a `FocusEvent` is a dated *occasion with sections*. This is neither. |
+| `QuickLogEntry` | A line with a time on it. Distinct from a routine completion, which is a fact about a *day* rather than a moment. |
+| `FamilyProfile` | A subject that other records point at. Nothing else in the app is a person. |
+| `Commitment` / `MoneyEntry` | Money out on a cycle, and money in or out on a date. Deliberately two, because a cycle and a transaction are different things. |
+| `Medication` | A schedule of slots plus a record of which were ticked. A `Routine` has one completion per day; a medication has several. |
+| `LeisureItem` | Needs mutable suggestion state (`lastSuggestedAt`, `dismissedUntil`) that the seeded half of `SavedItem` cannot carry. |
+| `Menu` | Owns its dishes, so one write covers an edit — the same reasoning as `Trip`. |
+
+Two shapes are *not* models and have no repository, on purpose:
+
+- **`EntityReference`** — `{ kind, id }`. One pointer type, one resolver
+  (`hrefForReference`), one broken-reference story. Weak by design: the target
+  may be gone, nothing cascades, and the UI copes.
+- **`RecurrenceRule`** — a value carried by whatever repeats.
+
+### Domain extensions, not a god object
+
+`ScheduledItem` is the shape most of ongoing management is made of, which is
+exactly how a type turns into forty optional fields. It does not, because the
+extras a category needs sit in named optional blocks:
+
+```ts
+appointment?: { location?; bring?; prepare?; followUp? }   // appointments only
+money?:       { amount; currency? }                        // bills only
+result?:      string                                       // follow-ups
+```
+
+A plain reminder is a title, a category, a date and a status. The appointment
+block is revealed by the form only for the categories that use it, so "call the
+garage" is three fields and a booked eye test is eight.
+
+## Recurrence calculation
+
+`lib/recurrence.ts`. Six kinds — once, daily, weekly, monthly, yearly, custom —
+each of the four arithmetic ones taking an interval. There is no RRULE parser.
+
+Two properties matter more than the coverage:
+
+**It counts from the anchor, not from today.** `nextOccurrenceAfter(rule, anchor,
+after)` walks forward from the original due date until it passes `after`. A
+monthly charge on the 4th, marked paid on the 9th, moves to the 4th of next
+month. Walking from "now" instead would drift the date every time somebody was
+late.
+
+**It clamps rather than overflows.** `setMonth` turns 31 January + 1 month into
+3 March. `addMonths` takes the last valid day instead, so a month-end charge
+lands on 28 February and 29 February rolls to the 28th in a common year. Both are
+what a bank actually does.
+
+`custom` produces nothing. It is the escape hatch that keeps the other five
+simple: an irregular follow-up is not an incomplete rule, it is a different kind
+of thing, and completing one completes it rather than inventing a date.
+
+## Scheduled item lifecycle
+
+`lib/scheduled.ts`, entirely pure, `now` always an argument.
+
+```
+                 reminder window opens            due date
+   created ──────────────┬────────────────────────────┬────────────→
+                         │  isDue() true from here    │  isOverdue() from here
+```
+
+`firstReminderAt` is the widest offset before `dueAt`, because the point of
+asking early is to leave time to act. An item stays due after its date has
+passed — "renew the policy" does not stop mattering on the renewal date, it
+starts mattering more.
+
+Four states, and none collapses into another:
+
+- `active` — owed.
+- `snoozed` — still owed, told to stop asking until `snoozedUntil`. When that
+  passes, `isDue` starts returning true again on its own; nothing sweeps the
+  store.
+- `completed` — done.
+- `cancelled` — will never happen, which is not the same as done.
+
+`completeOccurrence` is where the recurrence lives: a repeating item **advances
+and stays active**, recording `lastCompletedAt` and a count, so a fortnightly
+visit can print "last done 9 days ago" without a history table.
+
+## Birthday derivation
+
+`lib/birthdays.ts`. Nothing is stored, and that is the whole design.
+
+The tempting implementation writes a `FocusEvent` per year when a profile is
+saved. It duplicates on every migration, leaves last year's event lying around,
+needs a sweep to create next year's, and puts the birth date in two places that
+can disagree. Instead:
+
+```
+FamilyProfile.birthDate ──► nextBirthday() ──► birthdayEventFor() ──► FocusEvent
+                                                                       (derived: true)
+```
+
+recomputed on every read. There is nothing to duplicate because there is nothing
+stored — acceptance test 29 passes by construction rather than by a
+de-duplication pass.
+
+**The collision rule.** `withBirthdays(events, profiles)` appends a derived
+birthday only when no stored event already has the id `birthday:<profileId>`. A
+user who built "Mum's 70th" with a venue, a gift list and a budget stores it
+under that id, and the computed row stands down: theirs holds work, the computed
+one holds a date theirs already has.
+
+**`derived` is a flag, not the id.** The id is the *slot*, and a real event may
+occupy it in order to win. Telling them apart by the shared prefix would strip
+the real event of its title, its sections and its screen — so `eventHref`,
+`EventList` and the relevance engine all read `event.derived`.
+
+A derived birthday carries **no sections**: there would be nowhere to store an
+edit to a computed object.
+
+## Dashboard relevance
+
+`lib/relevance.ts` is the one place that decides what is asking for something.
+It reads seven slices and returns a flat list; the caller groups it.
+
+```
+scheduled ┐
+events    ├─► collectRelevance() ─► RelevanceItem[] ─┬─► groupRelevance() ─► 5 buckets
+profiles  │        (filters)                          ├─► openReminderCount() ─► the bell
+commitments│                                          └─► RemindersPage
+money     │
+medications
+pages     ┘
+```
+
+Every source is filtered before it is included, and the filters are the feature:
+
+| Source | Appears when |
+|---|---|
+| `ScheduledItem` | its reminder window has opened, or it is within 21 days |
+| `FocusEvent` | `urgencyOf` is not `neutral` and not `done` — so an event that declared no preparation stays quiet until the week before |
+| Derived birthday | same rule, via the same `urgencyOf` |
+| `Commitment` | inside its own `remindDaysBefore`, capped at the horizon |
+| `MoneyEntry` | unpaid, and dated within a week |
+| `Medication` | a dose is due today and unticked |
+| `checklist` page | dated within a week |
+| `learning` page | untouched for 30 days — measured on `lastStudiedAt`, not `lastUpdatedAt` |
+
+Five buckets: `today` · `week` · `waiting` · `upcoming` · `recurring`. `waiting`
+is the one that is not about time — a bill nobody marked paid — and it sits third
+because it is real work with no deadline attached and would otherwise never
+surface. A recurring item that is not yet due goes to `recurring` rather than
+`upcoming`, which is that group's entire purpose.
+
+`BUCKET_LIMIT` is 3. `openReminderCount` counts `today` and `waiting` only: a
+badge that always shows a number is furniture.
+
+## Family and its references
+
+A profile stores a name, a type, a birth date, some notes and a list of
+switched-on sections. **Everything else on the screen is derived** from the items
+that happen to point at it:
+
+```
+ScheduledItem.relatedEntity ─┐
+Medication.relatedEntity     ├─► { kind: "family", id } ─► belongsTo(items, profileId)
+QuickLogEntry.relatedEntity ─┘
+```
+
+One predicate serves every section. The consequence that matters: deleting a
+profile cannot silently take a vet appointment with it, because nothing owns
+anything. `deleteProfile` takes an explicit `{ cascade }` and the dialog counts
+the affected records first.
+
+`FamilyProvider` sits **inside** `ManageProvider` and reaches scheduled items and
+medications through `useManage`, not through the repositories. Two providers
+holding independent state over one repository would each be authoritative and
+neither would see the other's writes until a reload.
+
+## Template cloning
+
+`lib/templates.ts` plus `fromTemplate` in `lib/checklist.ts`.
+
+Using a template deep-copies its groups and items with **regenerated ids** and
+every box cleared. `sharesNoIdentity(a, b)` is exported because "shares nothing"
+is a claim worth being able to check rather than assume, and the test suite
+checks it.
+
+The picker partitions one array three ways — recent, recommended, all — with
+recent winning, so nothing appears twice. `rememberTemplate` keeps four ids,
+most recent first.
+
+## Menu → shopping list
+
+`mergeMenuIntoChecklist` is idempotent, and each guarantee maps to a way the
+naive version fails:
+
+| Guarantee | The failure it prevents |
+|---|---|
+| Items already on the list are untouched | regenerating un-ticks the wine you already bought |
+| Lines are de-duplicated list-wide, not per group | moving a dish between courses resurrects an item |
+| Two dishes needing eggs produce one line | the list has everything on it twice |
+| Only new lines are appended | items the user added by hand disappear |
+| `Menu.listPageId` records which list it wrote to | every visit creates a *second* list |
+
+Matching is case- and whitespace-insensitive. `newLineCount` runs the same
+comparison without writing, so the confirmation can state a real number before
+anything happens.
+
+A dish with neither a recipe nor a "what to buy" list contributes **nothing** —
+not its own name. "Roast chicken" on a shopping list is not a shopping list.
+
+## Local reminder flow
+
+There is no server, no service worker and no push. A reminder is something Focus
+shows you the next time you open it.
+
+```
+open the app
+   └─► useRelevance()  ──► header bell (count)
+                        ├─► NowCentre on the overview
+                        └─► /reminders (adds what is snoozed)
+```
+
+Every one of those three surfaces renders `manage:reminders.localOnly`, which
+says so in words. The scheduled-item form says it again where offsets are chosen.
+Nothing in the app implies a notification will arrive while the tab is closed.
+
+`/reminders` is the only screen that lists snoozed items. An app where "later"
+means "gone" teaches people not to press it.
+
+## Search indexing
+
+There is no index — the data set is small and every search is a substring scan.
+Two rules distinguish it from the older search:
+
+**Scope.** `SearchResults` takes `includeExtra`. A space view passes `false`:
+family profiles, commitments and leisure items do not belong to Cooking or Trips,
+and surfacing a vet appointment under a search inside Cooking is the same
+category error as listing every project on the overview.
+
+**Health privacy.** `searchScheduled` matches on the note, the location, the
+preparation and the recorded result, so the item is findable. `ExtraResults`
+then prints, for an appointment, follow-up or vaccination, **the title and the
+category only** — `isSensitiveCategory` decides — and says once that details are
+hidden. A results list is a surface somebody can read over your shoulder.
+
+`useExtraSearch` is a hook rather than five calls inside the results component,
+because two places need the answer: the groups, and the code deciding whether to
+print "nothing matches". Running the searches twice is how those two drift and
+put an empty state above a list of matches.
+
+## Migration, extended
+
+Eleven new keys, all under `focus.`, all with a migration that **fills in and
+never removes**. The cases where "absent" and "empty" mean different things are
+the interesting ones, and none is collapsed:
+
+| Field | Absent means | Why it is left alone |
+|---|---|---|
+| `ScheduledItem.dueAt` | an undated reminder | defaulting it would make everything due at the epoch |
+| `ScheduledItem.recurrence` | happens once | defaulting it would invent a repetition |
+| `Medication.weekdays` | every day | so does `[]`; rewriting one into the other looks like an edit the user never made |
+| `MoneyEntry.paid` | nobody has confirmed it | defaulting to `true` would hide a real bill |
+| `FamilyProfile.birthday.enabled` | follows whether a birth date exists | switching it on without a date promises a countdown to nothing |
+| `FamilyProfile.activeSections` | genuinely empty *or* never set | the default set is applied only when the array is missing or empty, so a list the user shortened survives |
+| `PageSummary.notes` | never edited | unchanged from the previous build: `[]` means "deleted every note" |
+
+Arrays every screen maps over (`reminderOffsets`, `savedItemIds`, `times`,
+`taken`, `tags`, `dishes`) are filled in, because `.map` on `undefined` is a
+blank screen. URLs go through `normaliseUrl`, so a placeholder host stored by an
+older build is dropped rather than rendered as a working link.
+
+`ownPagesRepository` is new and needed for page creation: an override describes a
+change to a page that exists, so a page stored only as a diff would vanish the
+moment the override map were cleared.
+
+## Request flow (planned)
+
+Once the API exists, a request to load the dashboard will run:
+
+1. A component calls a TanStack Query hook, e.g. `usePagesQuery()`.
+2. The hook issues `GET /api/pages` with the Firebase ID token in
+   `Authorization: Bearer <token>`.
+3. Express assigns a `requestId`, then runs CORS and JSON parsing.
+4. Auth middleware verifies the token with the Firebase Admin SDK and puts the
+   resolved `ownerId` on the request. A failure ends here as `UNAUTHORIZED`.
+5. A Zod schema validates params and body. A failure ends here as
+   `BAD_REQUEST`.
+6. The controller calls a service, which queries Mongoose **always scoped by
+   `ownerId`**.
+7. The response is `{ success: true, data: … }`; any thrown error is converted
+   by the central error handler into the standard error envelope.
+
+The `requestId` / 404 / error-handler part of this chain is already built and
+working — only auth, validation and the database are missing.
+
+## Authentication (planned)
+
+Google Sign-In through Firebase Authentication.
+
+- The client runs the Google sign-in popup and receives a Firebase ID token.
+- The token is sent on every API request as a bearer token.
+- The server verifies it with the Firebase Admin SDK on every request. Tokens
+  are never trusted without verification and are never decoded client-side for
+  authorisation purposes.
+- No password storage, no session table, no custom JWT signing. The archived
+  `server/src/legacy/` code does use bcrypt + custom JWT — that approach is
+  **not** carried forward.
+
+## User separation with `ownerId`
+
+Every user-owned document carries an `ownerId` matching the Firebase `uid`.
+
+The rule is absolute: **`ownerId` is derived from the verified token, never
+read from the request body, query string, or headers.** A client cannot name
+the owner of anything.
+
+```ts
+// The only correct shape.
+const pages = await Page.find({ ownerId: req.auth.uid });
+
+// Never this, under any circumstance.
+const pages = await Page.find({ ownerId: req.body.ownerId });
+```
+
+Every query that touches user data — read, write, update, delete — must include
+`ownerId` in its filter. An update that matches by `_id` alone is a bug, because
+it lets one user modify another's document by guessing an id. Indexes should be
+compound and lead with `ownerId`.
+
+## Public showcase without leaking private data
+
+A `showcase` page is the only content that can be read without authentication,
+and only when its `visibility` is `"public"`.
+
+The safety rule: **build the public response from an explicit allow-list, never
+by deleting fields from a private object.** Removing fields fails open — a field
+added later is exposed by default. Selecting fields fails closed.
+
+```ts
+// Correct: nothing is public unless it is named here.
+function toPublicShowcase(page: PageDocument): PublicShowcase {
+  return {
+    id: page.id,
+    title: page.title,
+    description: page.description,
+    updatedAt: page.lastUpdatedAt,
+  };
+}
+```
+
+Concretely:
+
+- Public routes live under a separate prefix (e.g. `/api/public/*`) that never
+  runs owner-scoped handlers.
+- `blocker`, `nextAction`, `currentState`, `ownerId` and any internal notes are
+  **not** in the public projection — they are private working state.
+- The public query filters on `visibility: "public"` **and** `type: "showcase"`.
+- Public responses must not expose the `ownerId` or any id that could enumerate
+  a user's other pages.

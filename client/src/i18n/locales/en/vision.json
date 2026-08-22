@@ -1,0 +1,67 @@
+{
+  "title": "Vision Board",
+  "createBoard": "Create a board",
+  "chooseBoard": "Choose a board",
+  "addTile": "Add a picture",
+  "fromSaved": "From something you saved",
+  "noSavedItem": "Not from a saved item",
+  "picture": "Picture",
+  "caption": "Caption",
+  "category": "Category",
+  "size": "Size",
+  "untitledTile": "this picture",
+  "sizes": {
+    "small": "Small",
+    "medium": "Medium",
+    "large": "Large"
+  },
+  "artwork": {
+    "pizza": "Pizza",
+    "livingRoom": "Living room",
+    "sideboard": "Sideboard",
+    "spring": "Spring",
+    "mountain": "Mountain",
+    "laptop": "Laptop",
+    "gym": "Gym",
+    "notebook": "Notebook",
+    "document": "Document",
+    "running": "Running",
+    "cake": "Cake",
+    "table": "Set table",
+    "plant": "Plant",
+    "city": "City",
+    "books": "Books",
+    "camera": "Camera",
+    "salad": "Salad",
+    "sea": "Sea"
+  },
+  "moveEarlier": "Move {{name}} earlier",
+  "moveLater": "Move {{name}} later",
+  "openGoal": "Open the goal behind {{name}}",
+  "removeTile": "Remove {{name}}",
+  "dailyToggle": "Show this board the first time I open Focus each day",
+  "dailyHint": "Off by default. It appears once a day and can be closed straight away.",
+  "dontShowAgain": "Do not show again",
+  "openBoard": "Open the board",
+  "empty": {
+    "title": "No boards yet",
+    "hint": "A board is a handful of pictures of what you actually want this year."
+  },
+  "emptyBoard": {
+    "title": "This board is empty",
+    "hint": "Add a picture, or bring in something you already saved."
+  },
+  "editTitle": "Edit picture",
+  "editTile": "Edit {{name}}",
+  "pictureSource": "Where the picture comes from",
+  "source": {
+    "artwork": "Built-in artwork",
+    "url": "From a link"
+  },
+  "imageUrl": "Image address",
+  "imageUrlHint": "Only the address is saved. The picture is never downloaded, and stays on its own server.",
+  "imageUrlInvalid": "That is not a valid http or https address.",
+  "imageLoadFailed": "That address did not load as an image. Check it and try again.",
+  "checkImage": "Check the picture",
+  "previewOk": "The picture loads."
+}

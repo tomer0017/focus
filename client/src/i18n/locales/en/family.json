@@ -1,0 +1,132 @@
+{
+  "title": "Family",
+  "lead": "The people and animals worth remembering things about.",
+  "addProfile": "New profile",
+  "editProfile": "Edit profile",
+  "empty": "Nobody here yet",
+  "emptyHint": "Add a person or a pet to keep dates, reminders and notes in one place.",
+  "types": {
+    "adult": "Adult",
+    "child": "Child",
+    "baby": "Baby",
+    "pet": "Pet"
+  },
+  "fields": {
+    "name": "Name",
+    "type": "Who is this",
+    "relationship": "How they are related",
+    "relationshipPlaceholder": "Mum",
+    "birthDate": "Date of birth",
+    "birthDateHint": "The birthday is worked out from this every year. Nothing is stored per year.",
+    "photoUrl": "Photo address",
+    "photoHint": "A link to a picture. Focus stores the address only — never the file.",
+    "species": "Breed or kind"
+  },
+  "birthday": {
+    "title": "Birthday",
+    "enabled": "Show a birthday for this profile",
+    "prepDaysBefore": "Start preparing this many days before",
+    "prepHint": "Leave empty and it stays quiet until the week before.",
+    "importance": "How much it matters",
+    "turning": "Turning {{age}}",
+    "nextOn": "Next on {{date}}",
+    "label": "{{name}}'s birthday",
+    "noDate": "No date of birth recorded"
+  },
+  "importance": {
+    "low": "Not much",
+    "normal": "Normal",
+    "high": "A lot"
+  },
+  "sections": {
+    "dates": "Important dates",
+    "reminders": "Reminders",
+    "health": "Health",
+    "checkups": "Follow-ups",
+    "medications": "Medicines",
+    "vaccinations": "Vaccinations",
+    "feeding": "Feeds",
+    "tasting": "New foods",
+    "shopping": "Shopping & gifts",
+    "checklists": "Checklists",
+    "documents": "Documents & links",
+    "media": "Pictures & videos",
+    "notes": "Notes",
+    "history": "History",
+    "manage": "Which sections to show",
+    "manageHint": "Only what you switch on is shown. Nothing empty is ever displayed.",
+    "moveUp": "Move {{name}} up",
+    "moveDown": "Move {{name}} down",
+    "rename": "Rename {{name}}",
+    "add": "Add a section"
+  },
+  "card": {
+    "nextUp": "Next",
+    "lastActivity": "Last activity {{when}}",
+    "nothingDue": "Nothing outstanding",
+    "overdue": "Overdue"
+  },
+  "log": {
+    "feeding": "Feed",
+    "addFeeding": "Log a feed",
+    "tasting": "New food",
+    "addTasting": "Log a new food",
+    "visit": "Visit",
+    "addVisit": "Log a visit",
+    "call": "Call",
+    "when": "When",
+    "kindLabel": "What kind",
+    "variants": {
+      "breast": "Breast",
+      "bottle": "Bottle",
+      "solids": "Solids",
+      "other": "Other"
+    },
+    "amount": "How much",
+    "unit": "Unit",
+    "food": "What food",
+    "firstTime": "First time trying it",
+    "reaction": "What you noticed",
+    "reactionHint": "Your own words. Focus records them and never interprets them.",
+    "followUp": "Worth coming back to",
+    "followUpAt": "Try again on",
+    "lastFeed": "Last feed {{when}}",
+    "todayCount_one": "{{count}} feed today",
+    "todayCount_other": "{{count}} feeds today",
+    "noneToday": "Nothing logged today",
+    "tried": "Already tried",
+    "planned": "Planned",
+    "thisWeek": "This week",
+    "needsFollowUp": "You marked for follow-up",
+    "empty": "Nothing logged yet",
+    "delete": "Delete entry",
+    "deleteTitle": "Delete this entry?",
+    "deleteBody": "The entry will be removed from the log.",
+    "note": "Note"
+  },
+  "notes": {
+    "title": "Notes",
+    "add": "Add a note",
+    "empty": "No notes yet"
+  },
+  "delete": {
+    "action": "Delete profile",
+    "title": "Delete {{name}}?",
+    "body": "The profile will be removed.",
+    "keepRelated": "{{count}} appointments, medicines and log entries point at this profile. They will be kept unless you say otherwise.",
+    "cascadeLabel": "Also delete those {{count}} records",
+    "cascadeCaution": "Deleted records cannot be brought back.",
+    "confirm": "Delete"
+  },
+  "safety": {
+    "baby": "Focus records what you write down. It suggests no amount, judges no reaction and is not a substitute for a paediatrician.",
+    "pet": "Focus records what the vet told you. It gives no veterinary advice."
+  },
+  "topics": {
+    "dates": "Reminders and dates",
+    "health": "Health and medicines",
+    "logs": "Log",
+    "notes": "Notes and documents"
+  },
+  "chooseTopic": "What to show"
+}

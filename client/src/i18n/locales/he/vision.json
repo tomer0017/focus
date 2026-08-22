@@ -1,0 +1,67 @@
+{
+  "title": "לוח חזון",
+  "createBoard": "יצירת לוח",
+  "chooseBoard": "בחירת לוח",
+  "addTile": "הוספת תמונה",
+  "fromSaved": "מתוך משהו ששמרת",
+  "noSavedItem": "לא מפריט שמור",
+  "picture": "תמונה",
+  "caption": "כותרת",
+  "category": "קטגוריה",
+  "size": "גודל",
+  "untitledTile": "התמונה הזאת",
+  "sizes": {
+    "small": "קטן",
+    "medium": "בינוני",
+    "large": "גדול"
+  },
+  "artwork": {
+    "pizza": "פיצה",
+    "livingRoom": "סלון",
+    "sideboard": "מזנון",
+    "spring": "מעיין",
+    "mountain": "הר",
+    "laptop": "מחשב נייד",
+    "gym": "חדר כושר",
+    "notebook": "מחברת",
+    "document": "מסמך",
+    "running": "ריצה",
+    "cake": "עוגה",
+    "table": "שולחן ערוך",
+    "plant": "צמח",
+    "city": "עיר",
+    "books": "ספרים",
+    "camera": "מצלמה",
+    "salad": "סלט",
+    "sea": "ים"
+  },
+  "moveEarlier": "העברת {{name}} אחורה",
+  "moveLater": "העברת {{name}} קדימה",
+  "openGoal": "פתיחת המטרה מאחורי {{name}}",
+  "removeTile": "הסרת {{name}}",
+  "dailyToggle": "הצג את לוח החזון בכניסה הראשונה בכל יום",
+  "dailyHint": "כבוי כברירת מחדל. מוצג פעם ביום וניתן לסגור מיד.",
+  "dontShowAgain": "אל תציג שוב",
+  "openBoard": "פתיחת הלוח",
+  "empty": {
+    "title": "עדיין אין לוחות",
+    "hint": "לוח הוא כמה תמונות של מה שאתה באמת רוצה השנה."
+  },
+  "emptyBoard": {
+    "title": "הלוח ריק",
+    "hint": "הוסף תמונה, או הבא משהו ששמרת כבר."
+  },
+  "editTitle": "עריכת תמונה",
+  "editTile": "עריכת {{name}}",
+  "pictureSource": "מקור התמונה",
+  "source": {
+    "artwork": "איור מובנה",
+    "url": "מקישור"
+  },
+  "imageUrl": "כתובת התמונה",
+  "imageUrlHint": "רק הכתובת נשמרת. התמונה אינה מורדת ונשארת בשרת שלה.",
+  "imageUrlInvalid": "זו אינה כתובת http או https תקינה.",
+  "imageLoadFailed": "הכתובת הזאת לא נטענה כתמונה. בדוק אותה ונסה שוב.",
+  "checkImage": "בדיקת התמונה",
+  "previewOk": "התמונה נטענת."
+}

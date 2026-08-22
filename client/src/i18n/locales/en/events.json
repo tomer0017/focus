@@ -1,0 +1,131 @@
+{
+  "title": "Events",
+  "lead": "Occasions with a date. Past ones are kept, not archived away.",
+  "pastEvents": "Already happened",
+  "nextActionPlaceholder": "The one thing to do next",
+  "kinds": {
+    "birthday": "Birthday",
+    "holiday": "Holiday",
+    "wedding": "Wedding",
+    "barMitzvah": "Bar Mitzvah",
+    "batMitzvah": "Bat Mitzvah",
+    "anniversary": "Anniversary",
+    "party": "Party",
+    "hosting": "Hosting a meal",
+    "family": "Family event",
+    "custom": "Something else"
+  },
+  "sectionKinds": {
+    "tasks": "Tasks",
+    "gifts": "Gift ideas",
+    "budget": "Budget",
+    "guests": "Guests",
+    "food": "Food and place",
+    "greeting": "The speech",
+    "links": "Saved links",
+    "vision": "Vision board",
+    "menu": "Menu",
+    "shopping": "Shopping",
+    "decor": "Table and decor",
+    "recipes": "Recipes",
+    "inspiration": "Inspiration",
+    "notes": "Notes"
+  },
+  "create": {
+    "title": "New event",
+    "name": "What is it",
+    "kind": "Kind",
+    "date": "Date",
+    "time": "Time",
+    "useTemplate": "Start from the template for this kind",
+    "templatePreview": "It will start with:",
+    "blank": "An empty page you build yourself"
+  },
+  "add": "Add",
+  "addItem": "Add an item",
+  "removeItem": "Remove {{name}}",
+  "addSection": "Add a section",
+  "removeSection": "Remove the {{name}} section",
+  "renameSection": "New name",
+  "renameSectionNamed": "Rename the {{name}} section",
+  "moveSectionUp": "Move {{name}} earlier",
+  "moveSectionDown": "Move {{name}} later",
+  "notesFor": "Notes for {{name}}",
+  "budgetAmount": "Amount",
+  "linkSaved": "Link something you already saved",
+  "linkRecipe": "Link a recipe you already have",
+  "unlink": "Unlink",
+  "noBoard": "No board is linked to this event yet.",
+  "openBoard": "Open the board",
+  "deleteEvent": "Delete event",
+  "empty": {
+    "title": "No events yet",
+    "hint": "Create one from a template, or start from a blank page."
+  },
+  "editEvent": "Edit the event",
+  "doneEditing": "Done editing",
+  "editHint": "Changes are saved as you make them, in this browser only.",
+  "nothingLinked": "Nothing linked yet.",
+  "nothingYet": "Nothing written yet.",
+  "urgency": {
+    "neutral": "Nothing to do yet",
+    "preparing": "Time to start preparing",
+    "soon": "Coming up",
+    "critical": "Needs attention now",
+    "done": "Done"
+  },
+  "daysRemaining_one": "{{count}} day to go",
+  "daysRemaining_other": "{{count}} days to go",
+  "daysSince_one": "{{count}} day ago",
+  "daysSince_other": "{{count}} days ago",
+  "prep": {
+    "heading": "When this starts mattering",
+    "lead": "Days remaining cannot tell a flight in two months from a 60th birthday in two months. This can.",
+    "window": "Preparation starts",
+    "noPrep": "Nothing to prepare in advance",
+    "daysBefore_one": "{{count}} day before",
+    "daysBefore_other": "{{count}} days before",
+    "importance": "How much it matters",
+    "importanceLevel": {
+      "low": "Minor — keep it quiet until the week before",
+      "normal": "Normal",
+      "high": "Major"
+    }
+  },
+  "reminders": {
+    "heading": "Reminders",
+    "dueHeading_one": "{{count}} reminder needs you",
+    "dueHeading_other": "{{count}} reminders need you",
+    "add": "Add a reminder",
+    "labelField": "What to do",
+    "labelPlaceholder": "Check in online",
+    "whenField": "When",
+    "untitled": "Reminder",
+    "due": "due now",
+    "handled": "handled",
+    "snoozed": "put off until tomorrow",
+    "markHandled": "Mark handled",
+    "snooze": "Remind me tomorrow",
+    "undo": "Undo",
+    "remove": "Delete the reminder “{{name}}”",
+    "preset": {
+      "168": "A week before",
+      "24": "24 hours before",
+      "2": "Two hours before"
+    },
+    "localOnly": "Reminders appear here when Focus is open. Nothing is sent to your phone — there is no server behind this yet."
+  },
+  "groups": {
+    "near": "Coming up",
+    "later": "Later",
+    "past": "Been and gone"
+  },
+  "chooseGroup": "Which events to show",
+  "searchLabel": "Search events",
+  "noMatches": "No event matches that search.",
+  "noneIn": {
+    "near": "Nothing needs preparing right now.",
+    "later": "Nothing further out.",
+    "past": "No event has happened yet."
+  }
+}

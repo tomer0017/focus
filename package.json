@@ -1,0 +1,25 @@
+{
+  "name": "focus",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Focus — a personal operating system for projects, routines, events, trips and everything worth coming back to.",
+  "scripts": {
+    "install:all": "npm --prefix client install && npm --prefix server install",
+    "dev:client": "npm --prefix client run dev",
+    "dev:server": "npm --prefix server run dev",
+    "build": "npm --prefix client run build && npm --prefix server run build",
+    "build:client": "npm --prefix client run build",
+    "build:server": "npm --prefix server run build",
+    "typecheck": "npm --prefix client run typecheck && npm --prefix server run typecheck",
+    "lint": "npm --prefix client run lint",
+    "check:links": "node scripts/check-links.mjs",
+    "start:server": "npm --prefix server run start",
+    "test": "npm --prefix client run test && npm --prefix server run test",
+    "test:client": "npm --prefix client run test"
+  },
+  "comments": {
+    "workspaces": "Deliberately NOT an npm workspace. client/ and server/ are independent projects with their own node_modules; these scripts are conveniences only. See docs/PROJECT_STATE.md decision 1.",
+    "test": "Vitest covers client/src/lib — the pure rules (recurrence, urgency, relevance, templates, migrations). The server has no tests yet and its script is still a notice.",
+    "checkLinks": "Fails if a placeholder destination (example.com, url:\"#\") is written into client source. See scripts/check-links.mjs."
+  }
+}

@@ -1,0 +1,6550 @@
+/*
+ * Focus — thin styling layer on top of Bootstrap 5.3.
+ *
+ * Direction: every rule here uses CSS logical properties (inline-start/end)
+ * rather than left/right, so one layout serves both Hebrew (RTL) and English
+ * (LTR). Bootstrap's LTR build is used in both directions — see the note
+ * further down, and docs/PROJECT_STATE.md decision 12.
+ */
+
+:root {
+  --focus-bg: #f7f8fa;
+  --focus-surface: #ffffff;
+  --focus-line: #e6e8ee;
+  --focus-line-soft: #eef0f4;
+  --focus-text: #1d2433;
+  --focus-muted: #667085;
+  --focus-accent: #3b6ef5;
+  --focus-accent-soft: rgba(59, 110, 245, 0.09);
+  --focus-warn: #b7791f;
+  --focus-warn-soft: #fdf6e6;
+  --focus-radius: 14px;
+  --focus-radius-sm: 10px;
+  --focus-sidebar-width: 236px;
+}
+
+body {
+  background-color: var(--focus-bg);
+  color: var(--focus-text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    "Noto Sans Hebrew", "Noto Sans", sans-serif;
+}
+
+/* Hebrew reads better with slightly more line height at the same size. */
+:root:lang(he) body {
+  line-height: 1.6;
+}
+
+/* Keyboard focus must stay obvious everywhere. */
+:focus-visible {
+  outline: 3px solid rgba(59, 110, 245, 0.45);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Directional glyphs (arrows) mirror; symbolic ones never do. */
+[dir="rtl"] .focus-icon-directional {
+  transform: scaleX(-1);
+}
+
+/*
+ * Bootstrap's LTR build is used in both directions. That works because this
+ * app uses no physical Bootstrap utilities (no ms-/me-/ps-/pe-/text-start),
+ * and flexbox is direction-aware on its own — so the RTL build, and the
+ * stylesheet-ordering problems that came with loading it at runtime, are not
+ * needed. The two exceptions are these close buttons, which Bootstrap pins
+ * with a physical `margin-left: auto`.
+ */
+.modal-header .btn-close,
+.offcanvas-header .btn-close {
+  margin: -0.5rem;
+  margin-inline-start: auto;
+}
+
+/*
+ * Bootstrap's `.form-check` is built on `padding-left` plus a floated input
+ * with a negative `margin-left`. In RTL that throws the box to the far side of
+ * its label. Rebuilt here as a logical flex row — the same fix the two close
+ * buttons above needed, for the same reason.
+ */
+.form-check {
+  padding-left: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.55em;
+  flex-wrap: wrap;
+  min-block-size: auto;
+}
+
+.form-check .form-check-input {
+  float: none;
+  margin-left: 0;
+  margin-top: 0;
+  flex: 0 0 auto;
+}
+
+.form-check .form-check-label {
+  margin: 0;
+}
+
+.form-check .form-text {
+  flex: 1 0 100%;
+  margin-block-start: 0;
+}
+
+/* Flex children default to min-width:auto, which lets an input's intrinsic
+   width push the whole shell past the viewport on narrow screens. */
+.focus-min-w-0,
+.focus-main,
+.focus-header__row,
+.focus-search {
+  min-width: 0;
+}
+
+/* ---------------------------------------------------------------- shell -- */
+
+.focus-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.focus-sidebar {
+  inline-size: var(--focus-sidebar-width);
+  flex: 0 0 var(--focus-sidebar-width);
+  background: var(--focus-surface);
+  border-inline-end: 1px solid var(--focus-line);
+  padding: 18px 14px;
+  position: sticky;
+  inset-block-start: 0;
+  block-size: 100vh;
+}
+
+.focus-main {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.focus-content {
+  padding: 22px clamp(14px, 3vw, 32px) 56px;
+  flex: 1 1 auto;
+}
+
+.focus-brand {
+  display: block;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--focus-text);
+  text-decoration: none;
+  padding: 6px 10px;
+  margin-block-end: 14px;
+}
+
+.focus-brand--inline {
+  margin-block-end: 0;
+  padding: 0;
+}
+
+/* ------------------------------------------------------------------ nav -- */
+
+.focus-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--focus-radius-sm);
+  color: #48536b;
+  font-size: 0.925rem;
+  font-weight: 500;
+  text-decoration: none;
+  text-align: start;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.focus-nav-link:hover:not(:disabled) {
+  background-color: var(--focus-accent-soft);
+  color: var(--focus-accent);
+}
+
+.focus-nav-link.is-active {
+  background-color: var(--focus-accent-soft);
+  color: var(--focus-accent);
+  font-weight: 600;
+}
+
+.focus-nav-link:disabled {
+  color: #9aa3b5;
+  cursor: default;
+}
+
+/* --------------------------------------------------------------- header -- */
+
+.focus-header {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 1020;
+  background: var(--focus-surface);
+  border-block-end: 1px solid var(--focus-line);
+}
+
+.focus-header__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px clamp(14px, 3vw, 32px);
+  max-inline-size: 1200px;
+  margin-inline: auto;
+  inline-size: 100%;
+}
+
+.focus-greeting {
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--focus-text);
+}
+
+.focus-search {
+  /* Grows, but stops: a search field stretched across 1440px pushes the
+     greeting and the save button to opposite edges and the row stops reading
+     as one thing. */
+  flex: 1 1 260px;
+  max-inline-size: 560px;
+  position: relative;
+}
+
+.focus-search__icon {
+  position: absolute;
+  inset-inline-start: 11px;
+  inset-block-start: 50%;
+  transform: translateY(-50%);
+  color: var(--focus-muted);
+  pointer-events: none;
+}
+
+.focus-search__input {
+  padding-inline-start: 36px;
+  border-radius: 999px;
+  background: var(--focus-bg);
+  border-color: transparent;
+}
+
+.focus-search__input:focus {
+  background: var(--focus-surface);
+}
+
+.focus-save-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+}
+
+.focus-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  line-height: 1;
+  border-radius: var(--focus-radius-sm);
+  text-decoration: none;
+}
+
+/* ------------------------------------------------------ language switch -- */
+
+.focus-lang {
+  display: inline-flex;
+  background: var(--focus-bg);
+  border-radius: 999px;
+  padding: 3px;
+  flex: 0 0 auto;
+}
+
+.focus-lang__option {
+  border: 0;
+  background: transparent;
+  color: var(--focus-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.focus-lang__option.is-active {
+  background: var(--focus-surface);
+  color: var(--focus-text);
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.12);
+}
+
+/* -------------------------------------------------------------- headings -- */
+
+.focus-page-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-block-end: 10px;
+}
+
+.focus-section {
+  margin-block-end: 30px;
+}
+
+.focus-section-title {
+  font-size: 0.98rem;
+  font-weight: 650;
+  color: var(--focus-text);
+}
+
+.focus-section-action {
+  font-size: 0.83rem;
+  color: var(--focus-accent);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.focus-mock-notice {
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius-sm);
+  padding: 8px 12px;
+}
+
+.focus-empty {
+  background: var(--focus-surface);
+  border: 1px dashed var(--focus-line);
+}
+
+/* ---------------------------------------------------------------- grids -- */
+
+/*
+ * `min(<track>, 100%)` is what keeps these grids from overflowing: a bare
+ * minmax() floor cannot shrink below its track size, and grid items default to
+ * min-width:auto, so a long unbreakable line would push the whole page wider
+ * than a 320px viewport. The `min-width: 0` on items is the other half of it.
+ */
+.focus-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.focus-grid > li {
+  min-width: 0;
+  align-self: stretch;
+  /*
+   * With auto-fit a single item's track becomes the whole row. The cap is what
+   * keeps one card from stretching across a 1440px screen while still letting
+   * two, three or four cards fill the row evenly.
+   */
+  max-inline-size: 420px;
+}
+
+.focus-grid--upcoming {
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+}
+
+.focus-grid--continue {
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+}
+
+.focus-grid--chips {
+  grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr));
+  /* A card is as tall as what is in it. Stretching a two-line card to match a
+     neighbour full of checklist items leaves a column of empty white. */
+  align-items: start;
+}
+
+.focus-grid--chips > li {
+  align-self: start;
+}
+
+.focus-grid--saved {
+  grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr));
+}
+
+/* ---------------------------------------------------------------- cards -- */
+
+.focus-tile,
+.focus-card,
+.focus-chip-card,
+.focus-saved {
+  position: relative;
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius);
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.focus-tile:hover,
+.focus-card:hover,
+.focus-chip-card:hover,
+.focus-saved:hover {
+  border-color: #d3d8e4;
+  box-shadow: 0 3px 12px rgba(16, 24, 40, 0.06);
+}
+
+.focus-tile,
+.focus-card,
+.focus-chip-card {
+  padding: 13px 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Card-wide links: the whole card is the target, so nested controls need to
+   sit above the stretched link's pseudo-element. */
+.focus-tile a.stretched-link,
+.focus-card a.stretched-link,
+.focus-chip-card a.stretched-link,
+.focus-saved a.stretched-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.focus-card__meta,
+.focus-tile__action {
+  position: relative;
+  z-index: 2;
+}
+
+.focus-tile__eyebrow,
+.focus-chip-card__eyebrow,
+.focus-saved__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--focus-muted);
+  margin-block-end: 4px;
+}
+
+.focus-tile__title,
+.focus-card__title,
+.focus-chip-card__title,
+.focus-saved__title {
+  font-size: 0.95rem;
+  font-weight: 650;
+  margin-block-end: 4px;
+}
+
+.focus-tile__when {
+  font-size: 0.85rem;
+}
+
+.focus-tile__action {
+  margin-block-start: 10px;
+}
+
+.focus-tile__action .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+}
+
+.focus-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  /* At 320px a long title beside a fixed action row pushes the row past the
+     viewport, because `flex: 0 0 auto` on the meta means only the title can
+     give — and it cannot, without somewhere to wrap to. */
+  flex-wrap: wrap;
+}
+
+.focus-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  /* Shrinking to nothing is better than overflowing the page. */
+  min-inline-size: 0;
+}
+
+.focus-card__state {
+  font-size: 0.85rem;
+  color: var(--focus-muted);
+  margin-block: 6px 8px;
+}
+
+.focus-card__next {
+  font-size: 0.87rem;
+  margin-block-end: 10px;
+}
+
+.focus-card__foot,
+.focus-saved__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* Wraps rather than forcing the card wider — Hebrew's "updated N days ago"
+     plus a nowrap CTA does not fit one line on a narrow card. */
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  font-size: 0.78rem;
+  color: var(--focus-muted);
+  margin-block-start: auto;
+}
+
+.focus-card__cta,
+.focus-saved__cta,
+.focus-row__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--focus-accent);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.focus-chip-card__detail {
+  font-size: 0.82rem;
+  color: var(--focus-muted);
+  margin-block-end: 0;
+}
+
+.focus-progress {
+  block-size: 5px;
+  margin-block-start: 9px;
+  background: var(--focus-line-soft);
+}
+
+.focus-progress .progress-bar {
+  background-color: #2e9e6b;
+}
+
+/* ------------------------------------------------------- attention rows -- */
+
+/*
+ * Blocked work lays out across the row. Two rows stacked in a narrow column
+ * with the rest of the line empty was the single worst use of space on the
+ * overview; `auto-fit` collapses the unused track instead of reserving it.
+ */
+.focus-rows {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr));
+  gap: 8px;
+  align-items: start;
+}
+
+.focus-row {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius-sm);
+  padding: 11px 14px;
+  transition: border-color 0.12s ease;
+}
+
+.focus-row:hover {
+  border-color: #d3d8e4;
+}
+
+.focus-row--attention {
+  border-inline-start: 3px solid #e8b64c;
+}
+
+.focus-row__flag {
+  color: var(--focus-warn);
+  flex: 0 0 auto;
+  margin-block-start: 1px;
+}
+
+.focus-row__body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.focus-row__title {
+  font-size: 0.92rem;
+  font-weight: 650;
+  margin-block-end: 2px;
+}
+
+.focus-row__title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.focus-row__detail {
+  font-size: 0.84rem;
+  color: var(--focus-muted);
+}
+
+.focus-row__next {
+  font-size: 0.84rem;
+  margin-block-start: 2px;
+}
+
+.focus-row__cta {
+  font-size: 0.82rem;
+  flex: 0 0 auto;
+  align-self: center;
+}
+
+/* ---------------------------------------------------------- saved cards -- */
+
+.focus-saved {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.focus-saved__thumb {
+  inline-size: 100%;
+  block-size: 104px;
+  object-fit: cover;
+  display: block;
+  border-block-end: 1px solid var(--focus-line-soft);
+}
+
+.focus-saved__body {
+  padding: 11px 13px;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+}
+
+.focus-saved__note {
+  font-size: 0.8rem;
+  color: var(--focus-muted);
+  font-style: italic;
+  margin-block-end: 8px;
+}
+
+/* ----------------------------------------------------------- chip badge -- */
+
+.focus-chip {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 650;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.focus-chip--primary { background: #e8efff; color: #1f4fd0; }
+.focus-chip--info    { background: #e4f4fb; color: #0e6f92; }
+.focus-chip--warning { background: #fdf1dc; color: #96650f; }
+.focus-chip--danger  { background: #fdeaea; color: #a72f2f; }
+.focus-chip--success { background: #e4f5ec; color: #17784c; }
+.focus-chip--muted   { background: var(--focus-bg); color: var(--focus-muted); }
+
+/* --------------------------------------------------------- detail page -- */
+
+.focus-detail {
+  max-inline-size: 52rem;
+}
+
+.focus-detail--wide {
+  max-inline-size: 100%;
+}
+
+.focus-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+}
+
+.focus-detail__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-block-end: 8px;
+}
+
+.focus-detail__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-block-end: 16px;
+}
+
+.focus-detail__head .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+}
+
+/* Resume brief: the two lead facts get the visual weight, everything else
+   is deliberately quieter. */
+/*
+ * Hierarchy, not a two-up grid: the next action is the largest thing on the
+ * page, where you stopped sits under it as context, and the blocker is
+ * unmistakable but visibly quieter than the action.
+ */
+.focus-brief__action {
+  background: #f4f8ff;
+  border: 1px solid #cfdcfa;
+  border-inline-start: 4px solid var(--focus-accent);
+  border-radius: var(--focus-radius);
+  padding: 16px 20px;
+  margin-block-end: 10px;
+}
+
+.focus-brief__action-label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--focus-accent);
+  margin-block-end: 5px;
+}
+
+.focus-brief__action-value {
+  font-size: 1.18rem;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.focus-brief__action-input {
+  font-size: 1.05rem;
+  font-weight: 600;
+  border-color: #cfdcfa;
+  background: var(--focus-surface);
+}
+
+.focus-brief__resume {
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-inline-start: 3px solid #c8d2e6;
+  border-radius: var(--focus-radius);
+  padding: 13px 16px;
+  margin-block-end: 12px;
+}
+
+.focus-brief__lead-label {
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--focus-muted);
+  margin-block-end: 4px;
+}
+
+.focus-brief__lead-value {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.focus-brief__blocker {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: var(--focus-warn-soft);
+  border: 1px solid #f0dcae;
+  border-radius: var(--focus-radius-sm);
+  padding: 10px 13px;
+  font-size: 0.88rem;
+  color: #7a5510;
+  margin-block-end: 14px;
+}
+
+.focus-brief__blocker svg {
+  flex: 0 0 auto;
+  margin-block-start: 2px;
+}
+
+.focus-brief__facts {
+  display: grid;
+  gap: 12px;
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius);
+  padding: 15px 17px;
+}
+
+@media (min-width: 620px) {
+  .focus-brief__facts {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.focus-fact__label {
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--focus-muted);
+  margin-block-end: 2px;
+}
+
+.focus-fact__value {
+  font-size: 0.9rem;
+}
+
+/* ------------------------------------------------------------------ tabs -- */
+
+.focus-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  border-block-end: 1px solid var(--focus-line);
+  margin-block-end: 18px;
+  /* Scrolls on narrow screens, but never paints a track — Chrome reserves and
+     draws one here even when there is nothing to scroll. Tabs stay reachable
+     by keyboard, so hiding the bar costs nothing. */
+  scrollbar-width: none;
+}
+
+.focus-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.focus-tabs__tab {
+  border: 0;
+  background: transparent;
+  color: var(--focus-muted);
+  font-size: 0.88rem;
+  font-weight: 550;
+  padding: 8px 12px;
+  white-space: nowrap;
+  border-block-end: 2px solid transparent;
+  margin-block-end: -1px;
+}
+
+.focus-tabs__tab.is-active {
+  color: var(--focus-accent);
+  border-block-end-color: var(--focus-accent);
+  font-weight: 650;
+}
+
+.focus-tabpanel {
+  min-block-size: 120px;
+}
+
+.focus-tab-empty {
+  color: var(--focus-muted);
+  font-size: 0.9rem;
+  background: var(--focus-surface);
+  border: 1px dashed var(--focus-line);
+  border-radius: var(--focus-radius-sm);
+  padding: 18px;
+  text-align: center;
+}
+
+.focus-tab-list {
+  padding-inline-start: 1.1rem;
+  font-size: 0.9rem;
+}
+
+.focus-tab-note {
+  font-size: 0.82rem;
+  color: var(--focus-muted);
+  font-style: italic;
+}
+
+/* --------------------------------------------------------------- shared -- */
+
+.focus-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .focus-tile,
+  .focus-card,
+  .focus-chip-card,
+  .focus-saved,
+  .focus-row,
+  .focus-nav-link {
+    transition: none;
+  }
+}
+
+/* Small screens: tighter padding, and the attention CTA drops off since the
+   whole row is already tappable. */
+@media (max-width: 575.98px) {
+  .focus-row__cta {
+    display: none;
+  }
+
+  .focus-page-title {
+    font-size: 1.2rem;
+  }
+
+  /*
+   * Search gets its own line. Sharing a row with the menu button, the language
+   * toggle and the save button squeezed the input down to its icon at 320px,
+   * which is worse than one extra row of header.
+   */
+  .focus-header__row {
+    flex-wrap: wrap;
+  }
+
+  .focus-search {
+    order: 10;
+    flex: 1 0 100%;
+  }
+}
+
+/* ============================================================== container == */
+
+/*
+ * One bounded column for every screen. Before this, wide viewports left the
+ * cards hugging the sidebar edge with most of the screen blank, because the
+ * grids had no reason to spread and no reason to stop.
+ */
+.focus-container {
+  max-inline-size: 1200px;
+  margin-inline: auto;
+  inline-size: 100%;
+}
+
+.focus-page-lead {
+  color: var(--focus-muted);
+  font-size: 0.92rem;
+  max-inline-size: 62ch;
+  margin-block-end: 18px;
+}
+
+/* Whole-card keyboard focus: the stretched link is what receives focus, so the
+   ring has to be drawn by the card around it. */
+.focus-card:focus-within,
+.focus-tile:focus-within,
+.focus-chip-card:focus-within,
+.focus-saved:focus-within,
+.focus-row:focus-within,
+.focus-board-card:focus-within {
+  outline: 3px solid rgba(59, 110, 245, 0.45);
+  outline-offset: 2px;
+}
+
+.focus-card a.stretched-link:focus-visible,
+.focus-tile a.stretched-link:focus-visible,
+.focus-chip-card a.stretched-link:focus-visible,
+.focus-saved a.stretched-link:focus-visible,
+.focus-row a.stretched-link:focus-visible,
+.focus-board-card a.stretched-link:focus-visible {
+  outline: none;
+}
+
+/* ================================================================= header == */
+
+.focus-header__identity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.focus-demo-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--focus-muted);
+  background: var(--focus-bg);
+  border: 1px solid var(--focus-line);
+  border-radius: 999px;
+  padding: 1px 8px;
+  white-space: nowrap;
+}
+
+/* The language toggle is a setting, not an action: smaller and quieter than
+   the one button on this row that actually does something. */
+.focus-lang__option {
+  font-size: 0.75rem;
+  padding: 3px 8px;
+}
+
+/* ================================================================== chips == */
+
+.focus-chip--icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.focus-chip-card__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.focus-chip-card__detail + .focus-chip-card__detail {
+  margin-block-start: 2px;
+}
+
+.focus-chip-card__flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--focus-warn);
+  margin-block-start: 6px;
+}
+
+.focus-source {
+  background: var(--focus-bg);
+  border-radius: 999px;
+  padding: 1px 7px;
+  font-size: 0.66rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.focus-saved__eyebrow {
+  justify-content: space-between;
+}
+
+.focus-saved__category {
+  font-size: 0.72rem;
+  color: var(--focus-muted);
+  background: var(--focus-bg);
+  border-radius: 999px;
+  padding: 1px 7px;
+}
+
+/* ================================================================ insight == */
+
+.focus-insight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius);
+  padding: 11px 15px;
+  margin-block-end: 30px;
+  flex-wrap: wrap;
+}
+
+.focus-insight__icon {
+  color: var(--focus-accent);
+  display: inline-flex;
+}
+
+.focus-insight__text {
+  font-size: 0.92rem;
+  font-weight: 600;
+  flex: 1 1 auto;
+}
+
+/* =============================================================== calendar == */
+
+.focus-calendar {
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius);
+  padding: 14px;
+  max-inline-size: 460px;
+}
+
+.focus-calendar__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-block-end: 10px;
+}
+
+.focus-calendar__pickers {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 auto;
+  justify-content: center;
+  min-inline-size: 0;
+}
+
+.focus-calendar__pickers .form-select {
+  inline-size: auto;
+  font-weight: 600;
+  border-color: transparent;
+  background-color: var(--focus-bg);
+  padding-block: 3px;
+}
+
+.focus-calendar__year {
+  max-inline-size: 6.5rem;
+}
+
+.focus-calendar__step {
+  border: 1px solid var(--focus-line);
+  background: var(--focus-surface);
+  color: var(--focus-muted);
+  border-radius: var(--focus-radius-sm);
+  padding: 5px 7px;
+  line-height: 1;
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+.focus-calendar__step:hover:not(:disabled) {
+  color: var(--focus-accent);
+  border-color: var(--focus-accent);
+}
+
+.focus-calendar__row--head,
+.focus-calendar__cells {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.focus-calendar__weekday {
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 650;
+  color: var(--focus-muted);
+  text-decoration: none;
+  padding-block-end: 4px;
+}
+
+.focus-day {
+  aspect-ratio: 1;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 9px;
+  color: var(--focus-text);
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 0;
+}
+
+.focus-day:hover {
+  background: var(--focus-bg);
+}
+
+.focus-day--outside {
+  color: #b9c0cd;
+}
+
+/*
+ * Done: a soft green field with a small tick. It used to be a solid saturated
+ * disc, which turned a month of training into a wall of green circles and made
+ * the one thing you actually look for — today — hard to find.
+ */
+.focus-day.is-done {
+  background: #e3f4ea;
+  border-color: #b9e0c9;
+  color: #17784c;
+  font-weight: 650;
+}
+
+.focus-day__mark {
+  position: absolute;
+  inset-block-end: 1px;
+  inset-inline-end: 2px;
+  display: inline-flex;
+  color: #2e9e6b;
+}
+
+/* Planned ahead: a hollow dot under the number. A day that was simply not done
+   gets nothing at all — it is not a failure worth marking. */
+.focus-day.is-planned::after {
+  content: "";
+  position: absolute;
+  inset-block-end: 3px;
+  inline-size: 4px;
+  block-size: 4px;
+  border-radius: 50%;
+  border: 1px solid #93aede;
+}
+
+.focus-day.is-today {
+  border-color: var(--focus-accent);
+  box-shadow: inset 0 0 0 1px var(--focus-accent);
+  font-weight: 700;
+}
+
+.focus-calendar__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-block-start: 12px;
+  font-size: 0.8rem;
+  color: var(--focus-muted);
+}
+
+.focus-calendar__count {
+  font-weight: 650;
+  color: var(--focus-text);
+}
+
+.focus-calendar__legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.focus-legend {
+  inline-size: 11px;
+  block-size: 11px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.focus-legend--done {
+  background: #e3f4ea;
+  border: 1px solid #b9e0c9;
+}
+
+.focus-legend--planned {
+  inline-size: 6px;
+  block-size: 6px;
+  border: 1px solid #93aede;
+}
+
+.focus-legend + .focus-legend {
+  margin-inline-start: 8px;
+}
+
+/* ================================================================== board == */
+
+.focus-board {
+  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+}
+
+/* Bootstrap has no display:grid responsive utility, so the pair below does the
+   same job as `d-none d-lg-grid` would. */
+@media (min-width: 992px) {
+  .d-lg-grid {
+    display: grid !important;
+  }
+}
+
+.focus-board-column {
+  background: var(--focus-bg);
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius);
+  padding: 10px;
+  min-inline-size: 0;
+}
+
+.focus-board-column.is-over {
+  border-color: var(--focus-accent);
+  background: var(--focus-accent-soft);
+  box-shadow: inset 0 0 0 2px rgba(59, 110, 245, 0.35);
+}
+
+.focus-board-column__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 4px 8px;
+}
+
+.focus-board-column__title {
+  font-size: 0.9rem;
+  font-weight: 650;
+  margin: 0;
+}
+
+.focus-board-column__count {
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: var(--focus-muted);
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: 999px;
+  padding: 0 8px;
+}
+
+.focus-board-column__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.focus-board-column__empty {
+  font-size: 0.82rem;
+  color: var(--focus-muted);
+  padding: 10px 4px;
+}
+
+.focus-board-card {
+  position: relative;
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius-sm);
+  padding: 11px 13px;
+  cursor: grab;
+}
+
+.focus-board-card.is-dragging {
+  opacity: 0.5;
+}
+
+.focus-board-card__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+}
+
+.focus-board-card__grip {
+  color: #b6bdca;
+  flex: 0 0 auto;
+  margin-block-start: 1px;
+}
+
+.focus-board-card__title {
+  font-size: 0.93rem;
+  font-weight: 650;
+  margin: 0;
+}
+
+.focus-board-card__title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.focus-board-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-block: 7px 6px;
+}
+
+.focus-board-card__next,
+.focus-board-card__reason {
+  font-size: 0.83rem;
+  color: var(--focus-muted);
+  margin-block-end: 6px;
+}
+
+.focus-board-card__meta {
+  font-size: 0.76rem;
+  color: var(--focus-muted);
+}
+
+.focus-board-card__controls {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-block-start: 9px;
+  flex-wrap: wrap;
+}
+
+.focus-board-card__select {
+  inline-size: auto;
+  flex: 1 1 110px;
+  min-inline-size: 0;
+}
+
+.focus-board-card__order {
+  display: flex;
+  gap: 4px;
+}
+
+.focus-board-tabs {
+  display: flex;
+  gap: 6px;
+  margin-block-end: 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.focus-board-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.focus-board-tabs__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--focus-line);
+  background: var(--focus-surface);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--focus-muted);
+  white-space: nowrap;
+}
+
+.focus-board-tabs__tab.is-active {
+  border-color: var(--focus-accent);
+  color: var(--focus-accent);
+  background: var(--focus-accent-soft);
+}
+
+.focus-board-tabs__count {
+  font-size: 0.74rem;
+  background: var(--focus-bg);
+  border-radius: 999px;
+  padding: 0 6px;
+}
+
+/* ================================================================== forms == */
+
+.focus-form-row {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
+}
+
+.focus-number {
+  max-inline-size: 140px;
+}
+
+.focus-inline-form {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.focus-inline-form .form-control,
+.focus-inline-form .form-select {
+  flex: 1 1 160px;
+  min-inline-size: 0;
+}
+
+.focus-weekday-picker {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(auto-fit, minmax(min(120px, 100%), 1fr));
+}
+
+.focus-weekday-picker__option {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.86rem;
+}
+
+.focus-thumb-picker {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(auto-fill, minmax(min(72px, 100%), 1fr));
+}
+
+.focus-thumb-picker img {
+  inline-size: 100%;
+  block-size: auto;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  display: block;
+  cursor: pointer;
+}
+
+.focus-thumb-picker img.is-selected {
+  border-color: var(--focus-accent);
+}
+
+.focus-thumb-picker__option:focus-within img {
+  outline: 3px solid rgba(59, 110, 245, 0.45);
+  outline-offset: 1px;
+}
+
+.focus-template-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.focus-template-preview li {
+  font-size: 0.76rem;
+  background: var(--focus-bg);
+  border: 1px solid var(--focus-line);
+  border-radius: 999px;
+  padding: 2px 9px;
+  color: var(--focus-muted);
+}
+
+/* ================================================================= events == */
+
+
+.focus-event-sections {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+  align-items: start;
+}
+
+.focus-event-section {
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius);
+  padding: 13px 15px;
+  min-inline-size: 0;
+}
+
+.focus-event-section__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-block-end: 10px;
+}
+
+.focus-event-section__title {
+  font-size: 0.95rem;
+  font-weight: 650;
+}
+
+.focus-event-section__controls {
+  display: flex;
+  gap: 3px;
+  flex: 0 0 auto;
+}
+
+.focus-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.focus-checklist__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.focus-checklist__label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  min-inline-size: 0;
+}
+
+.focus-checklist__done {
+  text-decoration: line-through;
+  color: var(--focus-muted);
+}
+
+.focus-linked {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  block-size: 100%;
+}
+
+.focus-unlink {
+  border: 0;
+  background: transparent;
+  color: var(--focus-muted);
+  font-size: 0.76rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 2px;
+}
+
+.focus-unlink:hover {
+  color: #a72f2f;
+}
+
+.focus-add-section {
+  margin-block-start: 18px;
+}
+
+.focus-vision-strip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-block-end: 4px;
+}
+
+.focus-vision-strip li {
+  flex: 0 0 auto;
+  inline-size: 120px;
+  font-size: 0.74rem;
+  color: var(--focus-muted);
+}
+
+.focus-vision-strip img {
+  inline-size: 100%;
+  block-size: auto;
+  border-radius: 8px;
+  display: block;
+  margin-block-end: 3px;
+}
+
+/* ================================================================ collage == */
+
+/*
+ * The board is one surface, not a row of cards.
+ *
+ * Before this the tiles had card borders, card radii and a permanent black
+ * gradient across every picture — which reads as a Pinterest feed, not as a
+ * collage somebody made for themselves. The frame now belongs to the board,
+ * the pictures nearly touch, and the words appear when you point at them.
+ */
+.focus-board-surface {
+  background: #0f1420;
+  border-radius: 18px;
+  padding: 10px;
+  margin-block-end: 26px;
+}
+
+.focus-collage {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(140px, 45%), 1fr));
+  grid-auto-rows: 92px;
+  /* Dense packing is what makes mixed sizes read as a collage instead of a
+     grid with holes in it. */
+  grid-auto-flow: dense;
+  gap: 4px;
+}
+
+.focus-tile-card {
+  position: relative;
+  margin: 0;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #1a2130;
+  grid-column: span 1;
+  grid-row: span 1;
+}
+
+.focus-tile-card--medium {
+  grid-row: span 2;
+}
+
+.focus-tile-card--large {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+
+.focus-tile-card__image,
+.focus-tile-card img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/*
+ * The neutral placeholder. It says the picture did not load rather than
+ * substituting artwork, which would look like the user's own picture and hide
+ * the fact that the address is broken.
+ */
+.focus-image-fallback {
+  inline-size: 100%;
+  block-size: 100%;
+  min-block-size: 84px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px;
+  text-align: center;
+  background: var(--focus-bg);
+  border: 1px dashed var(--focus-line);
+  color: var(--focus-muted);
+}
+
+.focus-image-fallback__text {
+  font-size: 0.74rem;
+  line-height: 1.3;
+}
+
+.focus-image-fallback__action {
+  margin-block-start: 2px;
+}
+
+/* On the dark board the placeholder keeps the board's own colours. */
+.focus-board-surface .focus-image-fallback {
+  background: #1a2130;
+  border-color: #2f3a4d;
+  color: #8b96a8;
+}
+
+/*
+ * Captions are revealed, not painted on. Hover and keyboard focus both work,
+ * and the tile is focusable so a keyboard user can read every caption.
+ */
+.focus-tile-card__caption {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  padding: 18px 9px 7px;
+  background: linear-gradient(to top, rgba(8, 12, 20, 0.85), rgba(8, 12, 20, 0));
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.14s ease, transform 0.14s ease;
+}
+
+.focus-tile-card:hover .focus-tile-card__caption,
+.focus-tile-card:focus-within .focus-tile-card__caption,
+.focus-tile-card__caption.is-always {
+  opacity: 1;
+  transform: none;
+}
+
+.focus-tile-card__text {
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.focus-tile-card__category {
+  font-size: 0.64rem;
+  opacity: 0.85;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.focus-tile-card__controls {
+  position: absolute;
+  inset-block-start: 5px;
+  inset-inline-end: 5px;
+  display: flex;
+  gap: 3px;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.focus-tile-card:hover .focus-tile-card__controls,
+.focus-tile-card:focus-within .focus-tile-card__controls {
+  opacity: 1;
+}
+
+.focus-tile-card__button {
+  inline-size: 24px;
+  block-size: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #33405a;
+  text-decoration: none;
+}
+
+.focus-tile-card__button:disabled {
+  opacity: 0.4;
+}
+
+.focus-collage--compact {
+  grid-auto-rows: 72px;
+}
+
+/* Adding or editing a picture by address. */
+.focus-url-preview {
+  margin: 0 0 10px;
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius-sm);
+  overflow: hidden;
+}
+
+.focus-url-preview figcaption {
+  font-size: 0.78rem;
+  color: #17784c;
+  padding: 6px 10px;
+  background: #f2faf5;
+}
+
+.focus-inline-error {
+  font-size: 0.83rem;
+  color: #a72f2f;
+  background: #fdeaea;
+  border: 1px solid #f3cfcf;
+  border-radius: var(--focus-radius-sm);
+  padding: 7px 10px;
+  margin-block-end: 10px;
+}
+
+.focus-daily-toggle {
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius);
+  padding: 12px 15px;
+  margin-block-end: 18px;
+  max-inline-size: 520px;
+}
+
+/* ================================================================= shared == */
+
+.focus-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-block-end: 12px;
+}
+
+.focus-pills__item {
+  border: 1px solid var(--focus-line);
+  background: var(--focus-surface);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--focus-muted);
+}
+
+.focus-pills__item.is-active {
+  border-color: var(--focus-accent);
+  color: var(--focus-accent);
+  background: var(--focus-accent-soft);
+}
+
+.focus-note-panel {
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius);
+  padding: 13px 16px;
+  font-size: 0.9rem;
+}
+
+.focus-danger-zone {
+  margin-block-start: 34px;
+  padding-block-start: 16px;
+  border-block-start: 1px solid var(--focus-line);
+}
+
+/* Small screens: the board tabs and event sections both fall to one column,
+   and the collage keeps two columns so it still reads as a board. */
+@media (max-width: 575.98px) {
+  .focus-collage {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: 78px;
+  }
+
+  /* No hover on a phone: the captions stay visible. */
+  .focus-tile-card__caption {
+    opacity: 1;
+    transform: none;
+  }
+
+  .focus-tile-card__controls {
+    opacity: 1;
+  }
+
+  .focus-calendar {
+    padding: 10px;
+  }
+
+  .focus-day {
+    font-size: 0.78rem;
+  }
+}
+
+/* ========================================================== page header == */
+
+.focus-page-header {
+  margin-block-end: 18px;
+}
+
+.focus-page-header__before {
+  margin-block-end: 12px;
+}
+
+/*
+ * Title and primary action on one row. They used to sit at opposite edges of
+ * the viewport — "New event" a screen away from the heading it belonged to —
+ * which made the pairing invisible at 1440px.
+ */
+/*
+ * Title and action read as one group. `space-between` across a 1200px container
+ * put "New event" a screen away from "Events", which is the same row and two
+ * unrelated things. The pair wraps rather than stretching.
+ */
+.focus-page-header__row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px 18px;
+  flex-wrap: wrap;
+}
+
+.focus-page-header__action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  min-inline-size: 0;
+}
+
+/* On a phone the action takes its own line at a comfortable width rather than
+   squeezing next to a wrapped title. */
+@media (max-width: 575.98px) {
+  .focus-page-header__action {
+    inline-size: 100%;
+  }
+
+  .focus-page-header__action .btn {
+    inline-size: 100%;
+    justify-content: center;
+  }
+
+  .focus-page-header__action .form-select {
+    flex: 1 1 auto;
+  }
+}
+
+.focus-page-header .focus-page-title {
+  margin-block-end: 0;
+}
+
+.focus-page-header .focus-page-lead {
+  margin-block: 8px 0;
+}
+
+/* =========================================================== section grid == */
+
+/*
+ * Sections lay out in a responsive grid rather than a single stack, so a
+ * section holding one card can share a row with another short one instead of
+ * owning a full-width band with 900px of blank beside it. Anything with real
+ * content spans the row.
+ */
+.focus-sections {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(430px, 100%), 1fr));
+  column-gap: 26px;
+  align-items: start;
+}
+
+.focus-section--full {
+  grid-column: 1 / -1;
+}
+
+.focus-section--auto {
+  grid-column: span 1;
+}
+
+/* ============================================== labels vs user content == */
+
+/*
+ * An interface label and the user's own words are separate blocks. Putting
+ * them on one line — "הפעולה הבאה: Book the courtyard table" — mixes a Hebrew
+ * label and an English sentence into one bidirectional run, and the browser
+ * then has to guess which side the colon and the full stop belong to.
+ */
+.focus-labelled {
+  margin-block-end: 8px;
+}
+
+.focus-labelled__label {
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--focus-muted);
+  margin-block-end: 1px;
+}
+
+.focus-labelled__value {
+  font-size: 0.87rem;
+  unicode-bidi: isolate;
+}
+
+.focus-user-block {
+  unicode-bidi: isolate;
+}
+
+/* ========================================================= external links == */
+
+.focus-external {
+  display: inline;
+}
+
+.focus-external__icon {
+  margin-inline-start: 3px;
+  vertical-align: -1px;
+  opacity: 0.7;
+}
+
+.focus-saved__open {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+}
+
+.focus-demo-inline {
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--focus-muted);
+  background: var(--focus-bg);
+  border: 1px solid var(--focus-line);
+  border-radius: 999px;
+  padding: 0 7px;
+  white-space: nowrap;
+}
+
+.focus-preview__image {
+  inline-size: 100%;
+  block-size: auto;
+  border-radius: var(--focus-radius-sm);
+  display: block;
+}
+
+.focus-fact--wide {
+  grid-column: 1 / -1;
+}
+
+/* ============================================================== summary === */
+
+/*
+ * A compact facts strip with the screen's primary action beside it. The panel
+ * this replaced spread three short lines across a 1440px row and left the
+ * middle empty.
+ */
+.focus-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 28px;
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius);
+  padding: 14px 18px;
+  margin-block-end: 26px;
+}
+
+.focus-summary__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 28px;
+  margin: 0;
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.focus-summary__fact dt {
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--focus-muted);
+  margin-block-end: 2px;
+}
+
+.focus-summary__fact dd {
+  margin: 0;
+  font-size: 0.88rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.focus-summary__strong {
+  font-weight: 650;
+  unicode-bidi: isolate;
+}
+
+.focus-summary__fact time {
+  color: var(--focus-muted);
+  font-size: 0.82rem;
+}
+
+.focus-summary__action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+
+.focus-summary__button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+}
+
+.focus-summary__undo {
+  border: 0;
+  background: transparent;
+  color: var(--focus-accent);
+  font-size: 0.8rem;
+  padding: 0;
+}
+
+.focus-summary__target {
+  font-size: 0.78rem;
+  color: var(--focus-muted);
+  unicode-bidi: isolate;
+}
+
+/* ========================================================= active plan === */
+
+.focus-plan {
+  display: flex;
+  gap: 0;
+  background: var(--focus-surface);
+  border: 1px solid #cfdcfa;
+  border-inline-start: 4px solid var(--focus-accent);
+  border-radius: var(--focus-radius);
+  overflow: hidden;
+  max-inline-size: 640px;
+}
+
+.focus-plan__thumb {
+  inline-size: 150px;
+  block-size: auto;
+  object-fit: cover;
+  flex: 0 0 auto;
+  display: block;
+}
+
+.focus-plan__body {
+  padding: 13px 16px;
+  min-inline-size: 0;
+  flex: 1 1 auto;
+}
+
+.focus-plan__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--focus-accent);
+  margin-block-end: 3px;
+}
+
+.focus-plan__title {
+  font-size: 1.02rem;
+  font-weight: 650;
+  margin-block-end: 8px;
+  unicode-bidi: isolate;
+}
+
+.focus-plan__facts {
+  display: flex;
+  gap: 22px;
+  margin-block-end: 8px;
+}
+
+.focus-plan__facts dt {
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--focus-muted);
+}
+
+.focus-plan__facts dd {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.focus-plan__note {
+  font-size: 0.85rem;
+  color: var(--focus-muted);
+  margin-block-end: 10px;
+  unicode-bidi: isolate;
+}
+
+.focus-plan__detail {
+  margin-block-start: 10px;
+  padding-block-start: 10px;
+  border-block-start: 1px solid var(--focus-line);
+  font-size: 0.86rem;
+}
+
+@media (max-width: 575.98px) {
+  .focus-plan {
+    flex-direction: column;
+  }
+
+  .focus-plan__thumb {
+    inline-size: 100%;
+    block-size: 120px;
+  }
+}
+
+/* ========================================================= resume brief === */
+
+.focus-brief__panel {
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius);
+  padding: 14px 17px;
+  margin-block-end: 12px;
+}
+
+.focus-brief__panel-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--focus-muted);
+  margin-block-end: 10px;
+}
+
+.focus-brief__block + .focus-brief__block,
+.focus-brief__panel > p + .focus-brief__block {
+  margin-block-start: 10px;
+}
+
+.focus-brief__block-label {
+  font-size: 0.72rem;
+  font-weight: 650;
+  color: var(--focus-muted);
+  margin-block-end: 1px;
+}
+
+.focus-brief__block-value {
+  font-size: 0.92rem;
+  line-height: 1.5;
+  unicode-bidi: isolate;
+}
+
+.focus-brief__blocker-text {
+  display: block;
+  unicode-bidi: isolate;
+}
+
+.focus-brief__after {
+  background: var(--focus-surface);
+  border: 1px dashed var(--focus-line);
+  border-radius: var(--focus-radius);
+  padding: 11px 15px;
+  font-size: 0.88rem;
+  color: var(--focus-muted);
+  margin-block-end: 14px;
+}
+
+.focus-brief__after p:last-child {
+  unicode-bidi: isolate;
+}
+
+/* ============================================================= checklist == */
+
+.focus-checklist-panel {
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius);
+  padding: 14px 16px;
+}
+
+.focus-checklist-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-block-end: 14px;
+}
+
+/*
+ * The bar itself sizes to its content and nothing else.
+ *
+ * This used to carry `flex: 1 1 220px`, written for the checklist panel's
+ * header — a flex ROW, where 220px is a width. Every other caller puts it
+ * inside `.focus-chip-card`, which is `flex-direction: column`, and there the
+ * basis is a *height*: ~180px of dead white under every card with a progress
+ * bar. The growth belongs to the one row-direction context that wanted it, so
+ * that is where it now lives.
+ */
+.focus-progress-block {
+  min-inline-size: 0;
+}
+
+.focus-checklist-panel__head > .focus-progress-block {
+  flex: 1 1 220px;
+}
+
+.focus-progress-block__text {
+  font-size: 0.82rem;
+  margin-block-end: 4px;
+}
+
+.focus-cl-group + .focus-cl-group {
+  margin-block-start: 14px;
+  padding-block-start: 12px;
+  border-block-start: 1px solid var(--focus-line-soft);
+}
+
+.focus-cl-group__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.focus-cl-group__toggle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  background: transparent;
+  padding: 4px 0;
+  flex: 1 1 auto;
+  text-align: start;
+  min-inline-size: 0;
+}
+
+.focus-cl-group__title {
+  font-size: 0.92rem;
+  font-weight: 650;
+  unicode-bidi: isolate;
+}
+
+.focus-cl-group__count {
+  font-size: 0.76rem;
+  color: var(--focus-muted);
+  background: var(--focus-bg);
+  border-radius: 999px;
+  padding: 0 8px;
+}
+
+.focus-cl-items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-block-start: 6px;
+}
+
+.focus-cl-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 3px 0;
+  min-inline-size: 0;
+}
+
+.focus-cl-item__box {
+  margin-block-start: 3px;
+  flex: 0 0 auto;
+}
+
+.focus-cl-item__label {
+  flex: 1 1 auto;
+  font-size: 0.89rem;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  unicode-bidi: isolate;
+}
+
+.focus-cl-item__label.is-done {
+  color: var(--focus-muted);
+  text-decoration: line-through;
+}
+
+.focus-cl-item__note {
+  font-size: 0.79rem;
+  color: var(--focus-muted);
+  text-decoration: none;
+  font-style: italic;
+}
+
+.focus-cl-item__controls {
+  display: flex;
+  gap: 1px;
+  flex: 0 0 auto;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.focus-cl-item:hover .focus-cl-item__controls,
+.focus-cl-item:focus-within .focus-cl-item__controls {
+  opacity: 1;
+}
+
+.focus-cl-add-group {
+  margin-block-start: 14px;
+}
+
+/* Touch screens have no hover: the row controls stay visible. */
+@media (hover: none) {
+  .focus-cl-item__controls {
+    opacity: 1;
+  }
+}
+
+/* ============================================================== timeline == */
+
+.focus-timeline {
+  position: relative;
+  padding-inline-start: 6px;
+}
+
+.focus-timeline__entry {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  padding-block-end: 16px;
+}
+
+.focus-timeline__entry:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 4px;
+  inset-block: 14px 0;
+  inline-size: 1px;
+  background: var(--focus-line);
+}
+
+.focus-timeline__dot {
+  inline-size: 9px;
+  block-size: 9px;
+  border-radius: 50%;
+  background: var(--focus-surface);
+  border: 2px solid var(--focus-accent);
+  margin-block-start: 5px;
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.focus-timeline__dot--done {
+  background: #2e9e6b;
+  border-color: #2e9e6b;
+}
+
+.focus-timeline__when {
+  font-size: 0.78rem;
+  color: var(--focus-muted);
+}
+
+/* =============================================================== cooking == */
+
+.focus-cooking-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  margin-block-end: 14px;
+}
+
+.focus-search--inline {
+  flex: 0 1 320px;
+  max-inline-size: 320px;
+}
+
+.focus-cooking-filters__tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.focus-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-block-start: 6px;
+}
+
+.focus-tag {
+  display: inline-flex;
+  align-items: center;
+  background: var(--focus-bg);
+  border: 1px solid var(--focus-line);
+  border-radius: 999px;
+  font-size: 0.74rem;
+  overflow: hidden;
+}
+
+.focus-tag.is-active {
+  border-color: var(--focus-accent);
+  background: var(--focus-accent-soft);
+  color: var(--focus-accent);
+}
+
+.focus-tag__button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 2px 9px;
+  font: inherit;
+  unicode-bidi: isolate;
+}
+
+.focus-tag__remove {
+  border: 0;
+  background: transparent;
+  color: var(--focus-muted);
+  padding: 2px 6px 2px 2px;
+  display: inline-flex;
+}
+
+/* The plus glyph turned into a cross — one icon, two meanings. */
+.focus-tag__x {
+  transform: rotate(45deg);
+}
+
+.focus-recipe-card {
+  position: relative;
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius-sm);
+  overflow: hidden;
+  cursor: grab;
+}
+
+.focus-recipe-card.is-dragging {
+  opacity: 0.5;
+}
+
+.focus-recipe-card__thumb {
+  inline-size: 100%;
+  block-size: 86px;
+  object-fit: cover;
+  display: block;
+}
+
+.focus-recipe-card__body {
+  padding: 10px 12px;
+}
+
+.focus-recipe-card__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.focus-recipe-card__grip {
+  color: #b6bdca;
+  flex: 0 0 auto;
+  margin-block-start: 1px;
+}
+
+.focus-recipe-card__title {
+  font-size: 0.92rem;
+  font-weight: 650;
+  margin: 0;
+}
+
+.focus-recipe-card__title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.focus-recipe-card__note {
+  font-size: 0.82rem;
+  color: var(--focus-muted);
+  margin-block: 5px 6px;
+  unicode-bidi: isolate;
+}
+
+.focus-recipe-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px 9px;
+  font-size: 0.76rem;
+  color: var(--focus-muted);
+}
+
+.focus-recipe-card__time {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.focus-recipe-card__controls {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-block-start: 9px;
+}
+
+/*
+ * With a pointer, the controls are revealed on hover and on keyboard focus:
+ * twenty cards each showing a select and two arrows is a wall of chrome. With
+ * no pointer there is no hover and no usable drag, so they stay put.
+ */
+@media (hover: hover) {
+  .focus-recipe-card__controls,
+  .focus-recipe-card__grip {
+    opacity: 0;
+    transition: opacity 0.12s ease;
+  }
+
+  .focus-recipe-card:hover .focus-recipe-card__controls,
+  .focus-recipe-card:focus-within .focus-recipe-card__controls,
+  .focus-recipe-card:hover .focus-recipe-card__grip,
+  .focus-recipe-card:focus-within .focus-recipe-card__grip {
+    opacity: 1;
+  }
+}
+
+.focus-tag--more {
+  color: var(--focus-muted);
+  font-weight: 650;
+}
+
+.focus-recipe-card__controls .form-select {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.focus-recipe-card__order {
+  display: flex;
+  gap: 4px;
+}
+
+/* ------------------------------------------------------- recipe detail --- */
+
+.focus-recipe {
+  display: grid;
+  gap: 22px;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  align-items: start;
+}
+
+@media (max-width: 991.98px) {
+  .focus-recipe {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.focus-recipe__image {
+  inline-size: 100%;
+  block-size: 220px;
+  object-fit: cover;
+  border-radius: var(--focus-radius);
+  display: block;
+  margin-block-end: 14px;
+}
+
+.focus-recipe__description {
+  font-size: 0.95rem;
+  margin-block-end: 14px;
+  unicode-bidi: isolate;
+}
+
+.focus-recipe__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius);
+  padding: 12px 16px;
+  margin-block-end: 20px;
+}
+
+.focus-recipe__stats dt {
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--focus-muted);
+}
+
+.focus-recipe__stats dd {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 650;
+}
+
+.focus-recipe__list {
+  padding-inline-start: 1.2rem;
+  font-size: 0.92rem;
+  line-height: 1.7;
+  unicode-bidi: isolate;
+  margin-block-end: 0;
+}
+
+.focus-recipe__list--steps li {
+  margin-block-end: 6px;
+}
+
+.focus-recipe__side .focus-brief__panel {
+  margin-block-end: 14px;
+}
+
+.focus-recipe__made {
+  font-size: 0.78rem;
+  color: var(--focus-muted);
+  margin-block-start: 12px;
+}
+
+.focus-detail__select {
+  inline-size: auto;
+}
+
+.focus-rating__stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.focus-rating__stars > span {
+  color: #cfd5e0;
+  display: inline-flex;
+}
+
+.focus-rating__stars > span.is-filled {
+  color: #e0a52c;
+}
+
+.focus-rating__stars > span.is-filled svg {
+  fill: currentColor;
+}
+
+.focus-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-block-end: 10px;
+}
+
+.focus-recipe__personal {
+  display: grid;
+  gap: 10px 18px;
+  grid-template-columns: repeat(auto-fit, minmax(min(130px, 100%), 1fr));
+  margin: 0;
+}
+
+.focus-recipe__personal-wide {
+  grid-column: 1 / -1;
+}
+
+.focus-recipe__personal dt {
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--focus-muted);
+  margin-block-end: 2px;
+}
+
+.focus-recipe__personal dd {
+  margin: 0;
+  font-size: 0.89rem;
+  unicode-bidi: isolate;
+}
+
+.focus-rating__star span {
+  color: #cfd5e0;
+  display: inline-flex;
+  cursor: pointer;
+}
+
+.focus-rating__star span.is-filled {
+  color: #e0a52c;
+}
+
+/* A filled star has to look filled: the icon set is stroke-only, so the shape
+   is closed and painted here rather than duplicated as a second glyph. */
+.focus-rating__star span.is-filled svg {
+  fill: currentColor;
+}
+
+.focus-rating__star:focus-within span {
+  outline: 3px solid rgba(59, 110, 245, 0.45);
+  border-radius: 4px;
+}
+
+.focus-linked-events li + li {
+  margin-block-start: 5px;
+}
+
+.focus-linked-events a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.88rem;
+  unicode-bidi: isolate;
+}
+
+/* ================================================================= trips == */
+
+.focus-trip-cover {
+  border-radius: var(--focus-radius);
+  overflow: hidden;
+  margin-block-end: 18px;
+  max-block-size: 220px;
+}
+
+.focus-trip-cover__image {
+  inline-size: 100%;
+  block-size: 220px;
+  object-fit: cover;
+  display: block;
+}
+
+.focus-travel {
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius);
+  padding: 13px 16px;
+  margin-block-end: 20px;
+}
+
+.focus-travel__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 14px 32px;
+}
+
+.focus-travel__item {
+  min-inline-size: 0;
+}
+
+.focus-travel__label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--focus-muted);
+  margin-block-end: 3px;
+}
+
+.focus-travel__value {
+  font-size: 0.92rem;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  unicode-bidi: isolate;
+}
+
+.focus-travel__route {
+  font-size: 0.82rem;
+  color: var(--focus-muted);
+}
+
+.focus-travel__when {
+  font-size: 0.8rem;
+  color: var(--focus-muted);
+}
+
+.focus-travel__toggle {
+  border: 0;
+  background: transparent;
+  color: var(--focus-accent);
+  font-size: 0.84rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-inline-start: auto;
+  align-self: center;
+}
+
+.focus-travel__detail {
+  margin-block: 14px 0;
+  padding-block-start: 12px;
+  border-block-start: 1px solid var(--focus-line);
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+}
+
+.focus-travel__detail dt {
+  font-size: 0.86rem;
+  font-weight: 650;
+  unicode-bidi: isolate;
+}
+
+.focus-travel__detail dd {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font-size: 0.82rem;
+  color: var(--focus-muted);
+}
+
+.focus-travel__note {
+  font-style: italic;
+}
+
+/* ------------------------------------------------------------ destination -- */
+
+.focus-destination__head {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-block-end: 16px;
+  flex-wrap: wrap;
+}
+
+.focus-destination__image {
+  inline-size: 180px;
+  block-size: 110px;
+  object-fit: cover;
+  border-radius: var(--focus-radius);
+  display: block;
+  flex: 0 0 auto;
+}
+
+.focus-destination__name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-block-end: 4px;
+  unicode-bidi: isolate;
+}
+
+.focus-destination__dates {
+  font-size: 0.88rem;
+  color: var(--focus-muted);
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.focus-destination__nights {
+  background: var(--focus-bg);
+  border-radius: 999px;
+  padding: 0 9px;
+}
+
+/*
+ * "Worth knowing" is the loudest block on a destination on purpose. Local
+ * closing days and market hours are what actually ruin an afternoon, and they
+ * are exactly the things nobody writes down.
+ */
+.focus-goodtoknow {
+  background: var(--focus-warn-soft);
+  border: 1px solid #f0dcae;
+  border-radius: var(--focus-radius);
+  padding: 13px 16px;
+  margin-block-end: 18px;
+}
+
+.focus-goodtoknow__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #7a5510;
+  margin-block-end: 8px;
+}
+
+.focus-goodtoknow__list {
+  padding-inline-start: 1.1rem;
+  margin-block-end: 10px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  unicode-bidi: isolate;
+}
+
+/* ------------------------------------------------------------------ days -- */
+
+.focus-day-list {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+  align-items: start;
+}
+
+.focus-day-card {
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius);
+  padding: 12px 14px;
+  min-inline-size: 0;
+}
+
+.focus-day-card__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-block-end: 10px;
+}
+
+.focus-day-card__number {
+  background: var(--focus-accent-soft);
+  color: var(--focus-accent);
+  font-size: 0.74rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 2px 9px;
+}
+
+.focus-day-card__date {
+  font-size: 0.84rem;
+  color: var(--focus-muted);
+}
+
+.focus-day-card__slots {
+  display: grid;
+  gap: 8px;
+}
+
+.focus-day-card__slot .form-control {
+  font-size: 0.86rem;
+}
+
+/* ------------------------------------------------------------------ food -- */
+
+.focus-food__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.focus-food__item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius-sm);
+  padding: 9px 12px;
+  flex-wrap: wrap;
+}
+
+.focus-food__main {
+  min-inline-size: 0;
+  flex: 1 1 220px;
+}
+
+.focus-food__name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 650;
+  unicode-bidi: isolate;
+}
+
+.focus-food__kind {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--focus-muted);
+  background: var(--focus-bg);
+  border-radius: 999px;
+  padding: 0 7px;
+}
+
+.focus-food__address,
+.focus-food__note {
+  font-size: 0.82rem;
+  color: var(--focus-muted);
+  unicode-bidi: isolate;
+}
+
+.focus-food__note {
+  font-style: italic;
+}
+
+.focus-food__controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.focus-checklist-start {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+@media (max-width: 575.98px) {
+  .focus-destination__image {
+    inline-size: 100%;
+    block-size: 130px;
+  }
+
+  .focus-trip-cover__image {
+    block-size: 150px;
+  }
+}
+
+.focus-goodtoknow__edit,
+.focus-day-card__more {
+  border: 0;
+  background: transparent;
+  color: var(--focus-accent);
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 0 0;
+}
+
+.focus-goodtoknow__edit {
+  color: #7a5510;
+}
+
+.focus-chip-card__preview {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-block: 8px 8px;
+  font-size: 0.82rem;
+}
+
+.focus-chip-card__preview li {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-inline-size: 0;
+}
+
+.focus-chip-card__preview li span:last-child {
+  unicode-bidi: isolate;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.focus-chip-card__preview li.is-done {
+  color: var(--focus-muted);
+  text-decoration: line-through;
+}
+
+/* ========================================================= view / edit === */
+
+/*
+ * Shown only while editing. Honest about where the data goes, and small
+ * enough not to become furniture.
+ */
+.focus-edit-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: #7a5510;
+  background: var(--focus-warn-soft);
+  border: 1px solid #f0dcae;
+  border-radius: var(--focus-radius-sm);
+  padding: 7px 12px;
+  margin-block-end: 14px;
+}
+
+.focus-section-text {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  unicode-bidi: isolate;
+}
+
+.focus-budget__amount {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+/* A single-group checklist inside an event section carries no group chrome,
+   so it should not carry the panel's padding twice either. */
+.focus-event-section .focus-checklist-panel {
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+
+/* ========================================================== trip editing == */
+
+.focus-edit-block {
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius-sm);
+  padding: 12px 14px;
+  margin-block-end: 10px;
+}
+
+.focus-edit-block__foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-block-start: 10px;
+  flex-wrap: wrap;
+}
+
+.focus-edit-block__foot .form-control {
+  flex: 1 1 200px;
+  min-inline-size: 0;
+}
+
+.focus-datetime {
+  display: flex;
+  gap: 6px;
+}
+
+.focus-datetime .form-control {
+  min-inline-size: 0;
+}
+
+.focus-url-field .focus-url-preview img {
+  max-block-size: 160px;
+}
+
+.focus-itinerary-actions {
+  display: flex;
+  justify-content: flex-start;
+  margin-block-end: 14px;
+}
+
+.focus-destination__title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-block-end: 4px;
+}
+
+.focus-destination__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.focus-day-card__destination {
+  inline-size: auto;
+  max-inline-size: 10rem;
+  font-size: 0.78rem;
+  padding-block: 2px;
+}
+
+.focus-day-card__controls {
+  display: inline-flex;
+  gap: 3px;
+  margin-inline-start: auto;
+}
+
+/* ================================================================ outfits == */
+
+.focus-outfit-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-block-end: 16px;
+}
+
+.focus-outfit-filters .form-select {
+  inline-size: auto;
+  max-inline-size: 12rem;
+  flex: 0 1 auto;
+}
+
+.focus-outfit-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  align-items: start;
+}
+
+.focus-outfit-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius);
+  overflow: hidden;
+}
+
+.focus-outfit-card__image {
+  inline-size: 100%;
+  block-size: 180px;
+  object-fit: cover;
+  display: block;
+}
+
+.focus-outfit-card__body {
+  padding: 11px 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.focus-outfit-card__title {
+  font-size: 0.95rem;
+  font-weight: 650;
+  margin: 0;
+  unicode-bidi: isolate;
+}
+
+.focus-outfit-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+}
+
+.focus-outfit-card__count,
+.focus-outfit-card__days,
+.focus-outfit-card__pieces {
+  font-size: 0.76rem;
+  color: var(--focus-muted);
+}
+
+.focus-outfit-card__days {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.focus-outfit-card__note {
+  font-size: 0.82rem;
+  color: var(--focus-muted);
+  unicode-bidi: isolate;
+  margin: 0;
+}
+
+.focus-outfit-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-block-start: 2px;
+}
+
+.focus-day-picker {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
+  max-block-size: 220px;
+  overflow-y: auto;
+}
+
+.focus-day-picker__option {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.84rem;
+}
+
+.focus-clothing-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.focus-clothing-list__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.focus-clothing-list__qty {
+  inline-size: 5rem;
+  flex: 0 0 auto;
+}
+
+/* ---------------------------------------------------------- day outfit --- */
+
+.focus-day-outfit {
+  margin-block-start: 10px;
+  padding-block-start: 10px;
+  border-block-start: 1px solid var(--focus-line-soft);
+}
+
+.focus-day-outfit__chosen {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.focus-day-outfit__image {
+  inline-size: 54px;
+  block-size: 54px;
+  object-fit: cover;
+  border-radius: var(--focus-radius-sm);
+  flex: 0 0 auto;
+  min-block-size: 54px;
+}
+
+.focus-day-outfit__name {
+  font-size: 0.88rem;
+  font-weight: 650;
+  unicode-bidi: isolate;
+}
+
+.focus-day-outfit__options {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.focus-day-outfit__options li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.86rem;
+  unicode-bidi: isolate;
+}
+
+.focus-day-outfit__option-actions {
+  display: inline-flex;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+
+/* ------------------------------------------------------------- timeline --- */
+
+.focus-timeline-table {
+  overflow-x: auto;
+}
+
+.focus-outfit-table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+
+.focus-outfit-table th {
+  text-align: start;
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--focus-muted);
+  padding: 6px 10px;
+  border-block-end: 1px solid var(--focus-line);
+}
+
+.focus-outfit-table td {
+  padding: 8px 10px;
+  border-block-end: 1px solid var(--focus-line-soft);
+  vertical-align: middle;
+}
+
+.focus-outfit-table tr.is-missing td {
+  background: #fdfaf2;
+}
+
+.focus-outfit-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  unicode-bidi: isolate;
+}
+
+.focus-outfit-cell__image {
+  inline-size: 36px;
+  block-size: 36px;
+  object-fit: cover;
+  border-radius: 6px;
+  min-block-size: 36px;
+}
+
+.focus-outfit-cell__pick {
+  border: 0;
+  background: transparent;
+  color: var(--focus-accent);
+  font-size: 0.82rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+}
+
+/* A table is unreadable on a phone: the same rows become cards. */
+@media (max-width: 767.98px) {
+  .focus-outfit-table thead {
+    display: none;
+  }
+
+  .focus-outfit-table tr {
+    display: block;
+    border: 1px solid var(--focus-line);
+    border-radius: var(--focus-radius-sm);
+    padding: 8px 10px;
+    margin-block-end: 8px;
+    background: var(--focus-surface);
+  }
+
+  .focus-outfit-table td {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    border: 0;
+    padding: 3px 0;
+  }
+
+  .focus-outfit-table td::before {
+    content: attr(data-label);
+    font-size: 0.7rem;
+    font-weight: 650;
+    text-transform: uppercase;
+    color: var(--focus-muted);
+    flex: 0 0 auto;
+  }
+}
+
+/* -------------------------------------------------------------- packing --- */
+
+.focus-packing__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-block-end: 12px;
+}
+
+.focus-packing__list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.focus-packing__list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 7px 11px;
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius-sm);
+  background: var(--focus-surface);
+}
+
+.focus-packing__list li.is-packed {
+  background: #f4faf6;
+  border-color: #cfe7d8;
+}
+
+.focus-packing__name {
+  font-weight: 650;
+  font-size: 0.89rem;
+  unicode-bidi: isolate;
+}
+
+.focus-packing__qty {
+  margin-inline-start: 5px;
+  color: var(--focus-muted);
+  font-weight: 500;
+}
+
+.focus-packing__days {
+  font-size: 0.78rem;
+  color: var(--focus-muted);
+  flex: 1 1 auto;
+}
+
+.focus-packing__on-list {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: #17784c;
+}
+
+/*
+ * A look with no picture should say so without devoting a 180px band to
+ * saying it. The placeholder is shorter than a real photograph would be.
+ */
+.focus-outfit-card > .focus-image-fallback {
+  block-size: 104px;
+}
+
+.focus-outfit-grid > li {
+  max-inline-size: 420px;
+}
+
+/*
+ * ---------------------------------------------------------------------------
+ * Modal layout: the body scrolls, the header and footer never leave.
+ * ---------------------------------------------------------------------------
+ *
+ * Every modal in this app wraps its header, body and footer in one <form>, so
+ * that a single submit handler covers the whole dialog and Enter works from any
+ * field. That form sits between `.modal-content` and the three parts — and it
+ * is what broke Bootstrap's `scrollable`.
+ *
+ * Bootstrap builds a scrollable dialog as a flex column: `.modal-content` gets
+ * `max-height` and `overflow: hidden`, and `.modal-body` gets `overflow-y:
+ * auto`. That only works while the body is a *flex item of the content box*.
+ * With a form in between, the body is a flex item of nothing — it had no height
+ * to overflow, so it grew to fit its content, the content box clipped what
+ * stuck out, and the footer holding the save button was cut off below the
+ * viewport with no way to scroll to it. Saving worked; reaching Save did not.
+ *
+ * The fix makes the form a transparent link in the flex chain rather than
+ * restructuring nine dialogs. It is applied to every modal, not only the ones
+ * marked `scrollable`, so no dialog can ever put an action out of reach — a
+ * short modal is unaffected, because the body only scrolls once it has to.
+ *
+ * `dvh` is what keeps this working on a phone: when the on-screen keyboard
+ * opens, `vh` keeps reporting the full screen and the footer goes back under
+ * the keyboard, while `dvh` shrinks with the visible viewport.
+ */
+.modal-content {
+  display: flex;
+  flex-direction: column;
+  max-block-size: calc(100vh - 2 * var(--bs-modal-margin, 0.5rem));
+  max-block-size: calc(100dvh - 2 * var(--bs-modal-margin, 0.5rem));
+  overflow: hidden;
+}
+
+/* The form is layout-transparent: it passes the height constraint through. */
+.modal-content > form {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-block-size: 0;
+}
+
+/* `min-block-size: 0` is the part that lets a flex item shrink below its content. */
+.modal-body {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.modal-header,
+.modal-footer {
+  flex: 0 0 auto;
+}
+
+/*
+ * A centred dialog is vertically centred by `align-items: center` on a flex
+ * container of `min-height: calc(100% - margin)`. Left alone, a tall dialog is
+ * still measured against that minimum. Capping it here means the dialog stops
+ * growing at the viewport and starts scrolling instead.
+ */
+.modal-dialog {
+  max-block-size: calc(100vh - 2 * var(--bs-modal-margin, 0.5rem));
+  max-block-size: calc(100dvh - 2 * var(--bs-modal-margin, 0.5rem));
+}
+
+/*
+ * A preview must never decide how tall a dialog is.
+ *
+ * `contain` rather than `cover`: this picture is being checked, not displayed,
+ * and cropping the middle out of a tall image is exactly the wrong answer to
+ * "is this the right address?". The chequered ground keeps a transparent PNG
+ * visible instead of letting it blend into the dialog.
+ */
+.focus-url-preview img {
+  inline-size: 100%;
+  block-size: auto;
+  max-block-size: 240px;
+  object-fit: contain;
+  background: repeating-conic-gradient(#f4f5f7 0% 25%, #fbfbfc 0% 50%) 50% / 16px 16px;
+  display: block;
+}
+
+/*
+ * ---------------------------------------------------------------------------
+ * Project notes — the free-form body of a project page.
+ * ---------------------------------------------------------------------------
+ *
+ * In view mode these are headings and paragraphs and nothing else. The
+ * toolbars, arrows and delete buttons only exist in edit mode, which is what
+ * stopped a project page from reading like an admin screen.
+ */
+.focus-notes {
+  display: grid;
+  gap: 14px;
+  margin-block-end: 22px;
+}
+
+.focus-note__title {
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: var(--focus-text);
+  margin-block-end: 6px;
+}
+
+.focus-note__body {
+  color: var(--focus-text);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.focus-note--edit {
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius);
+  padding: 12px 14px;
+}
+
+.focus-note__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-block-end: 8px;
+}
+
+.focus-note__title-input {
+  flex: 1 1 200px;
+  min-inline-size: 0;
+}
+
+.focus-note__actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.focus-icon-button--danger {
+  color: #a72f2f;
+}
+
+.focus-note-add {
+  background: var(--focus-surface);
+  border: 1px dashed var(--focus-line);
+  border-radius: var(--focus-radius);
+  padding: 12px 14px;
+}
+
+.focus-note-add__lead {
+  font-size: 0.85rem;
+  color: var(--focus-muted);
+}
+
+.focus-note-add__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-block-end: 8px;
+}
+
+/* The one line saying where edits go, next to the field editor. */
+.focus-edit-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  background: var(--focus-accent-soft);
+  border-radius: var(--focus-radius-sm);
+  padding: 10px 14px;
+  margin-block-end: 18px;
+}
+
+.focus-edit-bar__note {
+  font-size: 0.83rem;
+  color: var(--focus-muted);
+}
+
+/*
+ * ---------------------------------------------------------------------------
+ * Project pictures — where it is going, and where it is.
+ * ---------------------------------------------------------------------------
+ */
+.focus-vision-image {
+  margin-block-end: 20px;
+}
+
+/*
+ * Capped, and `contain` rather than `cover`: this is the picture the project is
+ * aiming at, and cropping the sofa out of a picture of a sofa is not a saving.
+ */
+.focus-vision-image__picture {
+  inline-size: 100%;
+  max-block-size: 320px;
+  block-size: auto;
+  object-fit: contain;
+  border-radius: var(--focus-radius);
+  background: var(--focus-line-soft);
+  display: block;
+}
+
+.focus-vision-image__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+
+.focus-vision-image__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block-start: 10px;
+}
+
+.focus-detail__progress {
+  margin-block-end: 22px;
+}
+
+.focus-grid--progress {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+/* A row fills, and one lone picture never stretches across a wide screen. */
+.focus-grid--progress > li {
+  max-inline-size: 320px;
+}
+
+.focus-progress-card {
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius);
+  overflow: hidden;
+  margin: 0;
+  block-size: 100%;
+}
+
+.focus-progress-card__picture {
+  inline-size: 100%;
+  block-size: 160px;
+  object-fit: cover;
+  display: block;
+}
+
+.focus-progress-card__link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 14px;
+  font-size: 0.88rem;
+}
+
+.focus-progress-card__caption {
+  display: grid;
+  gap: 3px;
+  padding: 9px 12px;
+}
+
+.focus-progress-card__when {
+  font-size: 0.75rem;
+  color: var(--focus-muted);
+}
+
+.focus-progress-card__note {
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+.focus-progress-card__actions {
+  display: flex;
+  gap: 4px;
+  padding: 0 12px 10px;
+}
+
+/*
+ * ---------------------------------------------------------------------------
+ * Checklist page — a few nights up north, the morning of a flight.
+ * ---------------------------------------------------------------------------
+ *
+ * One continuous page with real headings. No tabs: the two things somebody
+ * opens this page to do are look at the gear they saved and tick items off, and
+ * a tab would hide one of them behind the other.
+ */
+.focus-checklist-page__progress {
+  margin-block-end: 20px;
+  max-inline-size: 520px;
+}
+
+.focus-checklist-page__inspiration,
+.focus-checklist-page__list {
+  margin-block-end: 24px;
+}
+
+/*
+ * ---------------------------------------------------------------------------
+ * Events: the countdown, the states, and reminders.
+ * ---------------------------------------------------------------------------
+ *
+ * Colour is an accent — a left border and a small chip — never a wash across
+ * the whole card. An orange card shouts at you from across the room whether or
+ * not it deserves to; a coloured edge lets the eye find it without the screen
+ * turning into a traffic light. And the state is always written out in words
+ * next to the icon, so the colour is never carrying the meaning alone.
+ */
+.focus-countdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.88rem;
+  font-weight: 650;
+  color: var(--focus-accent);
+  background: var(--focus-accent-soft);
+  border-radius: 999px;
+  padding: 5px 12px;
+  white-space: nowrap;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+}
+
+.focus-countdown--large {
+  font-size: 1.18rem;
+  padding: 9px 16px;
+  margin-block-end: 16px;
+}
+
+.focus-countdown__state {
+  font-weight: 500;
+  font-size: 0.8em;
+  opacity: 0.85;
+}
+
+/* The five states. Each pairs a colour with a label the component prints. */
+.focus-countdown--neutral {
+  color: var(--focus-muted);
+  background: var(--focus-line-soft);
+}
+
+.focus-countdown--preparing {
+  color: #8a6116;
+  background: #fdf6e6;
+}
+
+.focus-countdown--soon {
+  color: #9c4a11;
+  background: #fdefe4;
+}
+
+.focus-countdown--critical {
+  color: #a72f2f;
+  background: #fdeaea;
+}
+
+.focus-countdown--done {
+  color: #17784c;
+  background: #f2faf5;
+}
+
+/* The card edge, as a second, quieter signal of the same state. */
+.focus-chip-card--preparing {
+  border-inline-start: 3px solid #d9a534;
+}
+
+.focus-chip-card--soon {
+  border-inline-start: 3px solid #e08341;
+}
+
+.focus-chip-card--critical {
+  border-inline-start: 3px solid #cc4b4b;
+}
+
+.focus-chip-card--done {
+  border-inline-start: 3px solid #3aa476;
+}
+
+.focus-chip--urgency-preparing {
+  background: #fdf6e6;
+  color: #8a6116;
+}
+
+.focus-chip--urgency-soon {
+  background: #fdefe4;
+  color: #9c4a11;
+}
+
+.focus-chip--urgency-critical {
+  background: #fdeaea;
+  color: #a72f2f;
+}
+
+.focus-chip--urgency-done {
+  background: #f2faf5;
+  color: #17784c;
+}
+
+/* -------------------------------------------------------- preparation ---- */
+
+.focus-prep {
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius);
+  padding: 14px 16px;
+  margin-block-end: 22px;
+}
+
+.focus-prep__lead {
+  font-size: 0.85rem;
+  color: var(--focus-muted);
+  margin-block-end: 12px;
+}
+
+.focus-prep__fields {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+/* --------------------------------------------------------- reminders ----- */
+
+.focus-reminders {
+  margin-block-end: 22px;
+}
+
+.focus-reminders__list {
+  display: grid;
+  gap: 8px;
+}
+
+.focus-reminder {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius-sm);
+  padding: 10px 13px;
+}
+
+.focus-reminder.is-due {
+  border-inline-start: 3px solid #cc4b4b;
+  background: #fffafa;
+}
+
+.focus-reminder.is-handled {
+  opacity: 0.7;
+}
+
+.focus-reminder__icon {
+  flex: 0 0 auto;
+  margin-block-start: 2px;
+}
+
+.focus-reminder__body {
+  display: grid;
+  gap: 2px;
+  flex: 1 1 200px;
+  min-inline-size: 0;
+}
+
+.focus-reminder__label {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.focus-reminder__when {
+  font-size: 0.8rem;
+  color: var(--focus-muted);
+}
+
+.focus-reminder__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.focus-reminders__add {
+  margin-block-start: 12px;
+}
+
+.focus-reminders__add-row {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  margin-block-end: 10px;
+}
+
+.focus-reminders__limit {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--focus-muted);
+  margin-block-start: 10px;
+}
+
+/* -------------------------------------------- reminders, across events --- */
+
+.focus-alerts {
+  background: #fffafa;
+  border: 1px solid #f3cfcf;
+  border-radius: var(--focus-radius);
+  padding: 14px 16px;
+  margin-block-end: 22px;
+}
+
+.focus-alerts__heading {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.95rem;
+  font-weight: 650;
+  color: #a72f2f;
+  margin-block-end: 10px;
+}
+
+.focus-alerts__list {
+  display: grid;
+  gap: 8px;
+}
+
+.focus-alert {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius-sm);
+  padding: 10px 13px;
+}
+
+.focus-alert__body {
+  display: grid;
+  gap: 2px;
+  flex: 1 1 220px;
+  min-inline-size: 0;
+}
+
+.focus-alert__label {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.focus-alert__meta {
+  font-size: 0.8rem;
+  color: var(--focus-muted);
+}
+
+.focus-alert__actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.focus-alerts__limit {
+  font-size: 0.78rem;
+  color: var(--focus-muted);
+  margin-block-start: 10px;
+}
+
+/*
+ * ---------------------------------------------------------------------------
+ * Cooking: the view switch, the dense grid, and compact attached links.
+ * ---------------------------------------------------------------------------
+ */
+.focus-cooking-views {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-block-end: 14px;
+}
+
+.focus-cooking-views__button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: 999px;
+  padding: 5px 13px;
+  font-size: 0.83rem;
+  color: var(--focus-muted);
+}
+
+.focus-cooking-views__button.is-active {
+  background: var(--focus-accent-soft);
+  border-color: var(--focus-accent);
+  color: var(--focus-accent);
+  font-weight: 650;
+}
+
+.focus-cooking-views__count {
+  font-size: 0.8rem;
+  color: var(--focus-muted);
+  margin-inline-start: auto;
+}
+
+/*
+ * `auto-fit` with a cap: a row fills, and one lonely recipe never stretches
+ * across a 1440px screen. `align-items: start` is the important half — without
+ * it a two-line card is stretched to match a neighbour full of tags, which is
+ * exactly the column of white space this pass set out to remove.
+ */
+.focus-grid--recipes {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  align-items: start;
+}
+
+.focus-grid--recipes > li {
+  max-inline-size: 320px;
+  min-inline-size: 0;
+}
+
+/*
+ * On a phone the picture goes beside the text instead of above it. A 96px
+ * square costs a third of the height a full-width band does, and a list of
+ * eighty recipes is a list you scroll rather than one you look at.
+ */
+@media (max-width: 575.98px) {
+  .focus-recipe-card {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .focus-recipe-card__thumb {
+    block-size: 100%;
+    min-block-size: 96px;
+  }
+}
+
+/* ------------------------------------------------- attached links -------- */
+
+.focus-related {
+  display: grid;
+  gap: 8px;
+}
+
+.focus-related__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  min-inline-size: 0;
+}
+
+.focus-related__thumb {
+  inline-size: 38px;
+  block-size: 38px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex: 0 0 auto;
+}
+
+.focus-related__body {
+  display: grid;
+  gap: 1px;
+  min-inline-size: 0;
+}
+
+.focus-related__title {
+  font-size: 0.87rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.focus-related__title a {
+  color: inherit;
+}
+
+.focus-related__meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 0.74rem;
+  color: var(--focus-muted);
+}
+
+.focus-related__nolink {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.focus-related__note {
+  font-size: 0.78rem;
+  color: var(--focus-muted);
+  unicode-bidi: isolate;
+}
+
+.focus-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.focus-related__more {
+  background: none;
+  border: none;
+  padding: 6px 0 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--focus-accent);
+}
+
+/* ==========================================================================
+   Compact layer — rows, chips, stats and the surfaces built on them.
+
+   This block exists because a card was the wrong shape for most of what Focus
+   holds now. A subscription is a name, a price and a date; a scheduled item is
+   a title and a countdown. Wrapping three facts in a bordered box with 24px of
+   padding produced screens where six items filled a laptop display and most of
+   it was white. Nothing here has a minimum height, nothing stretches to match
+   a neighbour, and every list is as tall as its contents.
+   ========================================================================== */
+
+/*
+ * Named `focus-dense-row`, not `focus-row`.
+ *
+ * `.focus-row` was already taken by the overview's attention rows — a grid of
+ * bordered cards — and reusing the name put two rule sets in conflict: the
+ * dense list inherited that grid's `align-items: start`, so every row hugged
+ * its own content instead of filling the list, and half of each panel was
+ * white. Two different things need two different names.
+ */
+.focus-dense-rows {
+  display: flex;
+  flex-direction: column;
+  /* Children fill the list's width; `stretch` is the default, and stating it
+     keeps a future `align-items` on an ancestor from reaching in. */
+  align-items: stretch;
+  /* A hairline between rows rather than a border around each: one shared line
+     reads as a list, twelve boxes read as twelve unrelated things. */
+  gap: 0;
+}
+
+.focus-dense-rows > li + li .focus-dense-row {
+  border-block-start: 1px solid var(--focus-line-soft);
+}
+
+.focus-dense-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding-block: 0.55rem;
+  padding-inline: 0.15rem;
+  /* No min-height anywhere in this block. A two-line row is two lines tall. */
+  min-block-size: 0;
+  /*
+   * Wrap at any width, not only on a phone.
+   *
+   * A row lives inside a grid track that can be much narrower than the screen —
+   * a panel in a two- or three-column grid — and its meta column and its
+   * actions are both `flex: 0 0 auto`. Without wrapping, a narrow track pushed
+   * the action buttons straight out of the viewport and produced horizontal
+   * scroll on a 1440px display. Wrapping is what lets the row give way.
+   */
+  flex-wrap: wrap;
+  min-inline-size: 0;
+}
+
+/* Urgency is an accent on the inline-start edge, never the message itself:
+   every row that carries a tone also writes the state out in words. */
+.focus-dense-row--due,
+.focus-dense-row--soon,
+.focus-dense-row--done {
+  padding-inline-start: 0.65rem;
+}
+
+.focus-dense-row--due::before,
+.focus-dense-row--soon::before,
+.focus-dense-row--done::before {
+  content: "";
+  position: absolute;
+  inset-block: 0.45rem;
+  inset-inline-start: 0;
+  inline-size: 3px;
+  border-radius: 3px;
+}
+
+.focus-dense-row--due::before {
+  background: #c0392b;
+}
+
+.focus-dense-row--soon::before {
+  background: var(--focus-warn);
+}
+
+.focus-dense-row--done::before {
+  background: #2f855a;
+}
+
+.focus-dense-row__leading {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+}
+
+.focus-dense-row__body {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.focus-dense-row__eyebrow {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--focus-muted);
+}
+
+.focus-dense-row__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.focus-dense-row__link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.focus-dense-row__link:hover,
+.focus-dense-row__link:focus-visible {
+  text-decoration: underline;
+}
+
+.focus-dense-row__detail {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--focus-muted);
+  overflow-wrap: anywhere;
+}
+
+.focus-dense-row__badges,
+.focus-dense-row__meta {
+  /* Shrinkable, and allowed to fall to its own line: a long relative date must
+     give way before it pushes the buttons off the screen. */
+  flex: 0 1 auto;
+  min-inline-size: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  color: var(--focus-muted);
+  text-align: end;
+  overflow-wrap: anywhere;
+}
+
+.focus-dense-row__meta {
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.1rem;
+  line-height: 1.3;
+}
+
+.focus-dense-row__actions {
+  position: relative;
+  z-index: 2;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+/*
+ * Secondary actions are quiet, not hidden.
+ *
+ * `opacity` rather than `display: none`: the buttons stay in the DOM, in the
+ * tab order and in the accessibility tree, so a keyboard or a screen reader
+ * reaches them exactly as a mouse does. They become fully visible on hover and
+ * whenever anything inside them takes focus.
+ */
+@media (hover: hover) and (min-width: 768px) {
+  .focus-dense-row__actions {
+    opacity: 0.35;
+    transition: opacity 0.12s ease-in-out;
+  }
+
+  .focus-dense-row:hover .focus-dense-row__actions,
+  .focus-dense-row:focus-within .focus-dense-row__actions {
+    opacity: 1;
+  }
+}
+
+/* A touch device has no hover, so nothing there may depend on one. */
+@media (hover: none), (max-width: 767.98px) {
+  .focus-dense-row__actions {
+    opacity: 1;
+  }
+}
+
+/* Below 480px a row stacks rather than squeezing four columns into 320px. */
+@media (max-width: 479.98px) {
+  .focus-dense-row__body {
+    flex: 1 1 100%;
+  }
+
+  .focus-dense-row__meta {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.4rem;
+  }
+}
+
+/* ------------------------------------------------------------------ chips -- */
+
+.focus-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.focus-chip-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding-block: 0.25rem;
+  padding-inline: 0.7rem;
+  border: 1px solid var(--focus-line);
+  border-radius: 999px;
+  background: var(--focus-surface);
+  color: var(--focus-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+  /* Comfortably above the 44px touch guidance once padding and line-height
+     are counted; a filter nobody can hit is a filter nobody uses. */
+  min-block-size: 34px;
+}
+
+.focus-chip-button:hover {
+  border-color: var(--focus-accent);
+  color: var(--focus-accent);
+}
+
+.focus-chip-button.is-active {
+  background: var(--focus-accent-soft);
+  border-color: var(--focus-accent);
+  color: var(--focus-accent);
+  font-weight: 600;
+}
+
+.focus-chip-button__count {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.75;
+}
+
+/* ------------------------------------------------------------- show more -- */
+
+.focus-show-more {
+  align-self: flex-start;
+  margin-block-start: 0.4rem;
+  padding: 0.2rem 0;
+  border: 0;
+  background: none;
+  color: var(--focus-accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.focus-show-more:hover {
+  text-decoration: underline;
+}
+
+/* ------------------------------------------------------------ info notes -- */
+
+.focus-info-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--focus-muted);
+}
+
+.focus-info-note svg {
+  flex: 0 0 auto;
+  margin-block-start: 0.15rem;
+}
+
+.focus-info-note--caution {
+  color: var(--focus-warn);
+}
+
+/* ---------------------------------------------------------------- avatar -- */
+
+.focus-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--focus-accent-soft);
+  color: var(--focus-accent);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.focus-avatar img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+
+/* ----------------------------------------------------------------- stats -- */
+
+.focus-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.5rem;
+}
+
+.focus-stat__label {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--focus-muted);
+}
+
+.focus-stat__value {
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------- templates -- */
+
+.focus-template-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.focus-template-group__title {
+  margin: 0 0 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--focus-muted);
+}
+
+.focus-template-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  gap: 0.4rem;
+}
+
+.focus-template-option {
+  inline-size: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius-sm);
+  background: var(--focus-surface);
+  text-align: start;
+}
+
+.focus-template-option:hover {
+  border-color: var(--focus-accent);
+  background: var(--focus-accent-soft);
+}
+
+.focus-template-option__name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--focus-text);
+}
+
+.focus-template-option__hint {
+  font-size: 0.8rem;
+  color: var(--focus-muted);
+}
+
+/* --------------------------------------------------- panels and groups --- */
+
+/*
+ * A panel is a light grouping, not a card: a hairline and a radius, with the
+ * padding kept small. Used where several short lists sit on one screen and
+ * need to read as separate things without each becoming a box.
+ */
+.focus-panel {
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius);
+  background: var(--focus-surface);
+  /* A grid item's default `min-width: auto` refuses to shrink below its
+     content, which is how a long row inside a panel forced the whole track
+     wider than its track size and spilled out of the page. */
+  min-inline-size: 0;
+}
+
+.focus-panel__title {
+  margin: 0 0 0.4rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.focus-panel__lead {
+  margin: 0 0 0.5rem;
+  font-size: 0.82rem;
+  color: var(--focus-muted);
+}
+
+/* A grid of panels that fills a row without stretching a lone panel across it. */
+.focus-panel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+  gap: 0.75rem;
+  /* Panels are as tall as their contents. A two-line panel stretched to match
+     a neighbour full of rows is the column of white this rule removes. */
+  align-items: start;
+}
+
+/* Every direct child of a card grid must be allowed to shrink; see .focus-panel. */
+.focus-panel-grid > *,
+.focus-relevance > *,
+.focus-profile-grid > * {
+  min-inline-size: 0;
+}
+
+/* ------------------------------------------------------------ toolbar --- */
+
+/*
+ * A filter strip above a list. Wraps rather than scrolling, so nothing on a
+ * 320px screen ends up in a horizontal scroll surface with no scrollbar.
+ */
+.focus-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-block-end: 0.75rem;
+}
+
+.focus-toolbar > .focus-toolbar__grow {
+  flex: 1 1 180px;
+  min-inline-size: 0;
+}
+
+/* --------------------------------------------------------- relevance --- */
+
+.focus-relevance {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.focus-relevance__group-title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin: 0 0 0.25rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.focus-relevance__count {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--focus-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------------------------------------- suggestion --- */
+
+.focus-suggestion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.focus-suggestion__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.focus-suggestion__why {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--focus-muted);
+}
+
+.focus-suggestion__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+/* ------------------------------------------------------------- profile --- */
+
+.focus-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  gap: 0.6rem;
+  align-items: start;
+}
+
+.focus-profile-card {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius);
+  background: var(--focus-surface);
+  min-inline-size: 0;
+}
+
+.focus-profile-card__body {
+  min-inline-size: 0;
+  flex: 1 1 auto;
+}
+
+.focus-profile-card__name {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.focus-profile-card__name a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.focus-profile-card__relation {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--focus-muted);
+}
+
+.focus-profile-card__next {
+  margin: 0.2rem 0 0;
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+
+/* ------------------------------------------------------------ quick log -- */
+
+/*
+ * The quick-log buttons. Large targets on purpose: this is pressed one-handed
+ * while holding a baby, and a 28px button is not a button in that situation.
+ */
+.focus-quicklog {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.focus-quicklog__button {
+  flex: 1 1 auto;
+  min-inline-size: 90px;
+  min-block-size: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius-sm);
+  background: var(--focus-surface);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.focus-quicklog__button:hover {
+  border-color: var(--focus-accent);
+  color: var(--focus-accent);
+}
+
+/* ---------------------------------------------------------------- badge -- */
+
+/* The count on the reminder bell. Never rendered when the count is zero. */
+.focus-bell {
+  position: relative;
+}
+
+.focus-bell__count {
+  position: absolute;
+  inset-block-start: 1px;
+  inset-inline-end: 1px;
+  min-inline-size: 17px;
+  padding-inline: 3px;
+  border-radius: 999px;
+  background: #c0392b;
+  color: #fff;
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 17px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------ form bits -- */
+
+/* Two or three short fields on one line, collapsing to one below 480px. */
+.focus-field-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
+  gap: 0.6rem;
+}
+
+.focus-form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* A list of times or tags being edited, each removable. */
+.focus-token-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  min-inline-size: 0;
+}
+
+.focus-token {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--focus-line);
+  border-radius: 999px;
+  background: var(--focus-bg);
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.focus-token button {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--focus-muted);
+  line-height: 1;
+}
+
+.focus-token button:hover {
+  color: #c0392b;
+}
+
+/* ------------------------------------------------------------- overdue --- */
+
+.focus-overdue {
+  color: #c0392b;
+  font-weight: 600;
+}
+
+.focus-due-soon {
+  color: var(--focus-warn);
+  font-weight: 600;
+}
+
+/* A leisure card's picture: small, fixed, and never the reason a card is tall. */
+.focus-leisure-thumb {
+  flex: 0 0 auto;
+  inline-size: 56px;
+  block-size: 56px;
+  border-radius: var(--focus-radius-sm);
+  object-fit: cover;
+  background: var(--focus-bg);
+}
+
+/* A quiet label above each navigation group. The sidebar now holds two
+   distinct kinds of destination — work surfaces and spaces — and an unlabelled
+   rule between them left it ambiguous which was which. */
+.focus-nav-group {
+  margin: 0 0 0.3rem;
+  padding-inline: 0.65rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--focus-muted);
+}
+
+/* ================================================================ trips == */
+/*
+ * The trips layer.
+ *
+ * One idea runs through it: a trip is a strip of time, and the screen narrows
+ * — trip, then leg, then day, then topic. Each level is a quiet row or band;
+ * the one drawn element in the whole domain is the day rail, because the shape
+ * of a trip genuinely is a line of dates and a gap in it is information no list
+ * can show.
+ *
+ * Everything here uses the existing tokens. Nothing carries a `min-height`, no
+ * card is stretched to a neighbour, and every accent colour repeats something
+ * that is also written out in words.
+ */
+
+.focus-trips > * + * {
+  margin-block-start: 18px;
+}
+
+/* -- the trip that is actually coming ------------------------------------ */
+
+.focus-featured {
+  position: relative;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  /* The one accented edge on the screen. It repeats the countdown, which is
+     already written out beside it. */
+  border-inline-start: 3px solid var(--focus-accent);
+  border-radius: var(--focus-radius);
+  padding: 14px 16px;
+}
+
+.focus-featured__image {
+  flex: 0 0 auto;
+  inline-size: 128px;
+  block-size: 86px;
+  border-radius: var(--focus-radius-sm);
+  object-fit: cover;
+  overflow: hidden;
+}
+
+.focus-featured__body {
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.focus-featured__eyebrow,
+.focus-trip-row__eyebrow,
+.focus-trip-hero__eyebrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.74rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--focus-muted);
+}
+
+.focus-featured__title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.focus-featured__title a,
+.focus-trip-row__title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.focus-featured__title a:hover,
+.focus-trip-row__title a:hover {
+  text-decoration: underline;
+}
+
+.focus-featured__dates,
+.focus-trip-row__dates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-size: 0.86rem;
+  color: var(--focus-muted);
+}
+
+.focus-featured__next {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  font-size: 0.94rem;
+  font-weight: 600;
+}
+
+.focus-featured__next-label,
+.focus-trip-hero__next-label {
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--focus-muted);
+}
+
+.focus-featured__ready,
+.focus-trip-hero__ready {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: var(--focus-muted);
+}
+
+.focus-featured__missing {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--focus-warn);
+}
+
+/*
+ * Readiness as ticks, not a percentage bar.
+ *
+ * "Four of five ready" is five discrete questions, and a continuous bar would
+ * imply a precision that does not exist. The count is written beside it, so the
+ * drawing is never the only reading.
+ */
+.focus-trip-meter {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.focus-trip-meter > span {
+  inline-size: 14px;
+  block-size: 4px;
+  border-radius: 2px;
+  background: var(--focus-line);
+}
+
+.focus-trip-meter > span.is-done {
+  background: var(--focus-accent);
+}
+
+/* -- the countdown, the loudest fact about a trip ------------------------- */
+
+.focus-trip-countdown {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--focus-accent);
+  white-space: nowrap;
+}
+
+.focus-trip-countdown--travelling {
+  color: var(--focus-warn);
+}
+
+.focus-trip-countdown--past {
+  color: var(--focus-muted);
+  font-weight: 600;
+}
+
+/* -- one trip in a list -------------------------------------------------- */
+
+.focus-trip-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.focus-trip-row {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius-sm);
+  padding: 10px 12px;
+}
+
+.focus-trip-row:hover {
+  border-color: var(--focus-accent);
+}
+
+.focus-trip-row--past {
+  background: transparent;
+}
+
+.focus-trip-row__image {
+  flex: 0 0 auto;
+  inline-size: 56px;
+  block-size: 56px;
+  border-radius: 8px;
+  object-fit: cover;
+  overflow: hidden;
+}
+
+.focus-trip-row__body {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.focus-trip-row__title {
+  font-size: 1rem;
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+.focus-trip-row__next {
+  font-size: 0.84rem;
+  color: var(--focus-muted);
+}
+
+.focus-trip-row__state {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  text-align: end;
+}
+
+.focus-trip-row__progress {
+  font-size: 0.78rem;
+  color: var(--focus-muted);
+  white-space: nowrap;
+}
+
+/* -- the detail screen's identity band ----------------------------------- */
+
+.focus-trip__back {
+  margin-block-end: 12px;
+}
+
+.focus-trip-hero {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius);
+  padding: 16px;
+  margin-block-end: 16px;
+}
+
+.focus-trip-hero__cover {
+  flex: 0 0 auto;
+  inline-size: 190px;
+}
+
+.focus-trip-hero__image {
+  inline-size: 100%;
+  /* Fixed ratio: a cover gives the trip an identity, it does not get to decide
+     how far down the page the facts start. */
+  aspect-ratio: 16 / 10;
+  border-radius: var(--focus-radius-sm);
+  object-fit: cover;
+  overflow: hidden;
+}
+
+.focus-trip-hero__body {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.focus-trip-hero__title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.focus-trip-hero__title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1.2;
+  min-inline-size: 0;
+}
+
+.focus-trip-hero__when {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+
+.focus-trip-hero__dates {
+  font-size: 0.88rem;
+  color: var(--focus-muted);
+}
+
+.focus-trip-hero__next {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  padding-block-start: 6px;
+  border-block-start: 1px solid var(--focus-line-soft);
+}
+
+/* -- the shared segmented control ---------------------------------------- */
+
+.focus-seg {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin-block-end: 14px;
+}
+
+.focus-seg::-webkit-scrollbar {
+  display: none;
+}
+
+.focus-seg--tabs {
+  border-block-end: 1px solid var(--focus-line);
+}
+
+.focus-seg__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: transparent;
+  color: var(--focus-muted);
+  font-size: 0.88rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.focus-seg--tabs .focus-seg__item {
+  padding: 8px 12px;
+  border-block-end: 2px solid transparent;
+  margin-block-end: -1px;
+}
+
+.focus-seg--tabs .focus-seg__item.is-active {
+  color: var(--focus-accent);
+  border-block-end-color: var(--focus-accent);
+  font-weight: 700;
+}
+
+.focus-seg--pills .focus-seg__item {
+  padding: 5px 12px;
+  border: 1px solid var(--focus-line);
+  border-radius: 999px;
+  background: var(--focus-surface);
+  font-size: 0.84rem;
+}
+
+.focus-seg--pills .focus-seg__item.is-active {
+  border-color: var(--focus-accent);
+  color: var(--focus-accent);
+  background: var(--focus-accent-soft);
+}
+
+.focus-seg__badge {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--focus-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.focus-seg__item.is-active .focus-seg__badge {
+  color: inherit;
+}
+
+.focus-seg-select {
+  margin-block-end: 14px;
+}
+
+/* -- one leg of the trip -------------------------------------------------- */
+
+.focus-leg {
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius);
+  padding: 14px 16px;
+  margin-block-end: 16px;
+}
+
+.focus-leg__head {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.focus-leg__image {
+  flex: 0 0 auto;
+  inline-size: 92px;
+  block-size: 62px;
+  border-radius: var(--focus-radius-sm);
+  object-fit: cover;
+  overflow: hidden;
+}
+
+.focus-leg__facts {
+  flex: 1 1 200px;
+  min-inline-size: 0;
+}
+
+.focus-leg__name {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.focus-leg__dates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-size: 0.85rem;
+  color: var(--focus-muted);
+}
+
+.focus-leg__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.focus-leg__strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin-block-start: 12px;
+}
+
+.focus-leg__stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-inline-size: 0;
+  font-size: 0.82rem;
+  color: var(--focus-muted);
+}
+
+.focus-leg-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.focus-leg-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius-sm);
+  background: var(--focus-surface);
+  padding: 7px 12px;
+  text-align: start;
+}
+
+.focus-leg-chip:hover {
+  border-color: var(--focus-accent);
+}
+
+.focus-leg-chip__name {
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.focus-leg-chip__meta {
+  font-size: 0.76rem;
+  color: var(--focus-muted);
+}
+
+/* -- the day rail: the one drawn element in the domain -------------------- */
+
+.focus-day-rail {
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-block: 4px;
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.focus-day-rail::-webkit-scrollbar {
+  display: none;
+}
+
+.focus-day-rail__day {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  background: transparent;
+  /* Horizontal padding is what keeps two dates from reading as one run; the
+     tick's line still meets its neighbour's, because the line spans the whole
+     button including the padding. */
+  padding: 4px 10px 6px;
+  min-inline-size: 72px;
+  color: var(--focus-muted);
+}
+
+.focus-day-rail__num {
+  font-size: 0.72rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+/*
+ * The tick and its half-lines. Each button draws the line across its own width,
+ * so together they read as one continuous spine, and it flows with the writing
+ * direction without a single physical property.
+ */
+.focus-day-rail__tick {
+  position: relative;
+  display: block;
+  inline-size: 100%;
+  block-size: 11px;
+}
+
+.focus-day-rail__tick::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 5px;
+  inset-inline: 0;
+  block-size: 1px;
+  background: var(--focus-line);
+}
+
+.focus-day-rail__tick::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: calc(50% - 5px);
+  inline-size: 11px;
+  block-size: 11px;
+  border-radius: 50%;
+  border: 2px solid var(--focus-line);
+  background: var(--focus-accent);
+}
+
+/* A day with nothing planned is hollow — the gap is the information. */
+.focus-day-rail__day.is-empty .focus-day-rail__tick::after {
+  background: var(--focus-surface);
+}
+
+.focus-day-rail__day.is-active {
+  color: var(--focus-text);
+}
+
+.focus-day-rail__day.is-active .focus-day-rail__num {
+  color: var(--focus-accent);
+}
+
+.focus-day-rail__day.is-active .focus-day-rail__tick::after {
+  border-color: var(--focus-accent);
+  box-shadow: 0 0 0 3px var(--focus-accent-soft);
+}
+
+.focus-day-rail__date {
+  font-size: 0.78rem;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.focus-itinerary__rail-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  /*
+   * Without this the rail's own content width becomes this row's width, and a
+   * twenty-day leg pushes the page 700px past the viewport. `min-inline-size: 0`
+   * on the scroller alone is not enough — every flex ancestor between it and the
+   * container has to be allowed to shrink too.
+   */
+  min-inline-size: 0;
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius);
+  background: var(--focus-surface);
+  padding: 6px 12px;
+  margin-block-end: 12px;
+}
+
+.focus-itinerary__add-day {
+  flex: 0 0 auto;
+}
+
+/* -- one day ------------------------------------------------------------- */
+
+.focus-day-panel {
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius);
+  padding: 14px 16px;
+}
+
+.focus-day-panel__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-block-end: 12px;
+}
+
+.focus-day-panel__identity {
+  min-inline-size: 0;
+}
+
+.focus-day-panel__number {
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--focus-accent);
+}
+
+.focus-day-panel__date {
+  font-size: 1.05rem;
+  font-weight: 650;
+}
+
+.focus-day-panel__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.focus-day-panel__destination {
+  inline-size: auto;
+  max-inline-size: 160px;
+}
+
+.focus-day-panel__where {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-block-start: 10px;
+  font-size: 0.8rem;
+  color: var(--focus-muted);
+}
+
+/*
+ * A day's plan as a labelled timeline: the label is a fixed narrow column so
+ * morning, afternoon and evening line up and read as a sequence, which is what
+ * they are. It stacks below `sm`, where a 76px column is most of the screen.
+ */
+.focus-day-timeline {
+  display: flex;
+  flex-direction: column;
+}
+
+.focus-day-slot {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  gap: 4px 14px;
+  padding-block: 9px;
+}
+
+.focus-day-slot + .focus-day-slot {
+  border-block-start: 1px solid var(--focus-line-soft);
+}
+
+.focus-day-slot__label {
+  font-size: 0.76rem;
+  font-weight: 650;
+  color: var(--focus-muted);
+  padding-block-start: 2px;
+}
+
+.focus-day-slot__value {
+  font-size: 0.94rem;
+  min-inline-size: 0;
+}
+
+.focus-day-slot--editing {
+  grid-template-columns: 1fr;
+}
+
+.focus-day-empty {
+  color: var(--focus-muted);
+  font-size: 0.88rem;
+  padding-block: 6px;
+}
+
+/* -- bookings ------------------------------------------------------------ */
+
+.focus-bookings__bar,
+.focus-trip-lists__bar,
+.focus-trip-lists__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.focus-bookings__bar {
+  justify-content: flex-end;
+  margin-block-end: 12px;
+}
+
+.focus-bookings .focus-dense-rows + .focus-dense-rows {
+  margin-block-start: 8px;
+}
+
+.focus-booking__time {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.focus-booking__time--out::before {
+  content: "→ ";
+  color: var(--focus-muted);
+}
+
+/* -- the overview -------------------------------------------------------- */
+
+.focus-trip-overview > * + * {
+  margin-block-start: 18px;
+}
+
+.focus-trip-block {
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius);
+  padding: 14px 16px;
+}
+
+.focus-trip-block__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-block-end: 10px;
+}
+
+.focus-trip-block__title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--focus-muted);
+  margin-block-end: 10px;
+}
+
+.focus-trip-block__head .focus-trip-block__title {
+  margin-block-end: 0;
+}
+
+.focus-trip-open {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.92rem;
+}
+
+.focus-trip-open li {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  color: var(--focus-text);
+}
+
+.focus-trip-open li svg {
+  color: var(--focus-muted);
+  flex: 0 0 auto;
+}
+
+.focus-trip-missing {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.focus-trip-note {
+  font-size: 0.9rem;
+  color: var(--focus-muted);
+}
+
+.focus-trip-empty {
+  border: 1px dashed var(--focus-line);
+  border-radius: var(--focus-radius-sm);
+  background: var(--focus-surface);
+  padding: 16px;
+  font-size: 0.9rem;
+  color: var(--focus-muted);
+}
+
+/* -- the kind picker in the new-trip dialog ------------------------------ */
+
+.focus-kind-choices {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+}
+
+.focus-kind-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius-sm);
+  padding: 9px 12px;
+  cursor: pointer;
+}
+
+.focus-kind-choice.is-active {
+  border-color: var(--focus-accent);
+  background: var(--focus-accent-soft);
+}
+
+.focus-kind-choice:focus-within {
+  outline: 3px solid rgba(59, 110, 245, 0.45);
+  outline-offset: 2px;
+}
+
+.focus-kind-choice__name {
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.focus-kind-choice__hint {
+  font-size: 0.78rem;
+  color: var(--focus-muted);
+}
+
+/* -- narrow screens ------------------------------------------------------ */
+
+@media (max-width: 767.98px) {
+  /* The hero keeps its picture but gives it a band rather than a column: at
+     375px a 190px cover beside text leaves neither of them readable. */
+  .focus-trip-hero,
+  .focus-featured {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .focus-trip-hero__cover,
+  .focus-featured__image {
+    inline-size: 100%;
+  }
+
+  .focus-trip-hero__image,
+  .focus-featured__image {
+    aspect-ratio: auto;
+    block-size: 104px;
+  }
+
+  .focus-trip-hero__title {
+    font-size: 1.3rem;
+  }
+
+  .focus-featured__title {
+    font-size: 1.15rem;
+  }
+
+  /* State moves under the facts rather than into a narrow end column. */
+  .focus-trip-row {
+    flex-wrap: wrap;
+  }
+
+  .focus-trip-row__state {
+    flex-basis: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: start;
+    gap: 6px 10px;
+  }
+
+  .focus-itinerary__rail-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .focus-day-slot {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .focus-leg__image {
+    inline-size: 64px;
+    block-size: 48px;
+  }
+
+  .focus-trip-row__image {
+    inline-size: 44px;
+    block-size: 44px;
+  }
+}
+
+.focus-trip-open__note {
+  color: var(--focus-muted);
+  min-inline-size: 0;
+}
+
+.focus-leg-food {
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius);
+  padding: 14px 16px;
+  margin-block-start: 12px;
+}
+
+/* ====================================================== shared language == */
+/*
+ * The pieces every collection and detail screen is built from.
+ *
+ * One rule underneath all of it: a bordered white box is for *grouping things
+ * that belong together*, not for holding one fact. Most of what this app shows
+ * is a row, and a row needs a line — not a card.
+ */
+
+.focus-collection > * + * {
+  margin-block-start: 14px;
+}
+
+.focus-collection__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+/* Search takes the leftover room; the filter keeps its natural width. */
+.focus-collection__toolbar .focus-search-field {
+  flex: 1 1 220px;
+  max-inline-size: 340px;
+}
+
+.focus-collection__body {
+  min-inline-size: 0;
+}
+
+/* -- search -------------------------------------------------------------- */
+
+.focus-search-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-inline-size: 0;
+}
+
+.focus-search-field__icon {
+  position: absolute;
+  inset-inline-start: 10px;
+  display: inline-flex;
+  color: var(--focus-muted);
+  pointer-events: none;
+}
+
+.focus-search-field input {
+  padding-inline-start: 32px;
+  padding-inline-end: 32px;
+}
+
+/* The browser's own clear affordance is inconsistent and unlabelled. */
+.focus-search-field input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.focus-search-field__clear {
+  position: absolute;
+  inset-inline-end: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 24px;
+  block-size: 24px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--focus-muted);
+}
+
+.focus-search-field__clear:hover {
+  background: var(--focus-line-soft);
+  color: var(--focus-text);
+}
+
+/* -- disclosure ---------------------------------------------------------- */
+
+.focus-paged__more {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 12px;
+  margin-block-start: 10px;
+}
+
+.focus-paged__count {
+  font-size: 0.8rem;
+  color: var(--focus-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* -- thumbnails ---------------------------------------------------------- */
+
+.focus-thumb {
+  flex: 0 0 auto;
+  border-radius: 8px;
+  object-fit: cover;
+  overflow: hidden;
+}
+
+.focus-thumb--sm {
+  inline-size: 44px;
+  block-size: 44px;
+}
+
+.focus-thumb--md {
+  inline-size: 56px;
+  block-size: 56px;
+}
+
+/* -- progress on a row --------------------------------------------------- */
+
+.focus-dense-row__progress {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.focus-dense-row__progress-text {
+  font-size: 0.78rem;
+  color: var(--focus-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.focus-mini-bar {
+  display: block;
+  inline-size: 44px;
+  block-size: 4px;
+  border-radius: 2px;
+  background: var(--focus-line);
+  overflow: hidden;
+}
+
+.focus-mini-bar > span {
+  display: block;
+  block-size: 100%;
+  background: var(--focus-accent);
+}
+
+/* -- the overflow menu --------------------------------------------------- */
+
+.focus-overflow {
+  position: relative;
+  display: inline-flex;
+}
+
+/*
+ * Always visible, never a hover reveal. Inside a dense row this beats the
+ * quiet-actions opacity rule on purpose: once the secondary actions live in a
+ * menu, the trigger is the only way to them.
+ */
+.focus-dense-row__actions .focus-overflow__trigger {
+  opacity: 1;
+}
+
+.focus-overflow__menu {
+  position: absolute;
+  inset-block-start: calc(100% + 4px);
+  inset-inline-end: 0;
+  z-index: 20;
+  min-inline-size: 168px;
+  padding: 4px;
+  background: var(--focus-surface);
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius-sm);
+  box-shadow: 0 8px 24px rgba(29, 36, 51, 0.12);
+}
+
+.focus-overflow__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  inline-size: 100%;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  padding: 7px 10px;
+  font-size: 0.86rem;
+  text-align: start;
+  color: var(--focus-text);
+}
+
+.focus-overflow__item:hover,
+.focus-overflow__item:focus-visible {
+  background: var(--focus-line-soft);
+}
+
+.focus-overflow__item.is-danger {
+  color: #b42318;
+}
+
+/* -- a section that is a heading and a list, not a panel ----------------- */
+/*
+ * `.focus-trip-block` gives every group a border, a white background and 16px
+ * of padding. That is right when the group is a card of related facts and wrong
+ * when it is a heading above three rows — which is most of them. This is the
+ * quiet variant: a label, a hairline, and the content.
+ */
+.focus-band + .focus-band {
+  margin-block-start: 16px;
+}
+
+.focus-band__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 12px;
+  padding-block-end: 6px;
+  margin-block-end: 8px;
+  border-block-end: 1px solid var(--focus-line);
+}
+
+.focus-band__title {
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--focus-muted);
+  margin: 0;
+}
+
+.focus-band__action {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+@media (max-width: 575.98px) {
+  .focus-collection__toolbar .focus-search-field {
+    max-inline-size: none;
+    flex-basis: 100%;
+  }
+}
+
+.focus-band__excerpt {
+  font-size: 0.9rem;
+  color: var(--focus-muted);
+}
+
+/* A glance at saved pictures: small, uniform, and a way through to the rest. */
+.focus-thumb-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.focus-thumb-strip__item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  inline-size: 96px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  text-align: start;
+}
+
+.focus-thumb-strip__item .focus-thumb {
+  inline-size: 96px;
+  block-size: 68px;
+}
+
+.focus-thumb-strip__label {
+  font-size: 0.76rem;
+  color: var(--focus-muted);
+  min-inline-size: 0;
+}
+
+/* -- managing project categories ----------------------------------------- */
+
+.focus-category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.focus-category-list__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.focus-category-list__row input {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.focus-category-list__count {
+  flex: 0 0 auto;
+  font-size: 0.76rem;
+  color: var(--focus-muted);
+  white-space: nowrap;
+}
+
+@media (max-width: 575.98px) {
+  /* The count moves under the name rather than squeezing the field to nothing. */
+  .focus-category-list__row {
+    flex-wrap: wrap;
+  }
+
+  .focus-category-list__row input {
+    flex-basis: 100%;
+  }
+}
+
+/* The leisure suggester, opened deliberately rather than occupying the top. */
+.focus-suggester {
+  margin-block-start: 12px;
+}
+
+/* ============================================================ trip route == */
+/*
+ * The route strip: where a trip goes, in order, as one line.
+ *
+ * The one drawn element above the tabs, and it earns it — a trip's shape is a
+ * sequence of places, and a list of cards cannot show a sequence. Order flows
+ * with the writing direction, so the first stop is on the right in Hebrew and
+ * the arrow points left: reading order and travel order agree.
+ */
+
+.focus-route {
+  margin-block-end: 14px;
+}
+
+.focus-route__list {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.focus-route__list::-webkit-scrollbar {
+  display: none;
+}
+
+.focus-route__stop {
+  display: flex;
+  align-items: flex-start;
+  flex: 0 1 auto;
+  min-inline-size: 0;
+}
+
+.focus-route__button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-inline-size: 150px;
+  max-inline-size: 230px;
+  border: 1px solid transparent;
+  border-radius: var(--focus-radius-sm);
+  background: transparent;
+  padding: 7px 10px;
+  text-align: start;
+}
+
+button.focus-route__button:hover {
+  background: var(--focus-surface);
+  border-color: var(--focus-line);
+}
+
+.focus-route__stop.is-active .focus-route__button {
+  background: var(--focus-surface);
+  border-color: var(--focus-accent);
+}
+
+/*
+ * The node on the line, vertically centred so the connector between two stops
+ * runs through the middle of both — which is what makes three cards read as one
+ * route rather than three boxes with dots above them.
+ */
+.focus-route__marker {
+  flex: 0 0 auto;
+  inline-size: 10px;
+  block-size: 10px;
+  border: 2px solid var(--focus-line);
+  border-radius: 50%;
+  background: var(--focus-surface);
+}
+
+.focus-route__stop.is-active .focus-route__marker {
+  border-color: var(--focus-accent);
+  background: var(--focus-accent);
+  box-shadow: 0 0 0 3px var(--focus-accent-soft);
+}
+
+.focus-route__button .focus-thumb {
+  inline-size: 38px;
+  block-size: 38px;
+}
+
+/* Name, dates and nights stack beside the picture, not under it. */
+.focus-route__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.focus-route__name {
+  font-size: 0.98rem;
+  font-weight: 650;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.focus-route__dates {
+  font-size: 0.76rem;
+  color: var(--focus-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.focus-route__nights {
+  font-size: 0.74rem;
+  color: var(--focus-muted);
+}
+
+/* The leg of travel between two stops — the connector is the journey. */
+.focus-route__leg {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 1 1 20px;
+  min-inline-size: 20px;
+  align-self: center;
+  color: var(--focus-muted);
+}
+
+.focus-route__line {
+  flex: 1 1 auto;
+  block-size: 1px;
+  background: var(--focus-line);
+}
+
+/*
+ * One stop is a fact, not a route.
+ *
+ * No node, no connector, and no bordered card either — a single outlined box
+ * floating in an otherwise empty row reads as a route with a piece missing.
+ * It becomes a plain line of facts instead.
+ */
+.focus-route--single .focus-route__marker {
+  display: none;
+}
+
+.focus-route--single .focus-route__button {
+  max-inline-size: none;
+  padding-inline: 0;
+}
+
+.focus-route--single .focus-route__stop.is-active .focus-route__button,
+.focus-route--single button.focus-route__button:hover {
+  background: transparent;
+  border-color: transparent;
+}
+
+/* Name, dates and nights read as one line when there is only one stop. */
+.focus-route--single .focus-route__body {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 12px;
+}
+
+/* -- the line of facts under the route ----------------------------------- */
+
+.focus-brief-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  padding-block: 10px;
+  border-block: 1px solid var(--focus-line);
+  margin-block-end: 14px;
+}
+
+.focus-brief-row__facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 18px;
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.focus-brief-fact {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-inline-size: 0;
+  border: 0;
+  background: transparent;
+  padding: 2px 0;
+  text-align: start;
+  color: var(--focus-text);
+}
+
+.focus-brief-fact svg {
+  align-self: center;
+  flex: 0 0 auto;
+  color: var(--focus-muted);
+}
+
+.focus-brief-fact--missing svg {
+  color: var(--focus-warn);
+}
+
+.focus-brief-fact__label {
+  flex: 0 0 auto;
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--focus-muted);
+}
+
+.focus-brief-fact__value {
+  font-size: 0.92rem;
+  font-weight: 600;
+  min-inline-size: 0;
+}
+
+.focus-brief-fact:hover .focus-brief-fact__value {
+  text-decoration: underline;
+}
+
+.focus-brief-row__progress {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  border: 0;
+  background: transparent;
+  font-size: 0.82rem;
+  color: var(--focus-muted);
+  white-space: nowrap;
+}
+
+.focus-trip-notes .focus-band__head {
+  margin-block-end: 12px;
+}
+
+@media (max-width: 767.98px) {
+  /*
+   * A vertical timeline. A horizontal route at 375px is three unreadable
+   * columns or a scroll surface with no scrollbar, and a route you have to drag
+   * sideways to read is not a route you can see.
+   */
+  .focus-route__list {
+    display: block;
+    overflow-x: visible;
+  }
+
+  .focus-route__stop {
+    display: block;
+    position: relative;
+    padding-inline-start: 18px;
+  }
+
+  .focus-route__button {
+    inline-size: 100%;
+    max-inline-size: none;
+    min-inline-size: 0;
+  }
+
+  /* The node moves onto the spine that runs down the timeline. */
+  .focus-route__marker {
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block-start: 22px;
+    margin: 0;
+  }
+
+  /* The connector becomes the spine running down the timeline. */
+  .focus-route__leg {
+    position: absolute;
+    inset-inline-start: 5px;
+    inset-block: 24px -6px;
+    inline-size: 1px;
+    flex: none;
+    min-inline-size: 0;
+    margin: 0;
+    background: var(--focus-line);
+  }
+
+  .focus-route__leg svg,
+  .focus-route__line {
+    display: none;
+  }
+
+  .focus-brief-row__progress {
+    flex-basis: 100%;
+  }
+}
+
+/* ------------------------------------------------------ overview groups -- */
+/*
+ * On a phone every overview section stacks, so five of them is thousands of
+ * pixels before the reader reaches the one they came for. Below `md` the groups
+ * are shown one at a time.
+ *
+ * The switch is CSS rather than JavaScript on purpose: above `md` the grid
+ * already places the sections side by side, so every group must render and the
+ * control must not exist at all. `display: none` also takes the hidden groups
+ * out of the accessibility tree, which a JS branch would have had to do by hand.
+ */
+.focus-dash-group {
+  display: contents;
+}
+
+@media (max-width: 767.98px) {
+  .focus-dash-group {
+    display: block;
+  }
+
+  .focus-dash[data-showing="today"] .focus-dash-group:not([data-group="today"]),
+  .focus-dash[data-showing="week"] .focus-dash-group:not([data-group="week"]),
+  .focus-dash[data-showing="later"] .focus-dash-group:not([data-group="later"]) {
+    display: none;
+  }
+}
+
+/* The vision tile's one control, on a dark surface. */
+.focus-tile-card__controls .focus-overflow__trigger {
+  color: #fff;
+  background: rgba(17, 22, 33, 0.55);
+  border-radius: 50%;
+  opacity: 1;
+}
+
+.focus-tile-card__controls .focus-overflow__trigger:hover {
+  background: rgba(17, 22, 33, 0.8);
+}
+
+/* The itinerary's panel must be allowed to shrink so the day rail can scroll. */
+.focus-trip__panel,
+.focus-itinerary,
+.focus-itinerary__days {
+  min-inline-size: 0;
+}

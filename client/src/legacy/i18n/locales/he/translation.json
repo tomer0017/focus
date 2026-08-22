@@ -1,0 +1,11 @@
+{
+    "login": {
+      "title": "התחברות",
+      "username": "שם משתמש",
+      "password": "סיסמה",
+      "submit": "התחבר"
+    },
+    "dashboard": {
+      "title": "הציורים שלי"
+    }
+  }

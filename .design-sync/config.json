@@ -1,0 +1,36 @@
+{
+  "projectId": "8ed62070-730a-4c10-98fb-a917b73056a5",
+  "shape": "package",
+  "pkg": "focus-client",
+  "globalName": "Focus",
+  "buildCmd": "node client/design-sync/build-css.mjs",
+  "srcDir": "src",
+  "cssEntry": "design-sync/focus-styles.css",
+  "guidelinesGlob": [],
+  "componentSrcMap": {
+    "FocusPreviewProvider": null,
+    "Routes": null,
+    "Route": null,
+    "Outlet": null,
+    "Link": null,
+    "NavLink": null
+  },
+  "provider": {
+    "component": "FocusPreviewProvider"
+  },
+  "overrides": {
+    "ConfirmDialog": {
+      "cardMode": "single",
+      "viewport": "900x620"
+    },
+    "AppShell": {
+      "cardMode": "single",
+      "primaryStory": "WholeFrame",
+      "viewport": "1280x800"
+    },
+    "SidebarNav": {
+      "cardMode": "column"
+    }
+  },
+  "readmeHeader": ".design-sync/conventions.md"
+}

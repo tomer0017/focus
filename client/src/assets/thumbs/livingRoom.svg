@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" role="img" aria-hidden="true">
+  <rect width="320" height="180" fill="#f4efe8"/>
+  <rect x="0" y="132" width="320" height="48" fill="#e0d4c3"/>
+  <rect x="44" y="30" width="70" height="54" rx="3" fill="#cfe0e6" stroke="#b3a894" stroke-width="3"/>
+  <path d="M79 30 L79 84 M44 57 L114 57" stroke="#b3a894" stroke-width="3"/>
+  <rect x="150" y="96" width="128" height="36" rx="8" fill="#8fa6a0"/>
+  <rect x="142" y="80" width="20" height="52" rx="8" fill="#7d948e"/>
+  <rect x="266" y="80" width="20" height="52" rx="8" fill="#7d948e"/>
+  <rect x="166" y="82" width="42" height="24" rx="6" fill="#e3b98a"/>
+  <rect x="216" y="82" width="42" height="24" rx="6" fill="#e3b98a"/>
+  <rect x="152" y="132" width="8" height="12" fill="#6b5c46"/>
+  <rect x="268" y="132" width="8" height="12" fill="#6b5c46"/>
+  <ellipse cx="70" cy="132" rx="30" ry="7" fill="#cbbda8"/>
+  <rect x="56" y="96" width="28" height="36" rx="4" fill="#a8794f"/>
+  <path d="M70 96 C60 78 58 62 70 52 C82 62 80 78 70 96 Z" fill="#5f8a52"/>
+  <circle cx="248" cy="44" r="14" fill="#f0c95f"/>
+  <path d="M248 58 L248 96" stroke="#b3a894" stroke-width="3"/>
+</svg>
