@@ -365,15 +365,194 @@ export const MOCK_PAGES: PageSummary[] = [
     visibility: "private",
   },
   /*
-   * Two learning pages. They use the ordinary project mechanisms — notes, a
-   * checklist, saved resources, "where I stopped" — plus four facts of their
-   * own. There is no lesson model and no score, which is the whole point.
+   * The learning pages.
+   *
+   * They use the ordinary mechanisms — notes, a checklist, saved items, "where
+   * I stopped" — plus a level, a subject, a goal and a way of learning. There
+   * is no lesson model and no score, which is the whole point.
+   *
+   * `categoryId` here is a *learning subject*, from the list in
+   * `lib/learning.ts`. It shares the field with project categories and cannot
+   * collide with them: the projects board only ever looks at pages of type
+   * `project`.
    */
+  {
+    id: "learning-english",
+    type: "learning",
+    spaceId: "personal",
+    status: "active",
+    categoryId: "languages",
+    title: "אנגלית",
+    stoppedAt: "באמצע יחידת זמן עבר פשוט — התרגילים האי־רגולריים.",
+    nextAction: "לעבור על עשרת הפעלים האי־רגולריים הנפוצים ולהקליט את עצמי אומר אותם.",
+    visionImageUrl:
+      "https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=1200&q=70",
+    learning: {
+      level: "beginner",
+      goal: "לכתוב ולדבר אנגלית בביטחון",
+      method: "אפליקציה יומית, סרטונים, ושיחה שבועית",
+      lastStudiedAt: daysAgo(1, 21),
+      /*
+       * How this page files the material attached to it. The attachment itself
+       * is `contextIds` on each saved item; this only says which level it
+       * belonged to and where it sits.
+       */
+      resources: [
+        { savedItemId: "saved-en-bbc", level: "beginner", order: 0 },
+        { savedItemId: "saved-en-dictionary", order: 1 },
+        { savedItemId: "saved-en-irregular-verbs", level: "beginner", order: 2 },
+        { savedItemId: "saved-en-notebook-photo", level: "beginner", order: 3 },
+        { savedItemId: "saved-en-tenses-chart", order: 4 },
+        { savedItemId: "saved-en-video-basics", level: "beginner", order: 5 },
+        { savedItemId: "saved-en-video-shorts", order: 6 },
+        { savedItemId: "saved-en-video-phrasal", level: "intermediate", order: 7 },
+      ],
+    },
+    notes: [
+      {
+        id: "learning-english-note-stopped",
+        titleKey: "learning.notes.stoppedAt.title",
+        content:
+          "עצרתי אחרי תרגיל 12. הפעלים האי־רגולריים הם החלק שאני הכי מתחמק ממנו.",
+        order: 0,
+        level: "beginner",
+      },
+      {
+        id: "learning-english-note-plan",
+        titleKey: "learning.notes.plan.title",
+        content:
+          "עשר דקות ביום באפליקציה, סרטון אחד בשבוע, ושיחה של חצי שעה בשישי. אחרי שאסיים את זמן העבר — לעבור לזמן עתיד ואז להתחיל לקרוא ידיעות קצרות.",
+        order: 1,
+      },
+      {
+        id: "learning-english-note-remember",
+        titleKey: "learning.notes.remember.title",
+        content: "Phrasal verbs: להתייחס אליהם כמילה אחת, לא לתרגם מילה־מילה.",
+        order: 2,
+        level: "intermediate",
+      },
+    ],
+    lastUpdatedAt: daysAgo(1, 21),
+    favorite: true,
+    visibility: "private",
+  },
+  {
+    id: "learning-french",
+    type: "learning",
+    spaceId: "personal",
+    status: "paused",
+    categoryId: "languages",
+    title: "צרפתית",
+    stoppedAt: "אחרי שיעור 4 — ההגייה של המילים עם R.",
+    learning: {
+      level: "beginner",
+      goal: "להסתדר בטיול בפריז בלי לעבור לאנגלית",
+      method: "קורס אונליין",
+      lastStudiedAt: daysAgo(74, 20),
+    },
+    lastUpdatedAt: daysAgo(74, 20),
+    favorite: false,
+    visibility: "private",
+  },
+  {
+    id: "learning-react-native",
+    type: "learning",
+    spaceId: "work-tech",
+    status: "active",
+    categoryId: "career",
+    title: "React Native",
+    stoppedAt: "בנוי מסך רשימה, נתקע על ניווט בין טאבים.",
+    nextAction: "להעביר את הניווט ל־Expo Router ולראות אם זה פותר את הבעיה.",
+    learning: {
+      level: "intermediate",
+      goal: "להוציא אפליקציה אחת שלי לחנות",
+      method: "תיעוד רשמי + פרויקט אמיתי",
+      lastStudiedAt: daysAgo(4, 22),
+    },
+    lastUpdatedAt: daysAgo(4, 22),
+    favorite: false,
+    visibility: "private",
+  },
+  {
+    id: "learning-3d-modelling",
+    type: "learning",
+    spaceId: "work-tech",
+    status: "active",
+    categoryId: "career",
+    title: "מידול תלת־ממד",
+    stoppedAt: "אמצע התרגיל של הכיסא — המודיפייר של הקיפול.",
+    learning: {
+      level: "beginner",
+      goal: "למדל רהיט שאפשר להראות ללקוח",
+      method: "סדרת סרטונים",
+      lastStudiedAt: daysAgo(17, 21),
+    },
+    lastUpdatedAt: daysAgo(17, 21),
+    favorite: false,
+    visibility: "private",
+  },
+  {
+    id: "learning-ai-development",
+    type: "learning",
+    spaceId: "work-tech",
+    status: "active",
+    categoryId: "career",
+    title: "פיתוח AI",
+    stoppedAt: "קראתי על RAG, עוד לא בניתי כלום.",
+    nextAction: "לבנות דמו קטן שמחפש בתוך המסמכים שלי.",
+    learning: {
+      level: "beginner",
+      goal: "לדעת מתי זה הכלי הנכון ומתי לא",
+      method: "מאמרים + ניסויים קטנים",
+      lastStudiedAt: daysAgo(6, 23),
+    },
+    lastUpdatedAt: daysAgo(6, 23),
+    favorite: false,
+    visibility: "private",
+  },
+  {
+    id: "learning-ai-marketing",
+    type: "learning",
+    spaceId: "work-tech",
+    status: "paused",
+    categoryId: "career",
+    title: "קידום ושיווק בעזרת AI",
+    stoppedAt: "אחרי הפרק על מחקר מילות מפתח.",
+    learning: {
+      level: "beginner",
+      goal: "להביא פניות בלי לשלם על פרסום",
+      method: "קורס אונליין",
+      lastStudiedAt: daysAgo(52, 20),
+    },
+    lastUpdatedAt: daysAgo(52, 20),
+    favorite: false,
+    visibility: "private",
+  },
+  {
+    id: "learning-carpentry",
+    type: "learning",
+    spaceId: "home",
+    status: "active",
+    categoryId: "leisure",
+    title: "נגרות",
+    stoppedAt: "חיבורי לוחות — ניסיתי דובל, יצא עקום.",
+    nextAction: "לתרגל שלושה חיבורי דובל על שאריות לפני שאני נוגע בפרויקט האמיתי.",
+    learning: {
+      level: "beginner",
+      goal: "לבנות מדף תלוי שלא מתנדנד",
+      method: "סדנה חודשית + סרטונים",
+      lastStudiedAt: daysAgo(11, 19),
+    },
+    lastUpdatedAt: daysAgo(11, 19),
+    favorite: false,
+    visibility: "private",
+  },
   {
     id: "learning-hebrew-calligraphy",
     type: "learning",
     spaceId: "personal",
     status: "active",
+    categoryId: "leisure",
     title: "כתב יד וקליגרפיה",
     description: "ללמוד לכתוב יפה בעברית, בעיקר לכרטיסי ברכה.",
     currentState: "עברתי על שלושת התרגילים הראשונים בחוברת.",
@@ -393,18 +572,20 @@ export const MOCK_PAGES: PageSummary[] = [
     id: "learning-typescript-depth",
     type: "learning",
     spaceId: "work-tech",
-    status: "active",
+    status: "completed",
+    categoryId: "career",
     title: "TypeScript in depth",
     description: "Generics, conditional types and the bits I keep guessing at.",
     currentState: "Comfortable with generics; conditional types still by trial and error.",
     stoppedAt: "Chapter on mapped types — got as far as `as` clauses and stopped.",
     nextAction: "Rewrite one real type in the app using a mapped type instead of a union.",
     learning: {
-      level: "intermediate",
+      level: "advanced",
       goal: "Stop reaching for `any` when a type gets awkward",
       method: "A book, plus rewriting real types in this repo",
       lastStudiedAt: daysAgo(48, 23),
     },
+    completedAt: daysAgo(40, 12),
     lastUpdatedAt: daysAgo(48, 23),
     favorite: false,
     visibility: "private",

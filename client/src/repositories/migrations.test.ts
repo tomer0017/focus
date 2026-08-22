@@ -376,3 +376,85 @@ describe("project categories", () => {
     expect(pageOverridesRepository.load()["old-page"].categoryId).toBeUndefined();
   });
 });
+
+describe("learning subjects", () => {
+  it("seeds three on a first visit, each carrying a key rather than a language", async () => {
+    const { learningTopicsRepository } = await import("./index");
+    const seeded = learningTopicsRepository.load();
+    expect(seeded.map((entry) => entry.id)).toEqual(["languages", "career", "leisure"]);
+    expect(seeded.every((entry) => entry.nameKey && !entry.name)).toBe(true);
+  });
+
+  it("fills in an order without changing ids or dropping a rename", async () => {
+    const { learningTopicsRepository } = await import("./index");
+    write(STORAGE_KEYS.learningTopics, [{ id: "languages", name: "שפות זרות" }, { id: "mine" }]);
+
+    const stored = learningTopicsRepository.load();
+    expect(stored.map((entry) => entry.order)).toEqual([0, 1]);
+    expect(stored.map((entry) => entry.id)).toEqual(["languages", "mine"]);
+    expect(stored[0].name).toBe("שפות זרות");
+  });
+
+  it("is a separate list from the project categories", async () => {
+    // Same model, different slice. "Languages" is not a column on the projects
+    // board, and "physical" is not a subject.
+    const { learningTopicsRepository, projectCategoriesRepository } = await import("./index");
+    expect(STORAGE_KEYS.learningTopics).not.toBe(STORAGE_KEYS.projectCategories);
+    expect(learningTopicsRepository.load().map((entry) => entry.id)).not.toEqual(
+      projectCategoriesRepository.load().map((entry) => entry.id)
+    );
+  });
+});
+
+describe("learning pages already in storage", () => {
+  it("loads an override written before levels, resources or notes existed", async () => {
+    const { pageOverridesRepository } = await import("./index");
+    write(STORAGE_KEYS.pageOverrides, {
+      "learning-english": { learning: { level: "beginner", goal: "לדבר" } },
+    });
+
+    const stored = pageOverridesRepository.load()["learning-english"];
+    expect(stored.learning).toEqual({ level: "beginner", goal: "לדבר" });
+    // Absent is not empty: `notes === undefined` still means "never edited",
+    // and the page reads its legacy fields through `notesForPage`.
+    expect(stored.notes).toBeUndefined();
+    expect(stored.learning?.resources).toBeUndefined();
+    expect(stored.learning?.detachedResourceIds).toBeUndefined();
+  });
+
+  it("keeps a page's resource filing and its tombstones intact", async () => {
+    const { pageOverridesRepository } = await import("./index");
+    write(STORAGE_KEYS.pageOverrides, {
+      "learning-english": {
+        learning: {
+          resources: [{ savedItemId: "saved-en-bbc", level: "beginner", order: 0 }],
+          detachedResourceIds: ["saved-en-video-shorts"],
+        },
+      },
+    });
+
+    const stored = pageOverridesRepository.load()["learning-english"].learning;
+    expect(stored?.resources).toEqual([
+      { savedItemId: "saved-en-bbc", level: "beginner", order: 0 },
+    ]);
+    expect(stored?.detachedResourceIds).toEqual(["saved-en-video-shorts"]);
+  });
+
+  it("keeps an empty note list empty, on a learning page as anywhere else", async () => {
+    const { pageOverridesRepository } = await import("./index");
+    write(STORAGE_KEYS.pageOverrides, { "learning-english": { notes: [] } });
+    expect(pageOverridesRepository.load()["learning-english"].notes).toEqual([]);
+  });
+
+  it("clears no key when a learning page is read", async () => {
+    const { pageOverridesRepository, learningTopicsRepository } = await import("./index");
+    write(STORAGE_KEYS.pageOverrides, { "learning-english": {} });
+    write(STORAGE_KEYS.learningTopics, [{ id: "languages", order: 0 }]);
+    const before = [...storage.keys].sort();
+
+    pageOverridesRepository.load();
+    learningTopicsRepository.load();
+
+    expect([...storage.keys].sort()).toEqual(before);
+  });
+});

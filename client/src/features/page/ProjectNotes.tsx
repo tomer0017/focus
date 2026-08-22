@@ -6,20 +6,41 @@ import {
   PROJECT_NOTE_TEMPLATES,
   moveNote,
   noteId,
-  noteTemplate,
   noteTitle,
   renumber,
+  type ProjectNoteTemplate,
 } from "../../lib/projectNotes";
-import type { ProjectNote } from "../../types";
+import type { LearningLevel, ProjectNote } from "../../types";
 
 interface ProjectNotesProps {
   notes: ProjectNote[];
   isEditing: boolean;
   onChange: (notes: ProjectNote[]) => void;
+  /**
+   * The starting points offered when adding a note.
+   *
+   * A prop rather than a constant because the prompts are domain copy: "Budget"
+   * and "Measurements" are the right questions for replacing a sofa and the
+   * wrong ones for learning French, where "where I stopped" and "study plan"
+   * are what somebody actually needs. Defaults to the project set.
+   */
+  templates?: ProjectNoteTemplate[];
+  /**
+   * When given, a note may be filed under a level.
+   *
+   * Only the learning page passes this. An empty value means the note is
+   * general — it belongs to the subject rather than to one level, and stays
+   * visible at every level. See `matchesLevel` in `lib/learning.ts`.
+   */
+  levels?: { value: LearningLevel | ""; label: string }[];
+  /** Accessible name for the level control. Required when `levels` is given. */
+  levelFieldLabel?: string;
+  /** The chip shown in view mode. Absent for a general note, which gets none. */
+  levelBadge?: (level: LearningLevel | undefined) => string | undefined;
 }
 
 /**
- * The body of a project page: as many blocks as the project needs, and none
+ * The body of a project or learning page: as many blocks as it needs, and none
  * when it needs none.
  *
  * In view mode this is text under headings — no delete buttons, no reorder
@@ -28,12 +49,22 @@ interface ProjectNotesProps {
  * one explicit step away, and saves as it goes, so the way out is "done
  * editing" rather than a Save button that pretends to do something.
  */
-export function ProjectNotes({ notes, isEditing, onChange }: ProjectNotesProps) {
+export function ProjectNotes({
+  notes,
+  isEditing,
+  onChange,
+  templates = PROJECT_NOTE_TEMPLATES,
+  levels,
+  levelFieldLabel,
+  levelBadge,
+}: ProjectNotesProps) {
   const { t } = useTranslation(["pages", "common"]);
   const [adding, setAdding] = useState(false);
 
-  const addNote = (templateId?: string): void => {
-    const template = templateId ? noteTemplate(templateId) : undefined;
+  const addNote = (templateId?: string, level?: LearningLevel): void => {
+    const template = templateId
+      ? templates.find((entry) => entry.id === templateId)
+      : undefined;
     const now = new Date().toISOString();
     onChange(
       renumber([
@@ -43,6 +74,7 @@ export function ProjectNotes({ notes, isEditing, onChange }: ProjectNotesProps) 
           titleKey: template?.titleKey,
           content: "",
           order: notes.length,
+          level,
           createdAt: now,
           updatedAt: now,
         },
@@ -59,25 +91,32 @@ export function ProjectNotes({ notes, isEditing, onChange }: ProjectNotesProps) 
     );
 
   if (!isEditing) {
-    // An empty project renders nothing at all — not a heading, not a prompt.
+    // An empty page renders nothing at all — not a heading, not a prompt.
     if (notes.length === 0) return null;
+
+    const visible = notes.filter((note) => note.content.trim() || noteTitle(note, t));
+    if (visible.length === 0) return null;
 
     return (
       <div className="focus-notes">
-        {notes
-          .filter((note) => note.content.trim() || noteTitle(note, t))
-          .map((note) => (
+        {visible.map((note) => {
+          const badge = levelBadge?.(note.level);
+          return (
             <section key={note.id} className="focus-note">
-              <h2 className="focus-note__title" dir="auto">
-                {noteTitle(note, t)}
-              </h2>
+              <div className="focus-note__head">
+                <h3 className="focus-note__title" dir="auto">
+                  {noteTitle(note, t)}
+                </h3>
+                {badge && <span className="focus-chip focus-chip--muted">{badge}</span>}
+              </div>
               {note.content.trim() && (
                 <p className="focus-note__body mb-0" dir="auto">
                   {note.content}
                 </p>
               )}
             </section>
-          ))}
+          );
+        })}
       </div>
     );
   }
@@ -86,7 +125,7 @@ export function ProjectNotes({ notes, isEditing, onChange }: ProjectNotesProps) 
     <div className="focus-notes focus-notes--editing">
       {notes.map((note, index) => {
         const template = note.titleKey
-          ? PROJECT_NOTE_TEMPLATES.find((entry) => entry.titleKey === note.titleKey)
+          ? templates.find((entry) => entry.titleKey === note.titleKey)
           : undefined;
 
         return (
@@ -139,6 +178,30 @@ export function ProjectNotes({ notes, isEditing, onChange }: ProjectNotesProps) 
               </div>
             </div>
 
+            {levels && levelFieldLabel && (
+              <div className="focus-note__level">
+                <label className="form-label mb-1" htmlFor={`note-level-${note.id}`}>
+                  {levelFieldLabel}
+                </label>
+                <select
+                  id={`note-level-${note.id}`}
+                  className="form-select form-select-sm"
+                  value={note.level ?? ""}
+                  onChange={(event) =>
+                    patch(note.id, {
+                      level: (event.target.value || undefined) as LearningLevel | undefined,
+                    })
+                  }
+                >
+                  {levels.map((option) => (
+                    <option key={option.value || "general"} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             <label className="visually-hidden" htmlFor={`note-body-${note.id}`}>
               {t("pages:notes.contentLabel")}
             </label>
@@ -162,7 +225,7 @@ export function ProjectNotes({ notes, isEditing, onChange }: ProjectNotesProps) 
             <Button variant="outline-primary" size="sm" onClick={() => addNote()}>
               {t("pages:notes.blank")}
             </Button>
-            {PROJECT_NOTE_TEMPLATES.map((template) => (
+            {templates.map((template) => (
               <Button
                 key={template.id}
                 variant="outline-secondary"

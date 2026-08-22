@@ -54,3 +54,23 @@ export function normaliseUrl(url: string | undefined | null): string | undefined
 export function isImageUrl(url: string | undefined | null): url is string {
   return isExternalUrl(url);
 }
+
+/**
+ * The host, without `www.`, for showing beside a link.
+ *
+ * A saved link is recognised by where it came from far more often than by the
+ * title somebody typed at 1am, and a full URL on a 320px row is three lines of
+ * query string. Returns `undefined` for anything `isExternalUrl` rejects, so a
+ * caller cannot print a domain for a destination the app would refuse to open.
+ *
+ * This is a *display* of the address the user already gave us. Nothing is
+ * fetched, from this host or any other.
+ */
+export function hostLabel(url: string | undefined | null): string | undefined {
+  if (!isExternalUrl(url)) return undefined;
+  try {
+    return new URL(url.trim()).hostname.replace(/^www\./i, "");
+  } catch {
+    return undefined;
+  }
+}

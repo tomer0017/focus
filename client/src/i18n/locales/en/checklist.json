@@ -198,5 +198,6 @@
   "shoppingTemplates": "Shopping lists",
   "tripTemplates": "Packing lists",
   "fromMenu": "Built from a menu",
-  "independence": "Editing this list never changes the template."
+  "independence": "Editing this list never changes the template.",
+  "noChecklistHintOwnOnly": "Write the list yourself — nothing is generated for you."
 }

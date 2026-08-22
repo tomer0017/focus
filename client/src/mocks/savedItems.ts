@@ -13,6 +13,134 @@ import { daysAgo } from "./relativeDates";
  * from TikTok, YouTube, Instagram or anywhere else.
  */
 export const MOCK_SAVED_ITEMS: SavedItem[] = [
+  /*
+   * The English page's material, across all four panels.
+   *
+   * Ordinary saved items, attached the ordinary way: `contextIds` holds the
+   * learning page. Which level each one belongs to is not here — it is on the
+   * page, in `learning.resources`, because the same video could be beginner
+   * material on one page and the only advanced thing on another.
+   *
+   * Nothing is fetched from YouTube, Instagram or TikTok. `source` is the
+   * user's own answer to "where did I get this?", and a video with no real
+   * thumbnail gets a tile that says which platform it is rather than a picture
+   * somebody invented for it.
+   */
+  {
+    id: "saved-en-bbc",
+    kind: "link",
+    title: "BBC Learning English",
+    note: "היחידות של שש דקות — בדיוק האורך שאני מצליח להתרכז בו",
+    source: "web",
+    url: "https://www.bbc.co.uk/learningenglish",
+    spaceId: "personal",
+    thumb: "books",
+    contextIds: ["learning-english"],
+    savedAt: daysAgo(40, 20),
+  },
+  {
+    id: "saved-en-dictionary",
+    kind: "link",
+    title: "Cambridge Dictionary",
+    note: "בשביל ההגייה, לא בשביל התרגום",
+    source: "web",
+    url: "https://dictionary.cambridge.org/",
+    spaceId: "personal",
+    thumb: "books",
+    contextIds: ["learning-english"],
+    savedAt: daysAgo(38, 20),
+  },
+  {
+    id: "saved-en-irregular-verbs",
+    kind: "document",
+    title: "טבלת פעלים אי־רגולריים",
+    note: "קישור בלבד — Focus לא שומר את הקובץ עצמו",
+    source: "web",
+    url: "https://www.gutenberg.org/",
+    spaceId: "personal",
+    thumb: "document",
+    contextIds: ["learning-english"],
+    savedAt: daysAgo(30, 19),
+  },
+  {
+    id: "saved-en-notebook-photo",
+    kind: "image",
+    title: "צילום של דף התרגול מהשיעור",
+    source: "own",
+    url: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=1200&q=70",
+    spaceId: "personal",
+    thumb: "notebook",
+    contextIds: ["learning-english"],
+    savedAt: daysAgo(12, 21),
+  },
+  {
+    id: "saved-en-tenses-chart",
+    kind: "image",
+    title: "טבלת הזמנים שתליתי מעל השולחן",
+    source: "own",
+    url: "https://images.unsplash.com/photo-1556909212-d5b604d0c90d?auto=format&fit=crop&w=1600&q=70",
+    spaceId: "personal",
+    thumb: "notebook",
+    contextIds: ["learning-english"],
+    savedAt: daysAgo(9, 21),
+  },
+  {
+    id: "saved-en-video-basics",
+    kind: "video",
+    title: "Past simple, explained slowly",
+    note: "לצפות שוב לפני התרגול",
+    source: "youtube",
+    url: "https://www.youtube.com/",
+    spaceId: "personal",
+    thumb: "camera",
+    contextIds: ["learning-english"],
+    savedAt: daysAgo(20, 22),
+  },
+  {
+    id: "saved-en-video-shorts",
+    kind: "video",
+    title: "ביטויים יומיומיים, דקה כל אחד",
+    source: "instagram",
+    url: "https://www.instagram.com/",
+    spaceId: "personal",
+    thumb: "camera",
+    contextIds: ["learning-english"],
+    savedAt: daysAgo(7, 22),
+  },
+  {
+    id: "saved-en-video-phrasal",
+    kind: "video",
+    title: "Phrasal verbs שאני תמיד מבלבל",
+    note: "רמה גבוהה ממה שאני בו — לשמור להמשך",
+    source: "tiktok",
+    url: "https://www.tiktok.com/",
+    spaceId: "personal",
+    thumb: "camera",
+    contextIds: ["learning-english"],
+    savedAt: daysAgo(5, 22),
+  },
+  {
+    id: "saved-rn-docs",
+    kind: "link",
+    title: "React Native — Navigation docs",
+    source: "web",
+    url: "https://reactnative.dev/",
+    spaceId: "work-tech",
+    thumb: "laptop",
+    contextIds: ["learning-react-native"],
+    savedAt: daysAgo(15, 20),
+  },
+  {
+    id: "saved-carpentry-joints",
+    kind: "video",
+    title: "שלושה חיבורי דובל בלי מכונה",
+    source: "youtube",
+    url: "https://www.youtube.com/",
+    spaceId: "home",
+    thumb: "table",
+    contextIds: ["learning-carpentry"],
+    savedAt: daysAgo(13, 20),
+  },
   {
     id: "saved-pizza-video",
     kind: "video",

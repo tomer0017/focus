@@ -5,7 +5,8 @@ import Modal from "react-bootstrap/Modal";
 import { usePages } from "../../state/pagesContext";
 import { SPACES } from "../../mocks/spaces";
 import { normaliseUrl } from "../../lib/links";
-import type { SavedItem, SavedItemKind, SavedItemSource, SpaceId, ThumbKey } from "../../types";
+import { THUMB_FOR_KIND, savedItemId } from "../../lib/savedItems";
+import type { SavedItem, SavedItemKind, SavedItemSource, SpaceId } from "../../types";
 
 const KINDS: SavedItemKind[] = [
   "link",
@@ -30,19 +31,6 @@ const SOURCES: SavedItemSource[] = [
   "file",
   "own",
 ];
-
-/** Artwork stands in for a preview image, chosen by what kind of thing it is. */
-const THUMB_FOR_KIND: Record<SavedItemKind, ThumbKey> = {
-  link: "city",
-  video: "camera",
-  image: "camera",
-  recipe: "salad",
-  product: "sideboard",
-  document: "document",
-  note: "notebook",
-  inspiration: "plant",
-  location: "mountain",
-};
 
 interface QuickSaveModalProps {
   show: boolean;
@@ -86,7 +74,7 @@ export function QuickSaveModal({ show, onClose }: QuickSaveModalProps) {
     if (!trimmed) return;
 
     const item: SavedItem = {
-      id: `saved-${Date.now().toString(36)}`,
+      id: savedItemId(),
       kind,
       title: trimmed,
       note: note.trim() || undefined,

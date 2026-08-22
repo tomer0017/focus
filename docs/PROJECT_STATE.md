@@ -3,12 +3,112 @@
 Living document. **Update this at the end of every development task.**
 
 **Last updated:** 2026-08-22
-**Task completed:** Task 11 — infrastructure only: the project was put under
-Git, pushed to `github.com/tomer0017/focus`, and the frontend set up to publish
-itself to GitHub Pages on every push to `main`. No design, UX, model or mock
-change.
+**Task completed:** Task 12 — the learning area rebuilt around a level and the
+material collected at each one: a new list screen, a new page, learning-only
+note templates, four material panels over the existing `SavedItem` model, a
+learning-subject slice, and the removal of the template picker that let a
+supermarket list be created as a study plan.
 
 ---
+
+## What changed in task 12 — learning
+
+### The defect that started it
+
+Creating a learning page for English offered "start from a template", the
+template list was the app-wide checklist list, and the result was a **weekly
+supermarket shop** — produce, dairy, bakery — sitting on a page about learning
+English. Every part of that worked exactly as written. It was still wrong, and
+the fix is not a better picker: a learning page now offers **no template at
+creation at all**, and its practice list starts empty.
+
+Two rules came out of it, both now in `CLAUDE.md`:
+
+- A template belongs to one domain. Never offer a picker that can hand a screen
+  another area's content.
+- Where the right templates do not exist, an empty thing the user fills is the
+  honest answer.
+
+`ChecklistSection` gained `allowTemplates`, and the learning page passes
+`false`. Lists the old picker already created are **not deleted**:
+`isForeignChecklist` recognises one, the page names it for what it is, and
+removing it is the user's decision behind a confirmation.
+
+### The level is the spine
+
+`LearningLevel` already existed as a fact on the page and was used for one chip
+and one filter on the list screen. It is now the control the whole detail page
+answers to: one rail under the brief, and the notes, the practice list and all
+four material panels obey it. Six filters would drift out of step; one does not.
+
+The decision that makes it usable: **absent means general, and general shows at
+every level.** Hiding unlevelled material when somebody narrows to "beginner"
+would hide the dictionary link and the "where I stopped" note at precisely the
+moment they went looking. `matchesLevel` is the single judge, and the UI writes
+"general" beside such an item so the two are never confused.
+
+The filter lives in the URL (`?level=`), as does the material panel
+(`?material=`) and both list filters (`?group=`, `?topic=`). A refresh, the back
+button and a link all land in the same place.
+
+### Material: four panels, one model
+
+Links, documents, pictures and videos are `SavedItem`s attached the ordinary way
+— `contextIds` — and which panel they land in is derived from `kind`. What was
+missing was the level, and it is **not** on the item: the same video can be
+beginner material on one page and the only advanced thing on another. It is a
+`LearningResource` record on the page (`learning.resources`).
+
+Removing a resource writes a tombstone (`detachedResourceIds`) and never deletes
+the `SavedItem` — verified in the browser with one clip attached to two learning
+pages: removing it from English left it on Carpentry and left storage untouched.
+
+Nothing is uploaded. A document is a link and the documents panel says so once.
+A picture is an address with a live preview; a broken one shows "the picture did
+not load", not artwork. A video is a link plus the platform label the user
+chose; no thumbnail is fetched or invented.
+
+### Subjects, without a second categories system
+
+A learning subject is a `ProjectCategory` in its own slice
+(`focus.learningTopics`, seeded languages · career · leisure), stored in the
+same `PageSummary.categoryId`. That is safe because the projects board scopes
+itself to `type === "project"`. The four list edits are now pure functions in
+`lib/projectCategories.ts` and are called by both slices rather than written
+twice.
+
+### Notes
+
+`ProjectNotes` gained two props — the template set, and an optional level
+picker. The learning page passes `LEARNING_NOTE_TEMPLATES` (where I stopped ·
+study plan · next steps · worth remembering), so "Budget" and "Measurements" no
+longer appear on a page about French. A template fills in a title and a hint and
+nothing else; no note is created until the user asks for one.
+
+### Screens
+
+**`/learning`** asks two questions and stops: *am I on this now* (tabs) and
+*what is it about* (subject chips). One compact row per page, fifteen at a time
+through `PagedList`, secondary actions in an always-visible `OverflowMenu`.
+Verified with 56 active and 70 finished pages: 15 rows rendered, "show more"
+present, no horizontal overflow at 320px.
+
+**The learning page** leads with the picture, the goal, where you stopped, the
+next action and the method, then the rail, then everything that answers to it.
+View mode carries no inputs at all (measured: 0 visible form controls);
+"I studied today" stays live, because recording something that happened is not
+editing.
+
+### What was deliberately not done
+
+- **No `LearningStatus` type.** "On hold" and "paused" are the same fact with
+  two names. The tabs are `PageStatus` plus an `all` view.
+- **No custom levels.** Three, and the model does not block a fourth later.
+- **No template at learning creation**, for the reason above.
+- **No sharing UI.** The URL shape is groundwork; there is no server, no user
+  and no permission model, so there is no share button. See `FUTURE_ROADMAP.md`.
+- **No upload, no metadata fetch, no AI, no new dependency, no new state
+  library.**
 
 ## What changed in task 11 — Git and GitHub Pages
 
@@ -397,8 +497,15 @@ Everything from tasks 1–6, plus:
   after any number of reloads.
 - **"What needs you"** on the overview and at `/reminders`, the latter being the
   only place that lists what has been snoozed.
-- **Learning** pages with a refresher checklist, saved resources and a one-tap
-  "I studied today".
+- **Learning** at `/learning`: tabs for learning now / on hold / finished / all,
+  subject chips, one compact row per page, paged fifteen at a time, both filters
+  in the URL. A learning page carries a level, a subject, a goal, a method, a
+  picture, notes filed by level, an empty-until-you-write-it practice list, and
+  four material panels — links, documents, pictures, videos — over the existing
+  `SavedItem` model, every item optionally filed under a level. One rail at the
+  top filters all of it; unlevelled material is general and stays visible.
+  Removing material from a page never deletes the saved item. "I studied today"
+  is one tap and stays available in view mode.
 - **Leisure** with tag filters and a one-suggestion rules engine that can decline
   to suggest anything.
 - Global search reaches profiles, scheduled items, commitments, menus and
@@ -439,12 +546,22 @@ fallback and have been corrected. Behaviour was not changed.
 
 ## What is still mock
 
+Learning specifically: the nine seeded learning pages, the English page's eight
+saved items (two links, one document link, two picture addresses, three video
+links) and its notes are all demo data. The document is a **link**, not a file —
+there is no upload anywhere in the app. The picture addresses point at Unsplash
+and the video links at the platforms' own home pages; no metadata, title or
+thumbnail is fetched from any of them, and the platform label is the user's own
+answer. Sharing, accounts and server integration do not exist in any form.
+
 - **Seed data** — `client/src/mocks/`: pages, routines with generated history,
   events, saved items, recipes and places, checklists, vision boards, and one
   fully planned trip (Japan 2027) including four outfits. Dates are generated
   relative to load time.
-- **All user changes are `localStorage`**, under **21** `focus.*` keys plus the
-  language preference. Per-browser, per-profile, a stand-in for the API. Project
+- **All user changes are `localStorage`**, under **23** `focus.*` keys plus the
+  language preference (`lib/storage/keys.ts` holds 24 entries in all). The newest
+  is `focus.learningTopics`; the count in earlier revisions of this document was
+  one short, and is corrected here. Per-browser, per-profile, a stand-in for the API. Project
   notes and pictures are stored inside `focus.pages.overrides`; event
   preparation windows and reminders inside `focus.events`. The eleven new keys
   are `scheduled`, `commitments`, `money`, `medications`, `family`, `quickLog`,
@@ -496,7 +613,49 @@ half as passing.
 
 ## Architecture decisions
 
-Decisions 1–65 still stand. New in task 11:
+Decisions 1–85 still stand. New in task 12:
+
+**86. A level is a lens over one screen, not a folder.** One control filters the
+notes, the practice list and all four material panels. The alternative — a
+filter per section — is four controls that can disagree about what the user is
+looking at.
+
+**87. Unlevelled content is general and shows at every level.** Absent means
+"applies throughout", not "not filed yet". This is what stops the filter hiding
+the dictionary link exactly when somebody narrows down to find it. The UI labels
+it, so the user is never guessing which meaning is in play.
+
+**88. The level of a resource belongs to the pairing, not to the item.**
+`LearningResource` lives on the page. Putting `level` on `SavedItem` would be
+wrong the moment the same video is attached to two learning pages.
+
+**89. Removing a resource is a tombstone.** `detachedResourceIds` takes an item
+off one page and deletes nothing. "Take this off my English page" and "delete
+this video" are different requests, and only the user makes the second. It is
+also what makes removal work on seeded material, which cannot be edited.
+
+**90. A template belongs to one domain.** `ChecklistSection.allowTemplates`
+exists because the app-wide picker let a learning page create a supermarket
+list. Where the right templates do not exist, an empty thing the user fills is
+the honest answer — and a learning page therefore offers no template at
+creation.
+
+**91. A list from the wrong domain is named, not deleted.** No migration removes
+the shopping lists the old picker created. `isForeignChecklist` recognises one,
+the page says what it is, and removal is a confirmed user action. Destroying
+somebody's data to tidy up after the app is not a migration.
+
+**92. Learning subjects are the same model in a different list.**
+`ProjectCategory` in `focus.learningTopics`, stored in the shared
+`PageSummary.categoryId`, safe because the board scopes to `type === "project"`.
+One model, two lists. The four list edits moved into `lib/projectCategories.ts`
+so they are called twice rather than written twice.
+
+**93. Every learning filter is in the URL.** `?group=`, `?topic=`, `?level=` and
+`?material=`. It is what makes a refresh and the back button work today, and it
+is the shape a shared "English · beginner · view only" link would need later.
+
+New in task 11:
 
 **82. The published demo routes through the fragment.** GitHub Pages has no SPA
 rewrite, so `HashRouter` is what makes a deep link and a refresh work. A
@@ -808,11 +967,32 @@ one-time manual setting, not a source change. The workflow itself needs nothing.
 **The live URL has therefore not been verified.** What was verified is the same
 build served as plain static files under `/focus/` — see below.
 
-Nothing else. Task 8 is complete and verified. The trips design is awaiting the manual
-review it was built for — it is the first area in the new language, and the
-language should not be applied to other screens until it is approved.
+Nothing else in the product is blocked. Task 12 is complete and verified
+locally and in a real browser; what remains unverified is anything that depends
+on the Pages setting above.
 
 ## Recommended next action
+
+**Audit the remaining template pickers for the same domain leak the learning
+page had.**
+
+One task, and it is the direct generalisation of the defect this task fixed.
+`ChecklistSection` now has `allowTemplates`, but the *unfiltered* list is still
+what trips, events and projects see: a trip's packing list is offered the weekly
+supermarket shop, and a project is offered a camping list. `ChecklistTemplate`
+already carries a `category` and `mocks/checklistTemplates.ts` already exports
+`templatesFor` — nothing needs inventing, the filter simply is not wired up.
+
+The work is to replace `allowTemplates: boolean` with the category the screen
+actually wants, pass it from the four call sites, and add the test that a
+shopping template can never be offered where a packing list belongs. Small,
+testable, and it closes the class of bug rather than the one instance.
+
+*(Previously recommended, still true and still worth doing after the above:
+bring `EventSection` items onto the shared `Checklist` model and delete
+`lib/eventChecklist.ts` — the last model that dodged the 80/20 rule.)*
+
+### The earlier recommendation, unchanged
 
 **Bring `EventSection` items onto the shared `Checklist` model.**
 
@@ -830,14 +1010,66 @@ the suite that now exists, and touches nothing else.
 
 Explicitly **not** the API, and not for the reason it was declined last time. The
 local core is stable and the tests are real now, so the case is stronger — but the
-storage seam has not moved: twenty-one slices still sit behind one `Repository<T>`
+storage seam has not moved: every slice still sits behind one `Repository<T>`
 interface, so the swap is no harder later. Cleaning up the one model that dodged
 the 80/20 rule is worth more than starting a second tier while a known duplication
 is still in the domain.
 
 ---
 
-## Verification performed for this task (task 11)
+## Verification performed for this task (task 12)
+
+**Toolchain, all clean** — `npm run typecheck` (client + server),
+`npm run lint`, `npm run check:links`, `npm run build` (client + server), and
+**Vitest: 359 passing / 19 files**, up from 324. New: `lib/learning.test.ts`
+(35 tests — level matching, the general rule, group mapping, subject labelling,
+note templates, panel routing, resource resolution, filing, tombstones, and the
+foreign-checklist detector) and eight new migration tests covering the learning
+subject slice and learning pages already in storage. The server still has no
+tests and its script is still a notice; that half is **not** reported as
+passing. `legacy/` untouched.
+
+**Headless Chrome against the dev server, real interaction, 0 console errors and
+0 failed requests.** Two languages × five widths (1440 · 1024 · 768 · 375 ·
+320) × nine states (the three list tabs, the page at all levels and at each of
+beginner and intermediate, and the videos, pictures and documents panels) — 90
+page loads. Every one: **no horizontal overflow, no raw translation keys**,
+`dir` correct (`rtl` for Hebrew, `ltr` for English).
+
+Measured, not assumed:
+
+- **The level filter narrows.** Notes 3 → 2 → 2 → 1 across all / beginner /
+  intermediate / advanced; links 2 → 2 → 1 → 1. General material stayed visible
+  at every level, which is the behaviour the rule exists for.
+- **View mode carries no inputs**: 0 visible form controls on the page.
+- **Notes**: added one from the "next steps" template, 4 notes, survived a
+  reload.
+- **Material**: added a link in edit mode; it was present after a reload.
+- **Videos**: 3 tiles, **0 `<img>` elements** — no thumbnail invented for any
+  platform.
+- **Pictures**: both seeded addresses loaded; a deliberately broken address
+  rendered the neutral placeholder reading "התמונה לא נטענה", with no artwork
+  substituted, and the inline error appeared in the form before saving.
+- **Removal is not deletion**: one clip attached to both the English and the
+  Carpentry pages. Removed from English → gone from English, still on Carpentry,
+  still in `focus.savedItems`, and the removal recorded as one tombstone.
+- **The foreign list**: a `shop-weekly` checklist written straight into
+  `focus.checklists` under `page:learning-english` was flagged as belonging to
+  another part of Focus, was **not** rendered as a practice list, and was removed
+  only after a confirmation.
+- **Scale**: 50 extra active + 70 extra finished pages injected. 15 rows
+  rendered, "show more" present, the honest total shown ("15 of 56"), and no
+  horizontal overflow at 320px.
+- **The create modal**: at 320×568 the footer is on screen and the body scrolls;
+  Escape closes it and nothing is created.
+
+**Not verified, and not claimed.** No screen-reader pass. No touch-device
+testing on real hardware. No axe/Lighthouse audit. Keyboard reachability was
+designed for (`OverflowMenu` is always visible, actions stay in the tab order)
+but was **not** measured with a tab-order walk this task. The live GitHub Pages
+site is covered separately below.
+
+## Verification performed for task 11
 
 **Toolchain, all clean** — `npm run typecheck` (client + server),
 `npm run lint`, `npm run build` (client + server), `npm run check:links`, and
@@ -987,6 +1219,9 @@ survives a refresh.
 - [x] Task 7 step 6: the relevance engine, the overview's "what needs you", and
       the reminder centre behind the header bell.
 - [x] Task 7 step 7: learning pages and the 80/20 refresher list.
+- [x] Task 12: learning rebuilt around the level — the list screen, the page,
+      four material panels over `SavedItem`, learning-only note templates, the
+      subject slice, and the removal of the cross-domain template picker.
 - [x] Task 7 step 8: leisure, tag filters and the rules-based suggester with
       cooldown.
 - [x] Task 7 step 9: search across the new slices, with health details withheld
@@ -1003,8 +1238,10 @@ survives a refresh.
 
 ## Next steps
 
-**The one recommended next action: move `EventSection` items onto the shared
-`Checklist` model and delete `lib/eventChecklist.ts`.**
+**The one recommended next action: scope every checklist template picker to the
+domain it serves** — see "Recommended next action" above. After that, move
+`EventSection` items onto the shared `Checklist` model and delete
+`lib/eventChecklist.ts`.
 
 It is the last model that dodged the 80/20 rule. Events are the only place where
 a tickable list is not a `Checklist`, so the checklist provider, its templates
@@ -1015,7 +1252,6 @@ exists.
 
 Then, in order:
 
-- [ ] `git init` and commit the current state (by hand).
 - [ ] Route-level code splitting, once the bundle starts to matter.
 - [ ] Move shared types out of the client into `shared/`.
 - [ ] `GET /api/pages` + TanStack Query.

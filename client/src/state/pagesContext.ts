@@ -2,6 +2,7 @@ import { createContext, useContext } from "react";
 import type { RecipeGroup } from "../lib/recipes";
 import type {
   CollectionEntry,
+  LearningResource,
   EditablePageFields,
   LearningFacts,
   PageStatus,
@@ -26,6 +27,10 @@ export interface CreatePageDraft {
   title: string;
   description?: string;
   dueAt?: string;
+  /** The subject a learning page is filed under. Optional; nothing is derived. */
+  categoryId?: string;
+  /** A representative picture. An address only — never bytes, never a data URI. */
+  visionImageUrl?: string;
   learning?: LearningFacts;
 }
 
@@ -61,6 +66,14 @@ export interface PagesContextValue {
   ) => void;
   /** Records (or clears) why a parked project is parked. */
   setPausedReason: (id: string, reason: string) => void;
+  /**
+   * Sets a page's lifecycle status without touching board order.
+   *
+   * `moveProject` is the board's operation: it renumbers two columns because a
+   * card was dragged between them. A learning page is not on that board, and
+   * "I have finished French" should not renumber anything.
+   */
+  setPageStatus: (id: string, status: PageStatus) => void;
 
   /* ------------------------------------------------------- categories -- */
 
@@ -79,6 +92,44 @@ export interface PagesContextValue {
   /** Refuses when anything is still filed under it — see `canRemove`. */
   removeCategory: (id: string) => void;
   moveCategory: (id: string, direction: -1 | 1) => void;
+
+  /* -------------------------------------------------- learning subjects -- */
+
+  /**
+   * The user's learning subjects — languages, career, leisure, and whatever
+   * they add.
+   *
+   * The same `ProjectCategory` model as `categories`, deliberately a separate
+   * list: a subject is not a project column and a project column is not a
+   * subject. Both are stored on `PageSummary.categoryId`, which is safe because
+   * the projects board only ever looks at pages of type `project`.
+   */
+  learningTopics: ProjectCategory[];
+  addLearningTopic: (name: string) => ProjectCategory;
+  renameLearningTopic: (id: string, name: string) => void;
+  /** Refuses while a learning page is still filed under it. */
+  removeLearningTopic: (id: string) => void;
+  moveLearningTopic: (id: string, direction: -1 | 1) => void;
+
+  /* ------------------------------------------------- learning resources -- */
+
+  /** Files an already-attached saved item under a level, or notes it. */
+  setLearningResource: (
+    pageId: string,
+    savedItemId: string,
+    patch: Omit<Partial<LearningResource>, "savedItemId">
+  ) => void;
+  /** Creates a saved item already attached to the page, and files it. */
+  addLearningResource: (
+    pageId: string,
+    item: SavedItem,
+    patch: Omit<Partial<LearningResource>, "savedItemId">
+  ) => void;
+  /**
+   * Removes a resource from one learning page. Records a tombstone; never
+   * deletes the saved item, which other pages may share.
+   */
+  removeLearningResource: (pageId: string, savedItemId: string) => void;
   /**
    * Replaces a page's notes wholesale.
    *

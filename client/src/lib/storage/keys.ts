@@ -21,6 +21,14 @@ export const STORAGE_KEYS = {
   trips: "focus.trips",
   /** User-managed project categories. Seeded with three; renameable. */
   projectCategories: "focus.projectCategories",
+  /**
+   * User-managed learning subjects — languages, career, leisure.
+   *
+   * A separate list from `projectCategories` on purpose: the two are the same
+   * *model* and emphatically not the same *list*. "Languages" is not a column
+   * on the projects board and "physical" is not a subject.
+   */
+  learningTopics: "focus.learningTopics",
 
   /* ------------------------------------------- ongoing management + family -- */
 

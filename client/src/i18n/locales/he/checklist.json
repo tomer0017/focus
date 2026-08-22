@@ -198,5 +198,6 @@
   "shoppingTemplates": "רשימות קניות",
   "tripTemplates": "רשימות ציוד",
   "fromMenu": "נבנתה מתפריט",
-  "independence": "עריכת הרשימה הזו לא משנה את התבנית."
+  "independence": "עריכת הרשימה הזו לא משנה את התבנית.",
+  "noChecklistHintOwnOnly": "את הרשימה כותבים לבד — שום דבר לא נוצר אוטומטית."
 }

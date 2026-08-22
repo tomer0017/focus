@@ -65,7 +65,7 @@ export type {
   VisionTileSize,
   VisionDailyPreference,
 } from "./visionBoard";
-export type { LearningFacts, LearningLevel } from "./page";
+export type { LearningFacts, LearningLevel, LearningResource } from "./page";
 export type { EntityKind, EntityReference } from "./reference";
 export {
   checklistOwnerFor,

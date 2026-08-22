@@ -5,6 +5,7 @@ import {
   entriesRepository,
   ownPagesRepository,
   pageOverridesRepository,
+  learningTopicsRepository,
   projectCategoriesRepository,
   savedItemsRepository,
 } from "../repositories";
@@ -29,7 +30,15 @@ import {
   type VisionImagePatch,
 } from "./pagesContext";
 import { usePersistentState } from "./usePersistentState";
-import { canRemove, categoryId as newCategoryId, sortedCategories } from "../lib/projectCategories";
+import {
+  addTo,
+  canRemove,
+  categoryId as newCategoryId,
+  moveIn,
+  renameIn,
+  sortedCategories,
+} from "../lib/projectCategories";
+import { learningTopicId, withResource, withoutResource } from "../lib/learning";
 
 /**
  * Pages, and the local changes made to them.
@@ -44,6 +53,7 @@ export function PagesProvider({ children }: { children: ReactNode }) {
   const [ownSavedItems, setOwnSavedItems] = usePersistentState(savedItemsRepository);
   const [collectionEntries, setCollectionEntries] = usePersistentState(entriesRepository);
   const [storedCategories, setCategories] = usePersistentState(projectCategoriesRepository);
+  const [storedTopics, setTopics] = usePersistentState(learningTopicsRepository);
 
   /*
    * Pages the user made, then the seeded set — newest first, and only the diff
@@ -146,27 +156,15 @@ export function PagesProvider({ children }: { children: ReactNode }) {
 
   const addCategory = useCallback<PagesContextValue["addCategory"]>(
     (name) => {
-      const category = {
-        id: newCategoryId(),
-        name: name.trim(),
-        order: storedCategories.length,
-      };
-      setCategories((current) => [...current, category]);
+      const { category } = addTo(storedCategories, name, newCategoryId());
+      setCategories((current) => addTo(current, name, category.id).list);
       return category;
     },
-    [setCategories, storedCategories.length]
+    [setCategories, storedCategories]
   );
 
   const renameCategory = useCallback<PagesContextValue["renameCategory"]>(
-    (id, name) => {
-      // Renaming drops `nameKey`: from here on it is the user's own word, and
-      // switching language must not overwrite it.
-      setCategories((current) =>
-        current.map((entry) =>
-          entry.id === id ? { ...entry, name: name.trim(), nameKey: undefined } : entry
-        )
-      );
-    },
+    (id, name) => setCategories((current) => renameIn(current, id, name)),
     [setCategories]
   );
 
@@ -179,19 +177,64 @@ export function PagesProvider({ children }: { children: ReactNode }) {
   );
 
   const moveCategory = useCallback<PagesContextValue["moveCategory"]>(
-    (id, direction) => {
-      setCategories((current) => {
-        const ordered = sortedCategories(current);
-        const index = ordered.findIndex((entry) => entry.id === id);
-        const target = index + direction;
-        if (index < 0 || target < 0 || target >= ordered.length) return current;
-
-        const next = [...ordered];
-        [next[index], next[target]] = [next[target], next[index]];
-        return next.map((entry, position) => ({ ...entry, order: position }));
-      });
-    },
+    (id, direction) => setCategories((current) => moveIn(current, id, direction)),
     [setCategories]
+  );
+
+  /* --------------------------------------------------- learning topics -- */
+
+  /*
+   * The same model and the same four operations, over a different list. What
+   * differs is only which slice they touch, which is why the arithmetic lives
+   * in `lib/projectCategories.ts` and is called twice rather than written twice.
+   */
+  const learningTopics = useMemo(() => sortedCategories(storedTopics), [storedTopics]);
+
+  const addLearningTopic = useCallback<PagesContextValue["addLearningTopic"]>(
+    (name) => {
+      const { category } = addTo(storedTopics, name, learningTopicId());
+      setTopics((current) => addTo(current, name, category.id).list);
+      return category;
+    },
+    [setTopics, storedTopics]
+  );
+
+  const renameLearningTopic = useCallback<PagesContextValue["renameLearningTopic"]>(
+    (id, name) => setTopics((current) => renameIn(current, id, name)),
+    [setTopics]
+  );
+
+  const removeLearningTopic = useCallback<PagesContextValue["removeLearningTopic"]>(
+    (id) => {
+      // A subject can only go once nothing is filed under it — the same refusal
+      // the projects board makes, and for the same reason: the alternative is
+      // the app choosing where somebody else's pages end up.
+      if (pages.some((page) => page.type === "learning" && page.categoryId === id)) return;
+      setTopics((current) => current.filter((entry) => entry.id !== id));
+    },
+    [setTopics, pages]
+  );
+
+  const moveLearningTopic = useCallback<PagesContextValue["moveLearningTopic"]>(
+    (id, direction) => setTopics((current) => moveIn(current, id, direction)),
+    [setTopics]
+  );
+
+  const setPageStatus = useCallback<PagesContextValue["setPageStatus"]>(
+    (id, status) => {
+      const now = new Date().toISOString();
+      setOverrides((current) => ({
+        ...current,
+        [id]: {
+          ...current[id],
+          status,
+          lastUpdatedAt: now,
+          // Completion is a fact with a date; reopening clears it.
+          completedAt: status === "completed" ? (current[id]?.completedAt ?? now) : undefined,
+        },
+      }));
+    },
+    [setOverrides]
   );
 
   const setPausedReason = useCallback(
@@ -263,6 +306,8 @@ export function PagesProvider({ children }: { children: ReactNode }) {
         title: draft.title,
         description: draft.description,
         dueAt: draft.dueAt,
+        categoryId: draft.categoryId,
+        visionImageUrl: normaliseUrl(draft.visionImageUrl),
         learning: draft.learning,
         lastUpdatedAt: now,
         favorite: false,
@@ -322,6 +367,65 @@ export function PagesProvider({ children }: { children: ReactNode }) {
   const markStudied = useCallback(
     (id: string) => setLearning(id, { lastStudiedAt: new Date().toISOString() }),
     [setLearning]
+  );
+
+  /* ------------------------------------------------ learning resources -- */
+
+  /*
+   * The link between a saved item and a page stays where it has always been —
+   * `SavedItem.contextIds`. These three write only the *decoration*: which
+   * level the material belongs to on this page, the line about why it was kept,
+   * and whether it is still shown here at all.
+   */
+
+  const factsFor = useCallback(
+    (id: string): LearningFacts =>
+      overrides[id]?.learning ?? basePages.find((page) => page.id === id)?.learning ?? {},
+    [overrides, basePages]
+  );
+
+  const setLearningResource = useCallback<PagesContextValue["setLearningResource"]>(
+    (pageId, savedItemId, patch) => {
+      setLearning(pageId, withResource(factsFor(pageId), savedItemId, patch));
+    },
+    [setLearning, factsFor]
+  );
+
+  /**
+   * Adds a saved item and files it on the page in one step.
+   *
+   * The item is created with the page already in its `contextIds`, so it is
+   * attached the ordinary way; the level and note go into the page's own
+   * `resources` list.
+   */
+  const addLearningResource = useCallback<PagesContextValue["addLearningResource"]>(
+    (pageId, item, patch) => {
+      // The page id goes into `contextIds` here, not in the form: attachment is
+      // the saved item's own mechanism, and every caller getting it right is
+      // one caller away from a resource that exists but belongs to nothing.
+      const attached = {
+        ...item,
+        contextIds: item.contextIds.includes(pageId)
+          ? item.contextIds
+          : [...item.contextIds, pageId],
+      };
+      setOwnSavedItems((current) => [attached, ...current]);
+      setLearning(pageId, withResource(factsFor(pageId), item.id, patch));
+    },
+    [setOwnSavedItems, setLearning, factsFor]
+  );
+
+  /**
+   * Takes a resource off one learning page.
+   *
+   * A tombstone, never a delete: the same video may be attached to a trip and
+   * two other pages, and nothing here decides that on the user's behalf.
+   */
+  const removeLearningResource = useCallback<PagesContextValue["removeLearningResource"]>(
+    (pageId, savedItemId) => {
+      setLearning(pageId, withoutResource(factsFor(pageId), savedItemId));
+    },
+    [setLearning, factsFor]
   );
 
   const toggleFavorite = useCallback(
@@ -394,12 +498,21 @@ export function PagesProvider({ children }: { children: ReactNode }) {
       toggleFavorite,
       moveProject,
       setPausedReason,
+      setPageStatus,
       categories,
       setProjectCategory,
       addCategory,
       renameCategory,
       removeCategory,
       moveCategory,
+      learningTopics,
+      addLearningTopic,
+      renameLearningTopic,
+      removeLearningTopic,
+      moveLearningTopic,
+      setLearningResource,
+      addLearningResource,
+      removeLearningResource,
       setNotes,
       setVisionImage,
       setProgressImages,
@@ -421,12 +534,21 @@ export function PagesProvider({ children }: { children: ReactNode }) {
       toggleFavorite,
       moveProject,
       setPausedReason,
+      setPageStatus,
       categories,
       setProjectCategory,
       addCategory,
       renameCategory,
       removeCategory,
       moveCategory,
+      learningTopics,
+      addLearningTopic,
+      renameLearningTopic,
+      removeLearningTopic,
+      moveLearningTopic,
+      setLearningResource,
+      addLearningResource,
+      removeLearningResource,
       setNotes,
       setVisionImage,
       setProgressImages,

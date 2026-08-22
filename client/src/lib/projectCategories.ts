@@ -72,3 +72,51 @@ export function canRemove(pages: PageSummary[], categoryId: string): boolean {
 export function categoryId(): string {
   return `cat-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 }
+
+/* ------------------------------------------------- shared list operations -- */
+
+/*
+ * Two lists now use this model — project categories and learning subjects — so
+ * the four list edits live here once rather than twice in the provider. They
+ * are pure: the caller decides which slice they are applied to.
+ */
+
+/** A new entry at the end of the list. Returns both, so the caller can use it. */
+export function addTo(
+  list: ProjectCategory[],
+  name: string,
+  id: string
+): { list: ProjectCategory[]; category: ProjectCategory } {
+  const category: ProjectCategory = { id, name: name.trim(), order: list.length };
+  return { list: [...list, category], category };
+}
+
+/**
+ * Renaming drops `nameKey`: from here on it is the user's own word, and
+ * switching language must never overwrite it.
+ */
+export function renameIn(
+  list: ProjectCategory[],
+  id: string,
+  name: string
+): ProjectCategory[] {
+  return list.map((entry) =>
+    entry.id === id ? { ...entry, name: name.trim(), nameKey: undefined } : entry
+  );
+}
+
+/** Moves an entry one place, if there is a place to move it to, and renumbers. */
+export function moveIn(
+  list: ProjectCategory[],
+  id: string,
+  direction: -1 | 1
+): ProjectCategory[] {
+  const ordered = sortedCategories(list);
+  const index = ordered.findIndex((entry) => entry.id === id);
+  const target = index + direction;
+  if (index < 0 || target < 0 || target >= ordered.length) return list;
+
+  const next = [...ordered];
+  [next[index], next[target]] = [next[target], next[index]];
+  return next.map((entry, position) => ({ ...entry, order: position }));
+}

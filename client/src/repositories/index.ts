@@ -8,6 +8,7 @@ import { MOCK_CHECKLISTS } from "../mocks/checklists";
 import { MOCK_COLLECTION_ENTRIES } from "../mocks/savedItems";
 import { MOCK_TRIPS } from "../mocks/trips";
 import { DEFAULT_CATEGORIES } from "../lib/projectCategories";
+import { DEFAULT_LEARNING_TOPICS } from "../lib/learning";
 import type {
   Checklist,
   CollectionEntry,
@@ -227,6 +228,22 @@ export const projectCategoriesRepository: Repository<ProjectCategory[]> = create
   STORAGE_KEYS.projectCategories,
   () => DEFAULT_CATEGORIES,
   (categories) => categories.map((entry, index) => ({ ...entry, order: entry.order ?? index }))
+);
+
+/**
+ * Learning subjects.
+ *
+ * The `ProjectCategory` model again — a label with an order — kept in its own
+ * slice so the projects board and the learning screen never show each other's
+ * tabs. The migration only fills in `order`; it never invents a subject and
+ * never stamps one onto a page.
+ */
+export const learningTopicsRepository: Repository<ProjectCategory[]> = createRepository<
+  ProjectCategory[]
+>(
+  STORAGE_KEYS.learningTopics,
+  () => DEFAULT_LEARNING_TOPICS,
+  (topics) => topics.map((entry, index) => ({ ...entry, order: entry.order ?? index }))
 );
 
 export type { Repository } from "./createRepository";

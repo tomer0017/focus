@@ -22,6 +22,18 @@ interface ChecklistSectionProps {
    * list keep doing so.
    */
   mode?: "view" | "edit";
+  /**
+   * Whether the app-wide template picker is offered when there is no list yet.
+   *
+   * `false` on the learning page, and that is not a style choice. The picker
+   * lists every built-in template in the app, so "start a study plan" offered a
+   * weekly supermarket shop and cheerfully created one: fruit, dairy, bakery,
+   * on a page about learning English. A template from another domain is not a
+   * slightly wrong starting point, it is the wrong screen's content. Where the
+   * right templates do not exist, an empty list the user writes is the honest
+   * option — see CLAUDE.md, "A template is a starting point".
+   */
+  allowTemplates?: boolean;
 }
 
 /**
@@ -31,7 +43,12 @@ interface ChecklistSectionProps {
  * came from is remembered, so "save as a template" and "copy from a previous
  * trip" are both one click rather than a rebuild.
  */
-export function ChecklistSection({ ownerId, copyFrom = [], mode = "edit" }: ChecklistSectionProps) {
+export function ChecklistSection({
+  ownerId,
+  copyFrom = [],
+  mode = "edit",
+  allowTemplates = true,
+}: ChecklistSectionProps) {
   const { t } = useTranslation(["checklist", "common"]);
   const { getChecklist, templates, update, createEmpty, createFromTemplate, duplicateInto, saveAsTemplate } =
     useChecklists();
@@ -61,9 +78,17 @@ export function ChecklistSection({ ownerId, copyFrom = [], mode = "edit" }: Chec
     return (
       <EmptyState
         title={t("checklist:noChecklist")}
-        hint={t("checklist:noChecklistHint")}
+        hint={
+          // The hint has to describe what is actually offered. "Start from a
+          // template, copy a previous list" beside a single "empty list" button
+          // is the screen telling the user about controls that are not there.
+          allowTemplates || copyFrom.length > 0
+            ? t("checklist:noChecklistHint")
+            : t("checklist:noChecklistHintOwnOnly")
+        }
         action={
           <div className="focus-checklist-start">
+            {allowTemplates && (
             <form
               className="focus-inline-form"
               onSubmit={(event) => {
@@ -90,6 +115,7 @@ export function ChecklistSection({ ownerId, copyFrom = [], mode = "edit" }: Chec
                 {t("checklist:createFrom")}
               </Button>
             </form>
+            )}
 
             {copyFrom.length > 0 && (
               <form
@@ -121,7 +147,11 @@ export function ChecklistSection({ ownerId, copyFrom = [], mode = "edit" }: Chec
               </form>
             )}
 
-            <Button variant="outline-secondary" size="sm" onClick={() => createEmpty(ownerId)}>
+            <Button
+              variant={allowTemplates ? "outline-secondary" : "primary"}
+              size="sm"
+              onClick={() => createEmpty(ownerId)}
+            >
               <Icon name="plus" size={14} />
               {t("checklist:customList")}
             </Button>

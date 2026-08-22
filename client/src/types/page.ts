@@ -42,6 +42,44 @@ export interface LearningFacts {
   method?: string;
   /** ISO 8601 of the last real session, recorded by one tap. */
   lastStudiedAt?: string;
+  /**
+   * How the saved items attached to this page are filed *for this page*.
+   *
+   * The link between a saved item and a page is still `SavedItem.contextIds` —
+   * this adds nothing to it and replaces none of it. What it holds is the part
+   * that belongs to the pairing rather than to either side: which level the
+   * user was at when the material was useful, a line about why it was kept, and
+   * where it sits in the list. Putting the level on the `SavedItem` would be
+   * wrong the moment the same video is attached to two learning pages.
+   */
+  resources?: LearningResource[];
+  /**
+   * Saved items that reach this page through `contextIds` and that the user has
+   * removed *from this learning page*.
+   *
+   * A tombstone rather than a deletion, because the item may be attached to
+   * three other things: "take this off my English page" and "delete this video"
+   * are different requests, and only the user makes the second one.
+   */
+  detachedResourceIds?: string[];
+}
+
+/**
+ * One saved item, as it is filed on one learning page.
+ *
+ * Deliberately *not* a new entity. It carries no title, no URL and no kind —
+ * those live on the `SavedItem`, which is the thing that exists. This is the
+ * edge, and it is stored on the learning page because that is the side that
+ * cares: the same YouTube video can be beginner material on one page and the
+ * only advanced thing on another.
+ */
+export interface LearningResource {
+  savedItemId: string;
+  /** Absent means "general" — material that is not tied to one level. */
+  level?: LearningLevel;
+  /** Why this was kept, in one line. User content. */
+  note?: string;
+  order?: number;
 }
 
 /**
@@ -86,6 +124,16 @@ export interface ProjectNote {
   /** User content. */
   content: string;
   order: number;
+  /**
+   * The level this note belongs to, on a learning page.
+   *
+   * Optional and unused everywhere else — a project note has no level and never
+   * gains one. Absent means "general", which is material that stays visible at
+   * every level rather than material with no level yet; see `matchesLevel` in
+   * `lib/learning.ts` for why that distinction is the one that makes the filter
+   * useful rather than annoying.
+   */
+  level?: LearningLevel;
   createdAt?: string;
   updatedAt?: string;
 }

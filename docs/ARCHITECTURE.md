@@ -329,6 +329,138 @@ over a stale saved-item reference. `resolveImage` turns a source into
 and falls back to seeded artwork **only when there is no address at all**. A
 source that is a page rather than a picture stays a link.
 
+## Learning pages
+
+```
+identity      title · subject · status · level        (chips, one row)
+brief         picture · goal · where you stopped · next action · method
+              + when it was last actually studied
+LEVEL RAIL    all levels | beginner | intermediate | advanced   ← ?level=
+notes         ProjectNote[], each optionally filed under a level
+practice list the shared Checklist, keyed page:{id} — no template picker
+material      links | documents | pictures | videos             ← ?material=
+              one panel at a time, every item optionally filed under a level
+```
+
+Everything below the rail is filtered by it. Everything above it is not, because
+"what am I learning and where did I stop" does not depend on which level you are
+inspecting.
+
+### The level, and what "no level" means
+
+`LearningLevel` is `beginner | intermediate | advanced`. It appears in three
+places, and means the same thing in all three:
+
+| Where | Stored as | Meaning |
+|---|---|---|
+| The page | `learning.level` | where the user is *now* |
+| A note | `ProjectNote.level` | which level this writing belongs to |
+| A resource | `LearningResource.level` | which level this material served |
+
+**Absent means general, not unfiled.** `matchesLevel(level, filter)` returns
+true when `level` is `undefined`, whatever the filter is. This is the decision
+that makes the rail usable: hiding unlevelled material when somebody narrows to
+"beginner" would hide the dictionary link and the "where I stopped" note at the
+exact moment they went looking for them. The UI writes "general" beside such an
+item, so the user can see which it is rather than guessing.
+
+The filter is a URL query (`?level=beginner`), read through
+`levelFilterFrom`, which refuses anything that is not one of the three. Keeping
+it in the URL is what makes a refresh, the back button and (later) a shared link
+all land on the same view.
+
+### Learning material is `SavedItem`
+
+There is one storage model for all four panels. An item is attached to a page
+the ordinary way — `SavedItem.contextIds` — exactly as a recipe's attachments
+and a trip's inspiration are. Which panel it appears in is derived from its
+`kind` by `resourceTabOf`:
+
+| Panel | Kinds |
+|---|---|
+| videos | `video` |
+| documents | `document` |
+| pictures | `image`, `inspiration` |
+| links | everything else |
+
+What the panels needed that `SavedItem` does not carry is the level. That is
+**not** put on the item: the same YouTube video can be beginner material on one
+page and the only advanced thing on another. It lives on the page, as
+`LearningFacts.resources: LearningResource[]` — `{ savedItemId, level?, note?,
+order? }` — which is the edge between the two, stored on the side that cares.
+
+`learningResources(page, savedItems)` resolves the two together: the attachment
+is the fact, the record is decoration. A record for an item that no longer
+references the page is ignored rather than resurrected.
+
+### Removing is a tombstone, never a delete
+
+`LearningFacts.detachedResourceIds` lists items that reach the page through
+`contextIds` and that the user has taken off *this page*. Nothing is deleted:
+the item may be attached to a trip, a recipe and two other pages, and "take this
+off my English page" and "delete this video" are different requests. Attaching
+something that was previously removed clears its tombstone.
+
+This is also why removal works on seeded material at all — `MOCK_SAVED_ITEMS`
+cannot be edited, and a tombstone on the page needs no edit to it.
+
+### No upload, and the shape that leaves room for one
+
+Nothing is uploaded and no file is read. A document is a link to a document, and
+the documents panel says so once, where the claim is made. A picture is an
+address with a live preview — loading it is the only honest test that it points
+at an image — and a broken one renders the neutral `BoardImage` placeholder
+("the picture did not load"), never local artwork standing in for somebody's
+photograph. A video is a link plus the platform label the user chose; no
+metadata is fetched from YouTube, Instagram or TikTok, and no thumbnail is
+invented.
+
+The seam for real storage later is `SavedItem.url`. When a file service exists,
+an uploaded document becomes a `SavedItem` of kind `document` whose `url` points
+at it, and every screen above stays as it is. See `docs/FUTURE_ROADMAP.md`.
+
+### Subjects
+
+A learning subject reuses `ProjectCategory` — a label with an order, no rules,
+no container — in **its own slice**, `focus.learningTopics`, seeded with
+languages · career · leisure. The value is stored in `PageSummary.categoryId`,
+the same field a project category uses, which is safe because
+`lib/projectBoard.ts` scopes the board to `type === "project"` and the learning
+screen scopes itself to `type === "learning"`.
+
+`topicOf` derives nothing. Unlike `categoryOf` for projects, which falls back to
+a subject implied by the space, a learning page with no subject is a complete
+learning page; guessing one would file "React Native" under whichever space it
+happened to be in and then keep insisting on it.
+
+The four list edits — add, rename, remove, reorder — are pure functions in
+`lib/projectCategories.ts` (`addTo`, `renameIn`, `moveIn`, plus `canRemove`) and
+are called by both slices. Removing a subject is refused while a page is still
+filed under it.
+
+### The adapter for pages written before any of this
+
+Nothing about a stored learning page changed shape. `level`, `goal`, `method`
+and `lastStudiedAt` are where they were; `resources`, `detachedResourceIds`,
+`ProjectNote.level` and `categoryId` are new optional fields that are simply
+absent on older data, and absent is a valid, complete answer for every one of
+them. `notesForPage` still reads the legacy narrative fields for a page that has
+never been edited, and `notes === undefined` still means "never edited" while
+`notes === []` still means "the user deleted every note".
+
+A checklist created from another domain's template — the supermarket list a
+learning page could once produce — is recognised by `isForeignChecklist` and
+**not** removed by any migration. The page names it and offers to remove it.
+Deleting somebody's data to tidy up after the app is not a migration.
+
+### Prepared for sharing, with no sharing in the interface
+
+The screen is already addressed the way a shared view would need to be:
+`/pages/:id?level=beginner&material=videos` names a page, a level and a kind of
+material. That is deliberate groundwork and nothing more — there is no share
+button, no permission model and no public projection, and there will not be one
+before a server, a database and users exist. See `docs/FUTURE_ROADMAP.md`.
+
 ## Checklist pages
 
 `PageDetailPage` dispatches on `page.type`:

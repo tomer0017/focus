@@ -6548,3 +6548,188 @@ button.focus-route__button:hover {
 .focus-itinerary__days {
   min-inline-size: 0;
 }
+
+/* ------------------------------------------------------------- learning -- */
+
+/*
+ * The learning page is a lens, and the level rail is the control that sets it.
+ * It sits directly under the brief and directly above everything it governs, so
+ * the relationship is spatial rather than something the user has to be told.
+ */
+.focus-level-rail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  margin-block-start: 18px;
+  padding-block: 10px;
+  border-block-start: 1px solid var(--focus-line);
+  border-block-end: 1px solid var(--focus-line);
+}
+
+.focus-level-rail__hint {
+  font-size: 0.8rem;
+  color: var(--focus-muted);
+}
+
+/* Compact enough to sit inside a row's action cluster without owning it. */
+.focus-level-select {
+  inline-size: auto;
+  min-inline-size: 7.5rem;
+  max-inline-size: 10rem;
+}
+
+/*
+ * The brief: a picture, up to four short answers, and when it was last
+ * practised. Two columns once there is room, because four one-line answers
+ * stacked in a single column is a tall panel made mostly of white.
+ */
+.focus-learning-brief {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 10px 16px;
+}
+
+.focus-learning-brief__facts {
+  flex: 1 1 260px;
+  min-inline-size: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px 20px;
+}
+
+.focus-learning-brief__studied {
+  flex: 1 0 100%;
+  font-size: 0.82rem;
+  color: var(--focus-muted);
+}
+
+.focus-note__head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block-end: 6px;
+}
+
+.focus-note__head .focus-note__title {
+  margin-block-end: 0;
+}
+
+.focus-note__level {
+  max-inline-size: 14rem;
+  margin-block-end: 8px;
+}
+
+.focus-material-panel {
+  margin-block-start: 14px;
+}
+
+.focus-resource__open {
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+/*
+ * The two galleries.
+ *
+ * `auto-fill` with a per-item cap, so a row fills on a wide screen and a single
+ * picture never stretches across it. Nothing has a minimum height: a tile is as
+ * tall as the picture plus its caption, which is what stops a gallery of three
+ * looking like a gallery of twelve with the pictures missing.
+ */
+.focus-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 14px;
+  align-items: start;
+}
+
+.focus-gallery--video {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+.focus-gallery__item {
+  display: grid;
+  gap: 5px;
+}
+
+.focus-gallery__open {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  inline-size: 100%;
+}
+
+.focus-gallery__image,
+.focus-video-tile {
+  display: flex;
+  inline-size: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--focus-radius-sm);
+  border: 1px solid var(--focus-line);
+  background: var(--focus-line-soft);
+}
+
+.focus-video-tile {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--focus-muted);
+}
+
+.focus-video-tile__source {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.focus-gallery__caption {
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.focus-gallery__note {
+  font-size: 0.82rem;
+  color: var(--focus-muted);
+}
+
+.focus-gallery__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.focus-gallery__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.focus-lightbox__image {
+  inline-size: 100%;
+  block-size: auto;
+  max-block-size: 70dvh;
+  object-fit: contain;
+  border-radius: var(--focus-radius-sm);
+}
+
+.focus-resource-form {
+  display: grid;
+  gap: 12px;
+  background: var(--focus-surface);
+  border: 1px dashed var(--focus-line);
+  border-radius: var(--focus-radius);
+  padding: 14px;
+}
+
+.focus-resource-form__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}

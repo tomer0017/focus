@@ -213,38 +213,106 @@
   },
   "learning": {
     "title": "Learning",
-    "lead": "What you are learning, where you stopped, and what to do next.",
+    "lead": "What you are learning, where you stopped, and everything you saved along the way.",
     "empty": "Nothing being learned yet",
-    "emptyHint": "A learning page keeps the level, the goal, where you stopped and the resources you saved.",
+    "emptyHint": "A learning page keeps the level you are at, where you stopped, your plan, and the links, documents, pictures and videos you collected.",
     "add": "New learning page",
+    "titleField": "What are you learning",
+    "topic": "Subject",
+    "topicLabel": "Filter by subject",
+    "topics": {
+      "all": "All",
+      "none": "No subject",
+      "unfiled": "No subject",
+      "add": "Add a subject…",
+      "newName": "Name of the new subject",
+      "languages": "Languages",
+      "career": "Career",
+      "leisure": "Leisure"
+    },
     "level": "Level",
+    "levelLabel": "Level",
+    "levelScope": "Showing this level plus anything filed as general.",
     "levels": {
+      "all": "All levels",
       "beginner": "Beginner",
       "intermediate": "Intermediate",
       "advanced": "Advanced",
-      "all": "All levels"
+      "general": "General",
+      "unset": "Not set"
     },
-    "goal": "What I'm aiming for",
+    "goal": "Where I want to get to",
     "method": "How I'm learning it",
+    "image": "Picture",
+    "imageHint": "The address of a picture. Only the address is stored — never the file.",
     "lastStudied": "Last studied {{when}}",
     "neverStudied": "No session recorded yet",
     "markStudied": "I studied today",
     "studiedToday": "Recorded for today",
-    "resources": "Saved resources",
-    "refresher": "80/20 refresher",
-    "refresherHint": "The short path back in after a long gap. A list you write yourself — nothing is generated.",
-    "createRefresher": "Create a refresher list",
-    "noLms": "No lessons, no grades, no tests. This is a project that happens to be about learning something.",
-    "titleField": "What are you learning",
-    "descriptionField": "Why",
+    "resourceCount_one": "{{count}} item saved",
+    "resourceCount_other": "{{count}} items saved",
     "groups": {
       "active": "Learning now",
       "paused": "On hold",
-      "completed": "Finished"
+      "completed": "Finished",
+      "all": "All"
     },
     "chooseGroup": "What to show",
-    "levelLabel": "Filter by level",
-    "noneInGroup": "Nothing here yet."
+    "noneInGroup": "Nothing here yet.",
+    "actions": {
+      "resume": "Move to learning now",
+      "hold": "Put on hold",
+      "finish": "Mark finished"
+    },
+    "plan": "Practice list",
+    "planHint": "A list you tick off. You write it yourself; nothing is generated, and no template from anywhere else in Focus belongs here.",
+    "foreignList": "This list came from a template that belongs to another part of Focus — a shopping list, a packing list or an event. It is not a study plan.",
+    "foreignListRemove": "Remove this list",
+    "foreignListConfirm": "The list will be removed from this learning page. Nothing else is affected.",
+    "noLms": "No lessons, no grades, no tests. This is a page about something you are learning, not a course.",
+    "notes": {
+      "stoppedAt": {
+        "title": "Where I stopped",
+        "hint": "The point you want to pick up from next time."
+      },
+      "plan": {
+        "title": "Study plan",
+        "hint": "The route you mean to take, or the steps in the order you want them."
+      },
+      "nextSteps": {
+        "title": "Next steps",
+        "hint": "What you want to do once the current stage is behind you."
+      },
+      "remember": {
+        "title": "Worth remembering",
+        "hint": "Rules, phrases and corrections you keep having to look up."
+      }
+    },
+    "material": {
+      "title": "Material",
+      "choose": "Which material to show",
+      "links": "Links",
+      "documents": "Documents",
+      "images": "Pictures",
+      "videos": "Videos",
+      "empty": "Nothing saved here yet.",
+      "emptyAtLevel": "Nothing saved at this level yet.",
+      "documentsNote": "Focus stores a link to the document, not the file itself. There is no upload and nothing is kept on this device beyond the address.",
+      "name": "Name",
+      "url": "Address",
+      "imageUrl": "Picture address",
+      "imageHint": "The preview is the check: if it does not load, the address is wrong.",
+      "note": "One line about it",
+      "remove": "Remove {{name}} from this page",
+      "view": "View {{name}}",
+      "levelOf": "Level of {{name}}",
+      "add": {
+        "links": "Add a link",
+        "documents": "Add a document link",
+        "images": "Add a picture",
+        "videos": "Add a video link"
+      }
+    }
   },
   "progressCount": "{{done}}/{{total}} tasks"
 }

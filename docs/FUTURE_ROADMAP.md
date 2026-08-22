@@ -63,6 +63,22 @@ offers "a document", it says it means a link to one. Real upload waits for a
 server; until then, pretending a file was saved when only a URL was is the one
 thing this area must not do.
 
+**What it would take, in order.** Object storage with per-user prefixes; upload
+through the server, never straight from the browser to the bucket, so size,
+type and ownership are checked somewhere the client cannot skip; a malware scan
+before a file is ever served back; signed, expiring URLs rather than public
+ones; and a download path that is an authorisation decision, not a link.
+
+**What it would reuse.** All of it. An uploaded file becomes a `SavedItem` of
+kind `document` or `image` whose `url` points at the stored object, and every
+screen that renders material today renders it unchanged — the learning page's
+four panels, the trip's saved items, a recipe's attachments. That is the whole
+reason the model stores an address: the seam is already in the right place.
+
+**What it must not turn into.** A file manager. There are no folders, no
+versions and no quotas in the interface; a document is a thing you saved, filed
+where you saved it.
+
 ### Notifications that arrive when the app is closed
 
 Browser notifications and a service worker are the eventual answer, and both are
@@ -99,8 +115,42 @@ medicine or clothing from a photograph.
 
 ### Sharing a learning path
 
-Publishing a refresher route for somebody else to use. It needs the same
-allow-list projection as trip sharing, and therefore the same server.
+Showing somebody how you learned something. **Nothing of this exists in the
+interface and nothing should appear there before a server, a database, accounts
+and permissions do.** It is recorded here because the screen was built in a
+shape that leaves room for it, not because any of it is close.
+
+**What would be shareable, and at what grain.** A whole learning page; or one
+level of it; or one kind of material within that. The address the app already
+uses says exactly this much:
+
+```
+/pages/learning-english?level=beginner&material=videos
+   page ─────────────┘        level ┘        material ┘
+```
+
+A recipient invited to English · beginner · view-only would see the beginner
+notes, the practice list, and the beginner links, documents, pictures and
+videos — plus everything filed as **general**, on the same rule the local filter
+uses. They would get no other level of that page and no other page, and nothing
+would suggest either exists.
+
+**Two permissions, and only two.** Viewer and editor. A third would need a
+policy nobody has asked for.
+
+**Privacy is a projection, not a filter.** The shared shape is built from an
+explicit allow-list, exactly as `toPublicShowcase` is described in
+ARCHITECTURE.md. Removing fields from a private object fails open; selecting
+fields fails closed.
+
+**What it must not turn into.** A course platform, a marketplace, or a place
+other people can enrol. Sharing a learning page is showing somebody your
+notebook, not publishing a curriculum. If it ever grows lessons, grades, a
+completion percentage or an audience, the 80/20 rule has been abandoned.
+
+**Google Sign-In** is the intended entry point, once accounts exist — see
+"Server, database, accounts" above. Until it does, there is no user, so there is
+nobody to share with and no `ownerId` to scope a share by.
 
 ### Sharing a trip
 

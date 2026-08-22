@@ -83,6 +83,7 @@ new need can be expressed with an existing model, it must be.
 | `Medication` | `types/health.ts` | A medicine or vitamin, exactly as the user was told it |
 | `LeisureItem` | `types/leisure.ts` | Something to do: a film, a book, a place, an idea |
 | `Menu` | `types/menu.ts` | A meal that comes round again, and what to buy for it |
+| `LearningResource` | `types/page.ts` | How one learning page files one saved item: its level, a note, a position |
 | `EntityReference` | `types/reference.ts` | A weak pointer from one thing to another |
 | `RecurrenceRule` | `types/recurrence.ts` | How often something repeats — six kinds, no RRULE |
 
@@ -283,13 +284,61 @@ never reaches a list somebody is already shopping from. The picker is shared
 across every domain — recommended, recently used, then all — and nothing appears
 in two groups at once.
 
-**Learning is a page type, not a course platform.** `type: "learning"` leads with
-where you stopped and what to do next, plus four facts: level, goal, method and
-`lastStudiedAt`. That last one earns its place by being the thing a page cannot
-derive — `lastUpdatedAt` moves when you tidy the notes, and tidying is not
-studying. No lessons, no grades, no tests, no completion percentage: a percentage
-of "learning calligraphy" would be a made-up number. The refresher path is an
-ordinary checklist the user writes; nothing is generated.
+**Learning is a page type, not a course platform.** `type: "learning"` carries
+four facts — level, goal, method and `lastStudiedAt`. That last one earns its
+place by being the thing a page cannot derive: `lastUpdatedAt` moves when you
+tidy the notes, and tidying is not studying. No lessons, no grades, no tests, no
+completion percentage: a percentage of "learning calligraphy" would be a
+made-up number.
+
+**A learning page is a lens, and the level sets it.** `beginner` ·
+`intermediate` · `advanced`, and one control at the top of the page decides what
+everything below it shows — the notes, the practice list and all four kinds of
+material. Six separate filters would drift out of step; one does not. The filter
+lives in the URL (`?level=beginner`), which is what will make "share how I did
+beginner" possible later without redesigning the screen.
+
+**Material with no level is general, and general shows at every level.** Absent
+means "applies throughout", not "not filed yet". The alternative — hiding
+unlevelled material unless "all levels" is selected — makes the dictionary link
+and the "where I stopped" note vanish exactly when somebody narrows down to look
+for them. The UI writes "general" beside such an item so the two are never
+confused. `matchesLevel` in `lib/learning.ts` is the single judge.
+
+**Learning material is `SavedItem`, filed by the page.** Links, documents,
+pictures and videos are one storage model, not four; which panel an item lands
+in comes from its `kind`. The *level* is not on the item — it is a
+`LearningResource` record on the page (`learning.resources`), because the same
+video can be beginner material on one page and the only advanced thing on
+another. Removing something from a learning page writes a tombstone
+(`detachedResourceIds`) and never deletes the `SavedItem`: "take this off my
+English page" and "delete this video" are different requests.
+
+**Nothing is uploaded, ever.** A document is a link to a document and the screen
+says so, once, on the documents panel. A picture is an address with a preview,
+and a broken one shows the neutral "the picture did not load" placeholder rather
+than local artwork. A video is a link with a platform label — no thumbnail is
+fetched or invented.
+
+**A learning subject is a `ProjectCategory` in its own list.** Same model as the
+projects board, a separate slice (`focus.learningTopics`, seeded with languages ·
+career · leisure), stored in the same `PageSummary.categoryId`. That is safe
+because the board only ever looks at pages of type `project`. One model, two
+lists; not one model, one list.
+
+**Templates are scoped to their domain, and a learning page offers none at
+creation.** This is a rule with a scar behind it: the learning page used to show
+the app-wide checklist picker, so "start a study plan" could produce a weekly
+supermarket shop — fruit, dairy, bakery — on a page about learning English. The
+answer was not a better picker. Creating a learning page creates a learning page
+and nothing else; the practice list is empty until the user writes it; and note
+starting points are offered *when a note is being written*, from a learning-only
+set (`LEARNING_NOTE_TEMPLATES`), because a template that fills in a title costs
+nothing and a template that fills in content is somebody else's content.
+
+A shopping list already sitting on a learning page is **not** deleted by a
+migration. `isForeignChecklist` recognises it, the page names it for what it is,
+and removing it is the user's decision behind a confirmation.
 
 **"What suits right now?" is arithmetic, not AI.** Hard constraints filter (a
 two-hour film does not "partially fit" ninety minutes), what is left is ranked,
@@ -809,9 +858,19 @@ gets feeds and new foods as quick logs; a pet gets vaccinations and treatments;
 a grandparent gets contact reminders, medicines and a shopping list. Same
 mechanisms, different sections.
 
-**Learning (`/learning`, `/pages/:id` where `type` is `learning`)** lists what is
-being learned with where you stopped and what is next, and the detail screen
-leads with exactly those two facts.
+**Learning (`/learning`)** asks two questions and then stops: *am I on this now*
+(tabs: learning now · on hold · finished · all) and *what is it about* (subject
+chips). One compact row per page — subject, level, where you stopped, how much
+material is saved — paged fifteen at a time, with the secondary actions in an
+`OverflowMenu` that is always visible. Both filters are in the URL. No search, no
+sort menu, no counters across the top.
+
+**A learning page (`/pages/:id` where `type` is `learning`)** opens with what it
+is, what it is for, where you stopped and what to do next; then the level rail;
+then the notes, the practice list and the material, all of which obey the rail.
+Material is four panels — links · documents · pictures · videos — one open at a
+time. "I studied today" stays live in view mode; adding, filing and deleting are
+behind the one edit action.
 
 **Leisure (`/leisure`)** puts "what suits right now?" at the top — because that
 is the question people arrive with — and the full tagged list beneath it.
@@ -973,6 +1032,11 @@ its script is still a notice; do not report that half as passing.
     them impossible to duplicate.
 20. **Check a class name before reusing it.** `.focus-row` and
     `.focus-dense-row` are two different things for a reason.
+21. **A template belongs to one domain.** Never offer a picker that can hand a
+    screen another area's content. Where the right templates do not exist, an
+    empty thing the user fills is the honest answer.
+22. **A level is a lens, not a folder.** One control filters a whole screen, and
+    unlevelled content is general — visible at every setting, labelled as such.
 
 ---
 
