@@ -789,12 +789,24 @@ the one new package in this task.
 
 ## Current blocker
 
-**GitHub Pages has to be switched to "GitHub Actions" by hand, once.** The
-`gh` CLI is not installed on this machine, so the repository setting could not
-be set from here. Until somebody opens Settings → Pages → Build and deployment
-and picks **GitHub Actions** as the source, `deploy-pages.yml` will run its build
-job and fail at the deploy step, and <https://tomer0017.github.io/focus/> will
-not exist. Nothing in the source needs to change for it.
+**GitHub Pages has to be switched to "GitHub Actions" by hand, once.**
+
+Settings → Pages → Build and deployment → Source: **GitHub Actions**. Then
+re-run the workflow (Actions → "Deploy frontend to GitHub Pages" → Run
+workflow), or push anything to `main`.
+
+Until that is done, `actions/configure-pages` fails and the deploy job is
+skipped, so <https://tomer0017.github.io/focus/> does not exist yet. Everything
+before that step passes in CI: `npm ci`, typecheck, lint, **324 tests**,
+`check:links` and the build.
+
+`gh` is not installed on the machine this was set up from, and
+`configure-pages` with `enablement: true` was tried and failed the same way —
+the default `GITHUB_TOKEN` cannot create the Pages site here. So this is a
+one-time manual setting, not a source change. The workflow itself needs nothing.
+
+**The live URL has therefore not been verified.** What was verified is the same
+build served as plain static files under `/focus/` — see below.
 
 Nothing else. Task 8 is complete and verified. The trips design is awaiting the manual
 review it was built for — it is the first area in the new language, and the
