@@ -291,7 +291,8 @@
       "money": "Payment",
       "medication": "Medicine",
       "checklist": "List",
-      "learning": "Learning"
+      "learning": "Learning",
+      "trip": "Trip"
     },
     "overdue": "Overdue",
     "openSource": "Open",

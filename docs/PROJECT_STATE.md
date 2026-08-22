@@ -3,8 +3,127 @@
 Living document. **Update this at the end of every development task.**
 
 **Last updated:** 2026-08-22
-**Task completed:** Task 14 — leisure rebuilt as five collections, with
-ownership separated from progress.
+**Task completed:** Task 15 — the overview rebuilt as a decision screen.
+
+---
+
+## Task 15 — the overview
+
+### The problem
+
+Eight sections at once: what needs you (five buckets), a strip of upcoming
+things, blocked projects, where you stopped, sessions this month, quick access
+as a card grid, and a gallery of recently saved pictures — plus a three-tab
+group switcher on a phone to make the length bearable. Everything on it was
+true. Almost none of it changed what anybody would do next, and the picture
+gallery was the tallest thing on the page.
+
+### The shape now
+
+Four areas, in the order they stack on a phone, which is also priority order:
+
+| Area | Cap | What it is |
+|---|---|---|
+| Needs you now | **5** | Late, due today, or a reminder that has come round |
+| Next 14 days | **6** | Dated things that have entered a preparation window |
+| Projects on the go | **3** | Active projects, blocked first |
+| Learning now | **3** | Active learning, most recently studied first |
+
+Then one quiet line of links. Beyond a cap, a count and a link to the screen
+that lists them all.
+
+### Sections removed from the overview
+
+Recently saved gallery · inspiration cards · quick access as a card grid ·
+the monthly training-session figure · the blocked-projects section (folded into
+"projects on the go", where a blocker is a chip on the row) · "pick up where you
+left off" as its own section · the mobile group switcher and its two
+translation keys. Three components became dead and were deleted:
+`ActivityInsight`, `AttentionList`, `NowCentre`.
+
+Nothing was deleted from any other screen. Everything removed here still lives
+where it belongs — saved items on the space views and in search, sessions on
+`/training`, the full relevance list on `/reminders`.
+
+### The relevance rules
+
+New pure module `lib/dashboard.ts`, on top of the existing `collectRelevance`:
+
+- **`severityOf`** bands rows — overdue (0), today (1), soon (2) — and adds the
+  day count at a hundredth of a band, so a date breaks ties *inside* a band and
+  can never promote a distant item above a late one.
+- **`dedupeBySource`** de-duplicates on `referenceKey(item.reference)`, never on
+  the title. Two appointments called "בדיקה" are two appointments.
+- **`selectNeedsYouNow`** takes buckets `today` + `waiting`. A thing that
+  happens on Thursday is not asking on Monday.
+- **`selectNextDays`** takes dated rows inside 14 days, excluding by source
+  identity everything the first area showed. Undated rows — an idle learning
+  page — are excluded entirely: they belong on their own screen, not in a list
+  of dates.
+- **`focusLineFor`** shows `nextAction`, else `stoppedAt`, else a note titled
+  "where I stopped" — matched on the template *key*, not the rendered title, so
+  it works in both languages. Read through `notesForPage`; nothing is copied.
+
+Two changes to shared logic, both to remove a drift risk rather than add a
+second rule:
+
+- **`DEFAULT_PREP_DAYS` in `lib/eventTiming.ts`** — a preparation window per
+  event kind, used by `urgencyOf` only when the user gave none. Wedding and
+  bar/bat mitzvah 30, party 10, anniversary 7, birthday 14, holiday and hosting
+  5, family 3; `custom` has none, so a distant custom event stays as quiet as
+  before. Values at or below 7 are inert — anything inside a week is already
+  `soon`, which is louder — and the code says so rather than implying otherwise.
+- **Trips as a relevance source**, entering 10 days before departure. That is
+  the point where a trip stops being a plan and becomes a list of things to do.
+
+### Nothing is stored
+
+No dashboard repository, no storage key, no migration, because there is nothing
+to store. Every row is projected on each read and carries the `EntityReference`
+it came from.
+
+### Verification
+
+TypeScript (client + server) clean · ESLint clean · **443/443** Vitest tests
+passing, up from 410 · production build clean · `check:links` clean ·
+translation parity clean · source hygiene clean · `legacy/` unchanged · no new
+`localStorage` access · no new dependency.
+
+**33 new tests** in `lib/dashboard.test.ts`, most of them checking that
+something is *absent*: a haircut every three weeks stays off the screen until it
+is close, a trip 40 days out is not there, a completed reminder is not there, a
+distant date cannot outrank a late one, the same source cannot appear twice or
+in both time areas, a parked or finished project is not "on the go", and the
+caps hold at 100 reminders / 70 projects / 40 learning pages.
+
+One test found a real thing during the work: the 5-day holiday window is inert
+because the under-a-week rule already fires. The table entry stayed, the comment
+now says so, and the test asserts the outcome the brief wanted rather than the
+mechanism.
+
+**Not verified: no browser check of any kind.** The sandbox refuses to bind a
+port and there is no browser in this environment. So the responsive sweep
+(1440 / 1024 / 768 / 375 / 320), RTL and LTR, the console and network check, and
+every interaction — following a row to its source, marking something done and
+refreshing, "and N more", the empty states, Back/Forward, switching language —
+are **unverified**. See the manual checklist in the task report.
+
+### Technical debt
+
+- `lib/pageSelectors.ts` still exports `selectNeedsAttention`, `selectContinue`,
+  `ATTENTION_LIMIT` and `CONTINUE_LIMIT`, which now have no caller. They are
+  tested and harmless, but they are dead weight and should go in a later sweep.
+- The two-column band splits at `lg`. Between `md` and `lg` the overview is a
+  single column, which is correct but makes a tablet taller than it needs to be.
+- `RelevanceItem` now carries a `trip` source, so the reminders screen lists
+  departures too. That is intended, but it was not part of this task's brief and
+  is worth a look on `/reminders`.
+
+### The recommended next action — one
+
+```text
+Training multi-plan and materials
+```
 
 ---
 

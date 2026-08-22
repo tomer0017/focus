@@ -4353,12 +4353,14 @@ body {
    every row that carries a tone also writes the state out in words. */
 .focus-dense-row--due,
 .focus-dense-row--soon,
+.focus-dense-row--next,
 .focus-dense-row--done {
   padding-inline-start: 0.65rem;
 }
 
 .focus-dense-row--due::before,
 .focus-dense-row--soon::before,
+.focus-dense-row--next::before,
 .focus-dense-row--done::before {
   content: "";
   position: absolute;
@@ -4374,6 +4376,10 @@ body {
 
 .focus-dense-row--soon::before {
   background: var(--focus-warn);
+}
+
+.focus-dense-row--next::before {
+  background: #2b6cb0;
 }
 
 .focus-dense-row--done::before {
@@ -6505,29 +6511,86 @@ button.focus-route__button:hover {
 
 /* ------------------------------------------------------ overview groups -- */
 /*
- * On a phone every overview section stacks, so five of them is thousands of
- * pixels before the reader reaches the one they came for. Below `md` the groups
- * are shown one at a time.
+ * The overview's layout.
  *
- * The switch is CSS rather than JavaScript on purpose: above `md` the grid
- * already places the sections side by side, so every group must render and the
- * control must not exist at all. `display: none` also takes the hidden groups
- * out of the accessibility tree, which a JS branch would have had to do by hand.
+ * One column of areas, with the middle band splitting into two above `lg`.
+ * "What is coming" and "what I am working on" are different questions, and
+ * reading them side by side is shorter than reading them stacked — but only
+ * once there is genuinely room for two columns of compact rows.
+ *
+ * The stacking order below `lg` is the source order, and the source order is
+ * the priority order: what needs you, what is coming, what you are working on,
+ * where to go next. On a phone you land on the thing that needs you.
  */
-.focus-dash-group {
-  display: contents;
+.focus-dash {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
 }
 
-@media (max-width: 767.98px) {
-  .focus-dash-group {
-    display: block;
-  }
+.focus-dash-columns {
+  display: grid;
+  gap: 22px;
+}
 
-  .focus-dash[data-showing="today"] .focus-dash-group:not([data-group="today"]),
-  .focus-dash[data-showing="week"] .focus-dash-group:not([data-group="week"]),
-  .focus-dash[data-showing="later"] .focus-dash-group:not([data-group="later"]) {
-    display: none;
+@media (min-width: 992px) {
+  .focus-dash-columns {
+    grid-template-columns: 1fr 1fr;
+    /* Each column is as tall as its own content. Stretching one to match its
+       neighbour is what left a column of white beside a two-row list. */
+    align-items: start;
   }
+}
+
+.focus-dash-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-inline-size: 0;
+}
+
+.focus-dash-area {
+  min-inline-size: 0;
+}
+
+.focus-dash-area__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block-end: 6px;
+}
+
+.focus-dash-area__head .focus-section-title {
+  margin-block-end: 0;
+}
+
+/*
+ * An empty area is one quiet line, never a panel.
+ *
+ * Nothing urgent is good news. Announcing it with a bordered box the height of
+ * three rows would make a calm day look like an error state.
+ */
+.focus-dash-empty {
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--focus-muted);
+}
+
+.focus-dash-more {
+  margin-block: 8px 0;
+  font-size: 0.86rem;
+}
+
+/* The quiet link row that replaced the quick-access card grid. */
+.focus-dash-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  padding-block-start: 14px;
+  border-block-start: 1px solid var(--focus-line);
+  font-size: 0.88rem;
 }
 
 /* The vision tile's one control, on a dark surface. */

@@ -24,6 +24,7 @@ function empty(): RelevanceInput {
     money: [],
     medications: [],
     pages: [],
+    trips: [],
   };
 }
 

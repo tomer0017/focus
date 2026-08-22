@@ -28,6 +28,7 @@ import type { Commitment, MoneyEntry } from "../types/finance";
 import type { Medication } from "../types/health";
 import type { PageSummary } from "../types/page";
 import type { ScheduledItem } from "../types/scheduled";
+import type { Trip } from "../types/trip";
 
 /**
  * Five groups, in the order a person actually triages.
@@ -55,7 +56,8 @@ export type RelevanceSource =
   | "money"
   | "medication"
   | "checklist"
-  | "learning";
+  | "learning"
+  | "trip";
 
 export interface RelevanceItem {
   /** Unique across every source, so React keys and de-duplication both work. */
@@ -87,6 +89,16 @@ const UPCOMING_HORIZON_DAYS = 21;
 /** How long a learning project may sit untouched before it is worth a nudge. */
 const LEARNING_IDLE_DAYS = 30;
 
+/**
+ * How far ahead a departure starts asking.
+ *
+ * Ten days is the point at which a trip stops being a plan and starts being a
+ * list of things to do — the passport, the bag, the person who feeds the cat.
+ * Before that there is nothing to act on, which is why a trip in two months is
+ * not on this screen.
+ */
+const TRIP_PREP_DAYS = 10;
+
 function bucketFor(daysAway: number | undefined, overdue: boolean): RelevanceBucket {
   if (overdue || daysAway === undefined) return "today";
   if (daysAway <= 0) return "today";
@@ -102,6 +114,7 @@ export interface RelevanceInput {
   money: MoneyEntry[];
   medications: Medication[];
   pages: PageSummary[];
+  trips: Trip[];
 }
 
 /**
@@ -293,6 +306,32 @@ export function collectRelevance(input: RelevanceInput, now: Date = new Date()):
         bucket: "recurring",
       });
     }
+  }
+
+  /* ------------------------------------------------------------- trips -- */
+
+  for (const trip of input.trips) {
+    if (trip.status === "done" || trip.status === "travelling") continue;
+
+    // Midday, so a whole-day date is not pushed across a boundary by a timezone.
+    const daysAway = daysUntil(`${trip.startDate}T12:00:00`, now);
+    // Already under way, or too far off to prepare for.
+    if (daysAway < 0 || daysAway > TRIP_PREP_DAYS) continue;
+
+    items.push({
+      id: `trip-${trip.id}`,
+      source: "trip",
+      title: trip.title,
+      detail: trip.nextAction,
+      at: `${trip.startDate}T12:00:00`,
+      daysAway,
+      overdue: false,
+      href: `/trips/${trip.id}`,
+      reference: { kind: "trip", id: trip.id },
+      completable: false,
+      snoozable: false,
+      bucket: bucketFor(daysAway, false),
+    });
   }
 
   return items;

@@ -267,8 +267,42 @@ below exists speculatively — each is named by the screen that needs it.
 | Lists for a purpose and scope | Manage → Shopping | `{ workspaceId: 1, purpose: 1, scope: 1, status: 1 }` |
 | One person's obligations | Family profile | `{ workspaceId: 1, "parent.entityType": 1, "parent.entityId": 1, nextOccurrenceAt: 1 }` |
 | Resources of one kind on one page | Learning material panels | `{ workspaceId: 1, "parent.entityId": 1, kind: 1, order: 1 }` |
+| The overview's urgent rows | Overview area 1 | `{ ownerId: 1, status: 1, nextOccurrenceAt: 1 }` on `scheduled_items` |
+| The overview's fortnight | Overview area 2 | `{ ownerId: 1, preparationStartsAt: 1, status: 1 }` on `events` |
+| The three projects in flight | Overview area 3 | `{ ownerId: 1, type: 1, status: 1, updatedAt: -1 }` on `pages` |
 | One leisure collection, newest first | Leisure tabs | `{ workspaceId: 1, kind: 1, updatedAt: -1 }` |
 | One collection narrowed by state | Leisure status filter | `{ workspaceId: 1, kind: 1, consumptionStatus: 1 }`, and the same shape for `ownershipStatus` and `purchaseStatus` |
+
+### The overview, as queries
+
+The overview is the screen most likely to be built as one enormous aggregation,
+and it must not be. It is **six independent, indexed, limited finds**, run in
+parallel and merged in application code:
+
+```
+scheduled_items  {ownerId, status:'active', nextOccurrenceAt:{$lte: +21d}}  limit 40
+events           {ownerId, status:'active', preparationStartsAt:{$lte: now}} limit 20
+commitments      {ownerId, nextChargeAt:{$lte: +21d}}                       limit 20
+money_entries    {ownerId, paid:false}                                      limit 20
+pages            {ownerId, type:'project',  status:'active'} sort updatedAt limit 3
+pages            {ownerId, type:'learning', status:'active'} sort updatedAt limit 3
+```
+
+No `$lookup`, no `$facet`, no pipeline. Each is a covered index range scan with
+a small bound; severity ordering, de-duplication and the per-area caps happen
+after the merge, over at most a couple of hundred small documents.
+
+`nextOccurrenceAt` and `preparationStartsAt` are stored precisely so that "what
+is asking now" is an index range rather than a computation over every recurrence
+rule and every preparation window in the account. They are the only two
+materialised values on this path, each with one writer.
+
+**Dashboard rows are never persisted.** There is no `dashboard_items`
+collection and there must not be one. A stored row would be a second copy of
+data that already exists, with its own staleness, its own migration and its own
+way of disagreeing with the record it describes. Every row carries an
+`EntityReference` — `{entityType, entityId}` — and resolves through it, so the
+projection is always exactly as current as its sources.
 
 **No screen loads through a multi-`$lookup` aggregation.** The overview is the
 only screen that reads across collections, and it does so as a handful of

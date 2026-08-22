@@ -5,6 +5,7 @@ import { useEvents } from "../../state/eventsContext";
 import { useFamily } from "../../state/familyContext";
 import { useManage } from "../../state/manageContext";
 import { usePages } from "../../state/pagesContext";
+import { useTrips } from "../../state/tripsContext";
 
 export interface RelevanceResult {
   items: RelevanceItem[];
@@ -26,6 +27,7 @@ export function useRelevance(): RelevanceResult {
   const { events } = useEvents();
   const { profiles } = useFamily();
   const { pages } = usePages();
+  const { trips } = useTrips();
 
   return useMemo(() => {
     const items = collectRelevance({
@@ -36,11 +38,12 @@ export function useRelevance(): RelevanceResult {
       money,
       medications,
       pages,
+      trips,
     });
     return {
       items,
       grouped: groupRelevance(items),
       openCount: openReminderCount(items),
     };
-  }, [scheduled, events, profiles, commitments, money, medications, pages]);
+  }, [scheduled, events, profiles, commitments, money, medications, pages, trips]);
 }

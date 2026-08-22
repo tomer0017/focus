@@ -1,5 +1,5 @@
 import { daysUntil } from "./format";
-import type { EventReminder, FocusEvent } from "../types";
+import type { EventKind, EventReminder, FocusEvent } from "../types";
 
 /**
  * When an event starts asking for attention, and how loudly.
@@ -26,6 +26,49 @@ const SOON_DAYS = 7;
 
 /** The last stretch, where an unfinished task is a problem rather than a plan. */
 const CRITICAL_DAYS = 1;
+
+/**
+ * How long each kind of event usually needs, when its owner has not said.
+ *
+ * `prepDaysBefore` is still the answer whenever the user gave one — this is
+ * only the fallback, and it exists because "a holiday needs about five days"
+ * and "a wedding needs about a month" are true of nearly every holiday and
+ * nearly every wedding. Making somebody type that on each one is asking them to
+ * restate the obvious before the app will be useful.
+ *
+ * `custom` has none on purpose. It is the kind for "something the app has no
+ * opinion about", so having an opinion about it would be wrong, and a distant
+ * custom event stays quiet exactly as it did before this table existed.
+ *
+ * Note what a value under seven days does: **nothing**. Anything inside a week
+ * is already `soon`, which is louder than `preparing`, so `holiday`, `hosting`
+ * and `family` are covered by that rule before they reach this table. They are
+ * written down anyway so this reads as a complete policy rather than a list of
+ * exceptions — and so that raising one of them later is an edit here rather
+ * than a discovery that the entry was missing.
+ */
+export const DEFAULT_PREP_DAYS: Partial<Record<EventKind, number>> = {
+  birthday: 14,
+  holiday: 5,
+  wedding: 30,
+  barMitzvah: 30,
+  batMitzvah: 30,
+  anniversary: 7,
+  party: 10,
+  hosting: 5,
+  family: 3,
+};
+
+/**
+ * The preparation window this event actually has: what the user said, or the
+ * default for its kind, or nothing at all.
+ *
+ * One function so the events screen and the overview cannot drift apart about
+ * when something starts asking.
+ */
+export function prepWindowFor(event: FocusEvent): number | undefined {
+  return event.prepDaysBefore ?? DEFAULT_PREP_DAYS[event.kind];
+}
 
 /** Every task on the event, across all its sections. */
 export function eventTasks(event: FocusEvent): { total: number; done: number } {
@@ -94,7 +137,7 @@ export function urgencyOf(event: FocusEvent, now: Date = new Date()): EventUrgen
    * what stops a small, distant occasion from sitting in the same list as a
    * wedding for two months.
    */
-  const prep = event.prepDaysBefore;
+  const prep = prepWindowFor(event);
   if (prep !== undefined && days <= prep && event.importance !== "low") {
     return "preparing";
   }

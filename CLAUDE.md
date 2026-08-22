@@ -398,6 +398,39 @@ suggestion is an app whose suggestions mean nothing. Being offered, accepted or
 dismissed all leave a mark on the item, so the same idea cannot come back every
 evening for a week. Telling it you are swamped silences it. It never pops up.
 
+**The overview is a decision screen, not a summary of the database.** Four
+areas, in this order and no other: **what needs you now** · **the next 14 days**
+· **what you are working on** (projects, then learning) · **a line of links**.
+That order is also the phone order, so the first thing on the screen is the
+thing that needs you.
+
+Every area has a hard cap — **5 · 6 · 3 · 3** — and beyond it the honest answer
+is a count and a link to the screen that lists them all. A screen whose length
+depends on how much data you own is a screen you scroll instead of read.
+
+**Severity decides the order, not the calendar.** Late beats today beats soon;
+a date only breaks the tie *inside* a band, so a distant item can never be
+promoted above a late one. `severityOf` in `lib/dashboard.ts` is the single
+judge.
+
+**Colour belongs to one area.** Only "needs you now" carries the accent stripe,
+and "the next days" tints only the next two days. If tinted means *needs you*
+everywhere and nothing else on the page is tinted, the top of the screen is
+legible at a glance — and every stripe still has its state written out in words
+beside it.
+
+**The overview stores nothing.** Every row is projected on each read from
+entities that already exist, and each carries the `EntityReference` it came
+from — so a row cannot disagree with its source, and there is no dashboard
+record to migrate, duplicate or leave stale. De-duplication is on that
+reference, never on the title: two appointments called "בדיקה" are two
+appointments.
+
+**What is deliberately not on it:** recently saved items, inspiration cards,
+favourite pages as a grid, checklist previews, a month of training sessions,
+detailed medical or money figures, and any event that has not entered its
+preparation window. All of it lives on the screen that owns it.
+
 **The overview answers "what needs me now?" by leaving things out.** Focus can
 see insurance, subscriptions, medicines, appointments, birthdays, pet treatments,
 shopping lists, learning pages and evening ideas; showing all of that would be a
@@ -798,13 +831,11 @@ translation keys.
 
 ## Screen structure
 
-**Overview (`/`)** answers four questions in order and then stops: what is near,
-what is stuck, where do I resume, where is what I saved. It must **not** list
-every project, and must not carry a chart.
-
-It must not carry a full calendar, a board, a vision board, or a list of every
-project. One activity number is allowed (sessions this month); a row of counters
-is not.
+**Overview (`/`)** answers four questions in order and then stops: what needs
+me now, what is coming in the next fortnight, what am I working on, and where do
+I go next. It must **not** list every project, must not carry a chart, a
+calendar, a board or a vision board, and must not show saved items or
+inspiration. Caps are 5 · 6 · 3 · 3 and they are not negotiable.
 
 **Space views (`/spaces/:spaceId`)** are all rendered by one component,
 `features/space/SpaceView.tsx`. Which sections a space shows comes from
@@ -1097,9 +1128,12 @@ its script is still a notice; do not report that half as passing.
     empty thing the user fills is the honest answer.
 22. **A level is a lens, not a folder.** One control filters a whole screen, and
     unlevelled content is general — visible at every setting, labelled as such.
-23. **Ownership is never progress.** Two independent axes, never one field, and
+23. **The overview shows nothing it did not compute this render.** No dashboard
+    record, no copied domain data, de-duplicated by `EntityReference` and
+    capped per area.
+24. **Ownership is never progress.** Two independent axes, never one field, and
     a migration never invents either from data that did not record it.
-24. **A list query names a purpose and a scope, never a type.** `type` is the
+25. **A list query names a purpose and a scope, never a type.** `type` is the
     storage shape; a screen showing checklists must go through
     `checklistContextOf`. An unclassified list appears nowhere rather than
     somewhere plausible.

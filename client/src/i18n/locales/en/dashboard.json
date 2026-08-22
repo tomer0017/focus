@@ -46,10 +46,25 @@
   },
   "chooseTopic": "What to show",
   "openProjects": "All projects in this category",
-  "chooseGroup": "What to show",
-  "groups": {
-    "today": "Today",
-    "week": "This week",
-    "later": "Later"
-  }
+  "now": {
+    "title": "Needs you now",
+    "empty": "Nothing urgent right now.",
+    "more_one": "and {{count}} more waiting",
+    "more_other": "and {{count}} more waiting"
+  },
+  "next": {
+    "title": "Next {{days}} days",
+    "empty": "Nothing coming up that needs preparing.",
+    "more_one": "and {{count}} more coming up",
+    "more_other": "and {{count}} more coming up"
+  },
+  "focus": {
+    "projects": "Projects on the go",
+    "learning": "Learning now",
+    "allProjects": "All projects",
+    "allLearning": "All learning",
+    "noProjects": "No projects on the go.",
+    "noLearning": "Nothing being learned right now."
+  },
+  "quickLinks": "Go to"
 }

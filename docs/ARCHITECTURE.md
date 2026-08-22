@@ -461,6 +461,62 @@ material. That is deliberate groundwork and nothing more — there is no share
 button, no permission model and no public projection, and there will not be one
 before a server, a database and users exist. See `docs/FUTURE_ROADMAP.md`.
 
+## The overview projection
+
+The overview is the only screen that reads across every slice, and it is a
+**projection**: nothing it shows is stored, and there is no dashboard entity.
+
+```
+DashboardPage
+  useRelevance()                       one hook, so the overview, the reminders
+    → collectRelevance(input, now)     screen and the header badge cannot
+                                       disagree about what "needs you" means
+  lib/dashboard.ts  (pure, no React)
+    selectNeedsYouNow(items)        → 5   buckets today + waiting
+    selectNextDays(items, {exclude})→ 6   dated, ≤14 days, minus the above
+    selectFocusProjects(pages)      → 3   active projects, blocked first
+    selectFocusLearning(pages)      → 3   active learning, last studied first
+```
+
+### Source entities
+
+Eight, each contributing rows through `collectRelevance` and each tagged with
+its `RelevanceSource`: `ScheduledItem`, `FocusEvent` (including birthdays
+derived from `FamilyProfile`), `Commitment`, `MoneyEntry`, `Medication`,
+checklist and learning `PageSummary`, and `Trip`. Projects and learning reach
+the third area directly from `PageSummary` — they are not time-relevant and do
+not belong in the relevance stream.
+
+### De-duplication
+
+On the source's identity — `referenceKey(item.reference)` — falling back to the
+row id when a source has no reference of its own. **Never on the title.** Two
+appointments that happen to share a name are two appointments; one scheduled
+item arriving through two paths is one thing. The second area additionally
+excludes everything the first already showed, so nothing appears twice on the
+screen.
+
+### Time windows
+
+Four separate ideas, deliberately not collapsed:
+
+| Idea | Where it lives |
+|---|---|
+| When the thing happens | `dueAt`, `startsAt`, `startDate` on the entity |
+| How long it needs preparing | `prepDaysBefore`, else `DEFAULT_PREP_DAYS[kind]` |
+| When it starts asking | `urgencyOf` / `isDue`, inside `collectRelevance` |
+| Whether it is finished | `status`, `handled`, ticked tasks |
+
+`severityOf` then bands the result — overdue, today, soon — and sorts within a
+band by date. Banding is what stops a distant date outranking a late one.
+
+### No persisted dashboard
+
+There is no `dashboard` repository, no storage key and no migration, because
+there is nothing to store. That is also what makes the screen impossible to get
+stale: it cannot disagree with its sources, because it *is* its sources, read
+through a limit.
+
 ## Leisure collections
 
 `/leisure` is five collections over one model. `LeisureItem` is a discriminated

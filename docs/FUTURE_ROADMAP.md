@@ -198,6 +198,24 @@ no "coming soon".
 
 ---
 
+### Areas still to be reworked
+
+Documentation only — none of this is started:
+
+- **Training: multiple plans and materials.** One active plan today
+  (`const [activePlan, ...previous]`). No active/alternative/frozen/completed
+  plans, no A/B/C grouping inside one weekly routine, no per-plan or
+  per-exercise resources. No trainers or trainees, ever — that is outside what
+  Focus is.
+- **Project detail consolidation.** Overview · tasks · materials, with up to
+  four pinned links at the top.
+- **Family scheduling and materials.** The three-area profile — upcoming ·
+  recurring · information and materials — replacing the current opt-in section
+  list.
+- **Learning sharing.** Sharing a subject or one level.
+- Database and API, authentication, real file storage, collaboration — all as
+  described elsewhere in this document.
+
 ### Leisure, later
 
 Documentation only. None of this is in the interface:

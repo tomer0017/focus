@@ -26,8 +26,14 @@ interface CompactRowProps {
   progress?: { done: number; total: number };
   /** Makes the whole row a link to this address. */
   href?: string;
-  /** Accent stripe on the inline-start edge, for urgency. Never the only signal. */
-  tone?: "neutral" | "due" | "soon" | "done";
+  /**
+   * Accent stripe on the inline-start edge, for urgency. Never the only signal.
+   *
+   * `due` is late, `soon` is today or inside the critical window, `next` is
+   * approaching and worth noticing, `done` is finished. Every caller that
+   * passes one also writes the state out in words somewhere in the row.
+   */
+  tone?: "neutral" | "due" | "soon" | "next" | "done";
 }
 
 /**

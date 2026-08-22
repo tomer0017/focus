@@ -1,106 +1,76 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { PageHeader } from "../../components/ui/PageHeader";
 import { usePages } from "../../state/pagesContext";
 import { useRoutines } from "../../state/routinesContext";
 import { useEvents } from "../../state/eventsContext";
+import { useFamily } from "../../state/familyContext";
+import { withBirthdays } from "../../lib/birthdays";
+import { categoryLabel } from "../../lib/projectCategories";
 import {
-  ATTENTION_LIMIT,
-  CONTINUE_LIMIT,
   searchEvents,
   searchPages,
   searchRoutines,
   searchSavedItems,
-  selectContinue,
-  selectNeedsAttention,
-  selectQuickAccess,
-  selectRecentSaved,
-  selectUpcoming,
-  trainingSessionsThisMonth,
-  UPCOMING_LIMIT,
 } from "../../lib/pageSelectors";
-import { todayKey } from "../../lib/dateKey";
-import { withBirthdays } from "../../lib/birthdays";
-import { useFamily } from "../../state/familyContext";
-import type { PageSummary } from "../../types";
-import { EmptyState } from "../../components/ui/EmptyState";
-import { PageHeader } from "../../components/ui/PageHeader";
-import { UpcomingStrip } from "../sections/UpcomingStrip";
-import { ReminderAlerts } from "../events/ReminderAlerts";
-import { AttentionList } from "../sections/AttentionList";
-import { ContinueList } from "../sections/ContinueList";
-import { PageChipList } from "../sections/PageChipList";
-import { SavedItemsRow } from "../sections/SavedItemsRow";
-import { SegmentedNav } from "../../components/ui/SegmentedNav";
+import {
+  selectFocusLearning,
+  selectFocusProjects,
+  selectNeedsYouNow,
+} from "../../lib/dashboard";
 import { SearchResults } from "../search/SearchResults";
-import { NowCentre } from "../reminders/NowCentre";
+import { ReminderAlerts } from "../events/ReminderAlerts";
 import { useRelevance } from "../reminders/useRelevance";
-import { EditPageModal } from "../edit/EditPageModal";
-import { ActivityInsight } from "./ActivityInsight";
+import { FocusList } from "./FocusList";
+import { NeedsYouNow } from "./NeedsYouNow";
+import { NextDays } from "./NextDays";
+import { QuickLinks } from "./QuickLinks";
 
 /**
- * The overview screen — a work surface, not an archive.
+ * The overview — a decision screen, not a summary of the database.
  *
- * It answers six questions in order and then stops: what needs me right now,
- * what is near, what is stuck, where do I resume, have I been keeping up, and
- * where is what I saved. It deliberately does NOT list every project (that is
- * `/projects`), carries no calendar, no board and no vision board, and shows
- * nothing twice.
+ * It answers four questions in a fixed order and then stops: what needs me
+ * now, what is coming in the next fortnight, what am I working on, and where do
+ * I go next. Everything else that used to be here — a gallery of recently saved
+ * pictures, inspiration cards, favourite pages as a card grid, a month of
+ * training sessions, checklist previews — was true and did not change what
+ * anybody would do next. It lives on the screens that own it.
  *
- * "What needs you" goes first and is the reason the rest of the extension
- * exists — but it renders **nothing at all** on a day when nothing is asking,
- * which is most days. That restraint is what keeps it worth looking at.
+ * Nothing on this screen is stored. Every row is projected on each read from
+ * the entities that already exist, and each one carries the reference it came
+ * from, so a row can never disagree with its source and there is no dashboard
+ * record to migrate or leave stale. See `lib/dashboard.ts`.
+ *
+ * The order is the mobile order, deliberately: on a phone these stack in
+ * exactly this sequence, so the thing that needs you is the thing you land on.
  */
-/** The three groups the overview splits into on a phone. */
-type DashboardGroup = "today" | "week" | "later";
-
-const GROUPS: DashboardGroup[] = ["today", "week", "later"];
-
 export function DashboardPage() {
-  const { pages, savedItems, updatePage } = usePages();
-  const { routines, toggleCompletionOn } = useRoutines();
+  const { pages, savedItems, categories } = usePages();
+  const { routines } = useRoutines();
   const { events } = useEvents();
   const { profiles } = useFamily();
   const { items: relevant } = useRelevance();
 
-  /* Derived, never stored — see lib/birthdays.ts. */
-  const allEvents = useMemo(() => withBirthdays(events, profiles), [events, profiles]);
-  const { t } = useTranslation(["dashboard", "common"]);
+  const { t } = useTranslation(["dashboard", "common", "projects", "pages"]);
   const [searchParams] = useSearchParams();
-  const [editing, setEditing] = useState<PageSummary | null>(null);
-  const [group, setGroup] = useState<DashboardGroup>("today");
 
   const query = searchParams.get("q") ?? "";
   const isSearching = query.trim().length > 0;
 
-  const upcoming = useMemo(
-    () => selectUpcoming(pages, routines, allEvents).slice(0, UPCOMING_LIMIT),
-    [pages, routines, allEvents]
-  );
-  const attention = useMemo(() => selectNeedsAttention(pages), [pages]);
+  /* Derived, never stored — see lib/birthdays.ts. */
+  const allEvents = useMemo(() => withBirthdays(events, profiles), [events, profiles]);
 
-  /*
-   * Each section below excludes what the sections above it already showed, so
-   * nothing appears twice on this screen.
-   */
-  const resume = useMemo(() => {
-    const scheduled = new Set(upcoming.map((entry) => entry.href));
-    return selectContinue(pages)
-      .filter((page) => !scheduled.has(`/pages/${page.id}`))
-      .slice(0, CONTINUE_LIMIT);
-  }, [pages, upcoming]);
+  // What the first area will show, so the second can exclude it by source.
+  const urgent = useMemo(() => selectNeedsYouNow(relevant).visible, [relevant]);
 
-  const quickAccess = useMemo(() => {
-    const alreadyShown = new Set([
-      ...upcoming.map((entry) => entry.href),
-      ...attention.slice(0, ATTENTION_LIMIT).map((page) => `/pages/${page.id}`),
-      ...resume.map((page) => `/pages/${page.id}`),
-    ]);
-    return selectQuickAccess(pages).filter((page) => !alreadyShown.has(`/pages/${page.id}`));
-  }, [pages, upcoming, attention, resume]);
+  const projects = useMemo(() => selectFocusProjects(pages), [pages]);
+  const learning = useMemo(() => selectFocusLearning(pages), [pages]);
 
-  const recentSaved = useMemo(() => selectRecentSaved(savedItems), [savedItems]);
-  const sessions = useMemo(() => trainingSessionsThisMonth(routines), [routines]);
+  const projectCategory = (id: string | undefined): string | undefined => {
+    const found = categories.find((entry) => entry.id === id);
+    return found ? categoryLabel(found, t) : undefined;
+  };
 
   if (isSearching) {
     return (
@@ -117,105 +87,48 @@ export function DashboardPage() {
     );
   }
 
-  const hasAnything =
-    relevant.length > 0 ||
-    upcoming.length > 0 ||
-    attention.length > 0 ||
-    resume.length > 0 ||
-    quickAccess.length > 0 ||
-    recentSaved.length > 0;
-
   return (
     <>
       <PageHeader title={t("dashboard:title")} />
 
-      {/* Anything actually asking for something goes above the four questions
-          the overview answers. It renders nothing on a day with nothing due,
-          which is most days. */}
+      {/* Event reminders that have come due. Renders nothing on most days. */}
       <ReminderAlerts />
 
-      {hasAnything ? (
-        <>
-        {/*
-          On a phone every section stacks, so five of them is thousands of
-          pixels before the user reaches the one they came for. Below `md` they
-          become three groups and one is shown at a time; above it the grid
-          already puts them side by side, so the control would only be in the
-          way and is not rendered at all.
-        */}
-        <div className="d-md-none">
-          <SegmentedNav
-            label={t("dashboard:chooseGroup")}
-            items={GROUPS.map((value) => ({ id: value, label: t(`dashboard:groups.${value}`) }))}
-            value={group}
-            onChange={(id) => setGroup(id as DashboardGroup)}
-            variant="tabs"
-          />
-        </div>
+      <div className="focus-dash">
+        <NeedsYouNow items={relevant} />
 
-        <div className="focus-sections focus-dash" data-showing={group}>
-          {/*
-            The relevance engine's five buckets *are* this screen's grouping, so
-            each dashboard group asks for its own rather than all five landing
-            under "today" and the same rows being grouped twice.
-          */}
-          <div className="focus-dash-group" data-group="today">
-            <NowCentre hideWhenEmpty buckets={["today"]} />
-          </div>
-          <div className="focus-dash-group" data-group="week">
-            <NowCentre hideWhenEmpty buckets={["week"]} hideTitle />
-          </div>
-          <div className="focus-dash-group" data-group="later">
-            <NowCentre hideWhenEmpty buckets={["waiting", "upcoming", "recurring"]} hideTitle />
-          </div>
-          {/* The strip, the blocked rows and the resume cards each need the
-              width; quick access and recently saved are short enough to share
-              a row, which is what stops either from sitting alone in a thin
-              column with two thirds of the row blank. */}
-          <div className="focus-dash-group" data-group="week">
-          <UpcomingStrip
-            entries={upcoming}
-            span="full"
-            onMarkRoutineDone={(routineId) => toggleCompletionOn(routineId, todayKey())}
-          />
-          </div>
-          {/* Attention belongs to "today" on a phone: a blocked project is not
-              something to look at later. */}
-          <div className="focus-dash-group" data-group="today">
-            <AttentionList pages={attention} showAllHref="/projects" span="full" />
-          </div>
-          <div className="focus-dash-group" data-group="later">
-            <ContinueList pages={resume} onEdit={setEditing} span="full" />
-          </div>
-          <div className="focus-dash-group" data-group="later">
-            <ActivityInsight sessions={sessions} />
-          </div>
-          <div className="focus-dash-group" data-group="later">
-            <PageChipList
-              title={t("dashboard:sections.quickAccess")}
-              pages={quickAccess.slice(0, 3)}
-              span="auto"
+        {/*
+          Two columns above `lg`, because "what is coming" and "what I am
+          working on" are two different questions and reading them side by side
+          is shorter than reading them stacked. Each column is as tall as its
+          own content — nothing stretches to match its neighbour.
+        */}
+        <div className="focus-dash-columns">
+          <NextDays items={relevant} exclude={urgent} />
+
+          <div className="focus-dash-stack">
+            <FocusList
+              title={t("dashboard:focus.projects")}
+              slice={projects}
+              allHref="/projects"
+              allLabel={t("dashboard:focus.allProjects")}
+              emptyLabel={t("dashboard:focus.noProjects")}
+              labelFor={projectCategory}
+            />
+
+            <FocusList
+              title={t("dashboard:focus.learning")}
+              slice={learning}
+              allHref="/learning"
+              allLabel={t("dashboard:focus.allLearning")}
+              emptyLabel={t("dashboard:focus.noLearning")}
+              levelLabel={(level) => t(`pages:learning.levels.${level}`)}
             />
           </div>
-          {/*
-            Three, and the whole card. The overview's job is "where is what I
-            saved", not "look at what you saved": six full inspiration cards
-            were the tallest thing on the screen and answered a question nobody
-            arrives at the overview asking.
-          */}
-          <div className="focus-dash-group" data-group="later">
-            <SavedItemsRow items={recentSaved} limit={3} span="auto" />
-          </div>
         </div>
-        </>
-      ) : (
-        <EmptyState
-          title={t("dashboard:emptyOverview.title")}
-          hint={t("dashboard:emptyOverview.hint")}
-        />
-      )}
 
-      <EditPageModal page={editing} onClose={() => setEditing(null)} onSave={updatePage} />
+        <QuickLinks />
+      </div>
     </>
   );
 }
