@@ -11,11 +11,13 @@ import { TripsProvider } from "./state/TripsProvider";
 import { ManageProvider } from "./state/ManageProvider";
 import { FamilyProvider } from "./state/FamilyProvider";
 import { LeisureProvider } from "./state/LeisureProvider";
+import { TrainingProvider } from "./state/TrainingProvider";
 import { DashboardPage } from "./features/dashboard/DashboardPage";
 import { SpaceView } from "./features/space/SpaceView";
 import { PageDetailPage } from "./features/page/PageDetailPage";
 import { ProjectsBoardPage } from "./features/projects/ProjectsBoardPage";
 import { TrainingPage } from "./features/training/TrainingPage";
+import { TrainingPlanPage } from "./features/training/TrainingPlanPage";
 import { RoutinePage } from "./features/routines/RoutinePage";
 import { EventsPage } from "./features/events/EventsPage";
 import { EventDetailPage } from "./features/events/EventDetailPage";
@@ -54,7 +56,9 @@ function AppProviders({ children }: { children: ReactNode }) {
               <TripsProvider>
                 <ManageProvider>
                   <FamilyProvider>
-                    <LeisureProvider>{children}</LeisureProvider>
+                    <LeisureProvider>
+                      <TrainingProvider>{children}</TrainingProvider>
+                    </LeisureProvider>
                   </FamilyProvider>
                 </ManageProvider>
               </TripsProvider>
@@ -88,6 +92,7 @@ export default function App() {
               <Route index element={<DashboardPage />} />
               <Route path="projects" element={<ProjectsBoardPage />} />
               <Route path="training" element={<TrainingPage />} />
+              <Route path="training/plans/:id" element={<TrainingPlanPage />} />
               <Route path="vision" element={<VisionBoardPage />} />
               <Route path="routines/:id" element={<RoutinePage />} />
               <Route path="events" element={<EventsPage />} />

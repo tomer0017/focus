@@ -24,7 +24,7 @@ import { usePages } from "../../state/pagesContext";
 import type { LeisureItem, ProjectNote } from "../../types";
 import { ProjectNotes } from "../page/ProjectNotes";
 import { LeisureFormModal } from "./LeisureFormModal";
-import { LeisureMaterials } from "./LeisureMaterials";
+import { ResourcePanels } from "../resources/ResourcePanels";
 
 type Topic = "overview" | "notes" | "materials";
 
@@ -186,7 +186,7 @@ export function LeisureDetailPage() {
         )}
 
         {topic === "materials" && (
-          <LeisureMaterials item={item} materials={materials} isEditing={editMode} />
+          <ResourcePanels contextId={item.id} materials={materials} isEditing={editMode} />
         )}
       </div>
 

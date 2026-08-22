@@ -51,6 +51,11 @@ async function repositories() {
   return import("./manage");
 }
 
+/** The plan slice lives in the main barrel rather than the manage one. */
+async function core() {
+  return import("./index");
+}
+
 describe("scheduled items", () => {
   it("fills in the arrays every screen maps over", async () => {
     const { scheduledRepository } = await repositories();
@@ -649,5 +654,85 @@ describe("leisure items already in storage", () => {
     const [entry] = leisureRepository.load();
     expect(entry.ownershipStatus).toBe("borrowed");
     expect(entry.consumptionStatus).toBe("abandoned");
+  });
+});
+
+describe("training plans already in storage", () => {
+  /*
+   * The important thing this migration does is **nothing**. Plans written
+   * before the model existed were `SavedItem` documents filed against the
+   * training area, and they stay that. Turning a document called "gym plan"
+   * into a structured plan would invent groups and exercises nobody wrote.
+   */
+  it("fills in the arrays and the order every screen relies on", async () => {
+    const { trainingPlansRepository } = await core();
+    write(STORAGE_KEYS.trainingPlans, [
+      {
+        id: "old-plan",
+        title: "תוכנית ישנה",
+        status: "active",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+      },
+    ]);
+
+    const [plan] = trainingPlansRepository.load();
+    expect(plan.groups).toEqual([]);
+    expect(plan.order).toBe(0);
+    expect(plan.id).toBe("old-plan");
+    expect(plan.title).toBe("תוכנית ישנה");
+  });
+
+  it("numbers groups and exercises that were stored without an order", async () => {
+    const { trainingPlansRepository } = await core();
+    write(STORAGE_KEYS.trainingPlans, [
+      {
+        id: "p",
+        title: "Plan",
+        status: "active",
+        groups: [
+          { id: "g1", title: "First", exercises: [{ id: "e1", name: "Bench" }] },
+          { id: "g2", title: "Second", exercises: [] },
+        ],
+        createdAt: "x",
+        updatedAt: "x",
+      },
+    ]);
+
+    const [plan] = trainingPlansRepository.load();
+    expect(plan.groups.map((group) => group.order)).toEqual([0, 1]);
+    expect(plan.groups[0].exercises[0].order).toBe(0);
+    // And the names are untouched.
+    expect(plan.groups[0].exercises[0].name).toBe("Bench");
+  });
+
+  it("never invents a plan out of a saved training document", async () => {
+    const { trainingPlansRepository } = await core();
+    // A document filed against the training area, exactly as before.
+    write(STORAGE_KEYS.savedItems, [
+      {
+        id: "doc",
+        kind: "document",
+        title: "תוכנית מהמאמן",
+        contextIds: ["training"],
+        spaceId: "personal",
+        source: "web",
+        savedAt: "2026-01-01T00:00:00.000Z",
+      },
+    ]);
+    write(STORAGE_KEYS.trainingPlans, []);
+
+    expect(trainingPlansRepository.load()).toEqual([]);
+  });
+
+  it("is idempotent", async () => {
+    const { trainingPlansRepository } = await core();
+    write(STORAGE_KEYS.trainingPlans, [
+      { id: "p", title: "Plan", status: "active", createdAt: "x", updatedAt: "x" },
+    ]);
+
+    const once = trainingPlansRepository.load();
+    trainingPlansRepository.save(once);
+    expect(trainingPlansRepository.load()).toEqual(once);
   });
 });

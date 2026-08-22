@@ -15,6 +15,8 @@ import enTrips from "./locales/en/trips.json";
 import enManage from "./locales/en/manage.json";
 import enFamily from "./locales/en/family.json";
 import enLeisure from "./locales/en/leisure.json";
+import enResources from "./locales/en/resources.json";
+import enTraining from "./locales/en/training.json";
 import heCommon from "./locales/he/common.json";
 import heDashboard from "./locales/he/dashboard.json";
 import hePages from "./locales/he/pages.json";
@@ -27,6 +29,8 @@ import heTrips from "./locales/he/trips.json";
 import heManage from "./locales/he/manage.json";
 import heFamily from "./locales/he/family.json";
 import heLeisure from "./locales/he/leisure.json";
+import heResources from "./locales/he/resources.json";
+import heTraining from "./locales/he/training.json";
 
 export const SUPPORTED_LANGUAGES = ["he", "en"] as const;
 export type Language = (typeof SUPPORTED_LANGUAGES)[number];
@@ -78,6 +82,8 @@ i18n.use(initReactI18next).init({
       manage: enManage,
       family: enFamily,
       leisure: enLeisure,
+      resources: enResources,
+      training: enTraining,
     },
     he: {
       common: heCommon,
@@ -92,6 +98,8 @@ i18n.use(initReactI18next).init({
       manage: heManage,
       family: heFamily,
       leisure: heLeisure,
+      resources: heResources,
+      training: heTraining,
     },
   },
   lng: readStoredLanguage() ?? DEFAULT_LANGUAGE,
@@ -110,6 +118,8 @@ i18n.use(initReactI18next).init({
     "manage",
     "family",
     "leisure",
+    "resources",
+    "training",
   ],
   interpolation: {
     // React already escapes everything it renders.

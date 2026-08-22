@@ -81,6 +81,7 @@ new need can be expressed with an existing model, it must be.
 | `Commitment` | `types/finance.ts` | An insurance policy or a subscription — one model, two kinds |
 | `MoneyEntry` | `types/finance.ts` | One line in or out |
 | `Medication` | `types/health.ts` | A medicine or vitamin, exactly as the user was told it |
+| `TrainingPlan` | `types/training.ts` | A structure to follow: groups, exercises, no date |
 | `LeisureItem` | `types/leisure.ts` | One saved thing: a book, a film, a place, a purchase being considered, an idea |
 | `Menu` | `types/menu.ts` | A meal that comes round again, and what to buy for it |
 | `LearningResource` | `types/page.ts` | How one learning page files one saved item: its level, a note, a position |
@@ -389,6 +390,34 @@ right question for a camera and the wrong one for a novel.
 **A destination never becomes a trip on its own.** Making one is an explicit
 action the user takes; nothing is created automatically and nothing is matched
 by title.
+
+**Training keeps a plan, a session and a saved file apart.** They were one
+thing before, and "the active plan" was whichever training document happened to
+be newest — so running Plan A and Plan B in the same week could not be
+represented, and there was nowhere to write what was *in* a plan.
+
+- A **`TrainingPlan`** is a structure with groups and exercises, and **no date**.
+  As many can be `active` at once as the user actually runs; there is no primary
+  slot and no single-plan assumption anywhere.
+- A **session** is a date, and it stays a `Routine` (recurring, with a history of
+  completions) or a `ScheduledItem`. A plan never becomes an event, and an event
+  never carries a copy of the exercises.
+- **Material** is a `SavedItem` attached by `contextIds` — to one plan, or to the
+  training area as a whole.
+
+A plan owns its groups and exercises (the `Trip` rule: never read apart, so one
+write per edit) and its notes are the shared `ProjectNote`. There is no
+`TrainingNote`, `TrainingDocument`, `TrainingVideo` or `TrainingLink`.
+
+**Sets, reps and weights are strings.** People write "3–4", "8-12 each side" and
+"20kg, maybe 22 next time". Parsing those would be the first step towards
+calculating with them, and there is no RPE, rest timer, one-rep max, muscle
+analytics or superset engine here. `lastWeight` is a memory jog, not a metric.
+
+**Focus has no trainees.** No coach or client profiles, no shared plans, no
+permissions, no chat. This was considered and is explicitly out of scope: a
+personal system that grows a second user grows an access-control model, and that
+is a different product.
 
 **"What suits right now?" is arithmetic, not AI.** Hard constraints filter (a
 two-hour film does not "partially fit" ninety minutes), what is left is ranked,
@@ -897,10 +926,12 @@ Drag and drop is the fast path, never the only path — every card carries a
 status `<select>` and order buttons with real accessible names. Below `lg` the
 columns become tabs rather than three unreadable slivers.
 
-**Training (`/training`)** belongs to Personal but is pinned in the sidebar.
-It shows the next and last session, the active training plan, previous plans by
-date, and a month of history per training routine. Plans are ordinary
-`SavedItem`s of kind `document` — general model, specific screen.
+**Training (`/training`, `/training/plans/:id`)** belongs to Personal but is
+pinned in the sidebar. Three areas, one at a time: **plans · tracking ·
+materials**. Plans is a compact list with a status filter, a place filter,
+search and 20 rows a page; tracking is the next and last session, the month
+calendar and the treatments that come round; materials is the training area's
+saved items. A plan's own screen is **the plan · notes · materials**.
 
 **Routine (`/routines/:id`)** shows cadence, last done, next planned, the month
 calendar, attached documents and notes. No weekly grid, no time slots, no
@@ -1128,12 +1159,14 @@ its script is still a notice; do not report that half as passing.
     empty thing the user fills is the honest answer.
 22. **A level is a lens, not a folder.** One control filters a whole screen, and
     unlevelled content is general — visible at every setting, labelled as such.
-23. **The overview shows nothing it did not compute this render.** No dashboard
+23. **Reordering is buttons, never dragging.** A drag target is unusable on a
+    phone and unreachable from a keyboard.
+24. **The overview shows nothing it did not compute this render.** No dashboard
     record, no copied domain data, de-duplicated by `EntityReference` and
     capped per area.
-24. **Ownership is never progress.** Two independent axes, never one field, and
+25. **Ownership is never progress.** Two independent axes, never one field, and
     a migration never invents either from data that did not record it.
-25. **A list query names a purpose and a scope, never a type.** `type` is the
+26. **A list query names a purpose and a scope, never a type.** `type` is the
     storage shape; a screen showing checklists must go through
     `checklistContextOf`. An unclassified list appears nowhere rather than
     somewhere plausible.

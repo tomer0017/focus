@@ -1,51 +1,81 @@
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Button from "react-bootstrap/Button";
 import { useRoutines } from "../../state/routinesContext";
 import { usePages } from "../../state/pagesContext";
-import { todayKey } from "../../lib/dateKey";
-import { isCompletedOn, isPlannedOn, lastCompletionKey, nextPlannedKey } from "../../lib/routineSchedule";
-import { trainingSessionsThisMonth } from "../../lib/pageSelectors";
-import { Icon } from "../../components/ui/Icon";
-import { SavedItemCard } from "../../components/ui/SavedItemCard";
-import { EmptyState } from "../../components/ui/EmptyState";
-import { SegmentedNav } from "../../components/ui/SegmentedNav";
-import { CompactList } from "../../components/ui/CompactRow";
 import { useManage } from "../../state/manageContext";
+import { todayKey } from "../../lib/dateKey";
+import {
+  isCompletedOn,
+  isPlannedOn,
+  lastCompletionKey,
+  nextPlannedKey,
+} from "../../lib/routineSchedule";
+import { trainingSessionsThisMonth } from "../../lib/pageSelectors";
 import { byDueDate, isOpen } from "../../lib/scheduled";
+import { CollectionPage } from "../../components/ui/CollectionPage";
+import { CompactList } from "../../components/ui/CompactRow";
+import { Icon } from "../../components/ui/Icon";
+import type { SegmentedItem } from "../../components/ui/SegmentedNav";
 import { ScheduledRow } from "../manage/ScheduledRow";
-import { PageHeader } from "../../components/ui/PageHeader";
-import { Section } from "../sections/Section";
 import { RoutineCalendarCard } from "../routines/RoutineCalendarCard";
 import { RoutineFormModal } from "../routines/RoutineFormModal";
+import { ResourcePanels } from "../resources/ResourcePanels";
+import { PlansTab } from "./PlansTab";
 import { TrainingSummary } from "./TrainingSummary";
-import { ActivePlanCard } from "./ActivePlanCard";
 
 /**
- * The training area.
+ * The training area — three questions, one at a time.
  *
- * It belongs to Personal but has its own entry in the sidebar, because
- * "am I still training?" is a question people ask far more often than they
- * browse a space. Training plans are ordinary documents in the data model and
- * a first-class section here, which is exactly the split that keeps the model
- * general and the screen specific.
+ * **Plans** is what to do: structures with groups and exercises, as many of
+ * them active at once as the user actually runs. **Tracking** is when: the
+ * sessions, their history and the treatments that come round, all read from the
+ * `Routine` and `ScheduledItem` slices that already own them. **Materials** is
+ * what was saved: ordinary `SavedItem`s filed against the training area.
+ *
+ * Keeping those three apart is the point of this screen. A plan has no date, a
+ * session has no exercises, and neither is a copy of the other.
+ *
+ * Tracking earns its tab: next session, last session, sessions this month and
+ * the month calendar are all computed from real completion records the user has
+ * been ticking. Nothing on it is invented.
  */
-/** The three things this screen is about, one at a time. */
-type TrainingArea = "training" | "treatments" | "history";
+type TrainingArea = "plans" | "tracking" | "materials";
+
+const AREAS: TrainingArea[] = ["plans", "tracking", "materials"];
 
 export function TrainingPage() {
-  const { t } = useTranslation(["pages", "common", "dashboard"]);
+  const { t } = useTranslation(["training", "pages", "common"]);
   const { routines, createRoutine, toggleCompletionOn } = useRoutines();
   const { savedItems } = usePages();
-  const [creating, setCreating] = useState(false);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [area, setArea] = useState<TrainingArea>("training");
   const { scheduled } = useManage();
+  const [params, setParams] = useSearchParams();
+
+  const [creatingRoutine, setCreatingRoutine] = useState(false);
+  const [creatingPlan, setCreatingPlan] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const areaParam = params.get("area");
+  const area: TrainingArea = AREAS.includes(areaParam as TrainingArea)
+    ? (areaParam as TrainingArea)
+    : "plans";
+
+  const setArea = (next: string): void => {
+    const updated = new URLSearchParams(params);
+    updated.set("area", next);
+    // A status filter belongs to the plans tab and means nothing on the others.
+    if (next !== "plans") {
+      updated.delete("status");
+      updated.delete("where");
+      updated.delete("q");
+    }
+    setParams(updated, { replace: true });
+  };
 
   /*
    * Treatments and follow-ups are `ScheduledItem`s the user already keeps in
-   * ongoing management — laser sessions, physio appointments, the blood test
-   * that comes round. They are *shown* here because this is the screen about
+   * ongoing management. They are *shown* here because this is the screen about
    * the body, but they are not copied: this reads the same slice manage does,
    * and editing one opens the same dialog.
    */
@@ -55,7 +85,8 @@ export function TrainingPage() {
         .filter(
           (item) =>
             isOpen(item) &&
-            (item.category === "appointment" || item.category === "checkup" ||
+            (item.category === "appointment" ||
+              item.category === "checkup" ||
               item.category === "vaccination")
         )
         .sort(byDueDate),
@@ -71,17 +102,13 @@ export function TrainingPage() {
     trainingRoutines.find((routine) => routine.id === selectedId) ?? trainingRoutines[0];
 
   /** Everything filed against the training area, newest first. */
-  const trainingItems = useMemo(
+  const materials = useMemo(
     () =>
       savedItems
         .filter((item) => item.contextIds.includes("training"))
         .sort((a, b) => b.savedAt.localeCompare(a.savedAt)),
     [savedItems]
   );
-
-  const plans = trainingItems.filter((item) => item.kind === "document");
-  const [activePlan, ...previousPlans] = plans;
-  const references = trainingItems.filter((item) => item.kind !== "document");
 
   /** The soonest planned session across every training routine. */
   const nextSession = useMemo(() => {
@@ -110,8 +137,7 @@ export function TrainingPage() {
    *
    * The first clause is not redundant. Logging a session moves that routine's
    * next planned date, so a rule based only on "what is due soonest" would hand
-   * the button to a *different* routine the instant you pressed it — the label
-   * would snap back to "mark today's session" and undo would be unreachable.
+   * the button to a *different* routine the instant you pressed it.
    */
   const todaysRoutine =
     trainingRoutines.find((routine) => isCompletedOn(routine, today)) ??
@@ -121,77 +147,52 @@ export function TrainingPage() {
     null;
   const doneToday = todaysRoutine ? isCompletedOn(todaysRoutine, today) : false;
 
+  const tabs: SegmentedItem[] = [
+    { id: "plans", label: t("training:areas.plans") },
+    { id: "tracking", label: t("training:areas.tracking") },
+    {
+      id: "materials",
+      label: t("training:areas.materials"),
+      badge: materials.length > 0 ? String(materials.length) : undefined,
+    },
+  ];
+
   return (
     <>
-      <PageHeader
-        title={t("pages:training.title")}
-        lead={t("pages:training.lead")}
+      <CollectionPage
+        title={t("training:title")}
+        lead={t("training:lead")}
         action={
-          <Button variant="primary" size="sm" onClick={() => setCreating(true)}>
-            <Icon name="plus" size={15} />
-            {t("pages:routineForm.createTitle")}
-          </Button>
+          area === "tracking" ? (
+            <Button variant="primary" size="sm" onClick={() => setCreatingRoutine(true)}>
+              <Icon name="plus" size={15} /> {t("pages:routineForm.createTitle")}
+            </Button>
+          ) : (
+            <Button variant="primary" size="sm" onClick={() => setCreatingPlan(true)}>
+              <Icon name="plus" size={15} /> {t("training:actions.newPlan")}
+            </Button>
+          )
         }
-      />
+        tabs={tabs}
+        tabValue={area}
+        onTabChange={setArea}
+        tabsLabel={t("training:chooseArea")}
+      >
+        {area === "plans" && (
+          <PlansTab creating={creatingPlan} onCloseCreate={() => setCreatingPlan(false)} />
+        )}
 
-      {trainingRoutines.length === 0 && treatments.length === 0 ? (
-        <EmptyState title={t("pages:training.emptyTitle")} hint={t("pages:training.emptyHint")} />
-      ) : (
-        <>
-          {/*
-            Sessions, treatments and history are three different questions and
-            were three stacked sections. One at a time; nothing about the data
-            moved.
-          */}
-          <SegmentedNav
-            label={t("pages:training.chooseArea")}
-            items={[
-              { id: "training", label: t("pages:training.areas.training") },
-              {
-                id: "treatments",
-                label: t("pages:training.areas.treatments"),
-                badge: treatments.length > 0 ? String(treatments.length) : undefined,
-              },
-              { id: "history", label: t("pages:training.areas.history") },
-            ]}
-            value={area}
-            onChange={(id) => setArea(id as TrainingArea)}
-            variant="tabs"
-            collapse
-          />
-
-          {area === "training" && (
+        {area === "tracking" && (
           <>
-          <TrainingSummary
-            nextSession={nextSession}
-            lastSession={lastSession}
-            sessionsThisMonth={sessions}
-            todaysRoutine={todaysRoutine}
-            doneToday={doneToday}
-            onToggleToday={() => todaysRoutine && toggleCompletionOn(todaysRoutine.id, today)}
-          />
+            <TrainingSummary
+              nextSession={nextSession}
+              lastSession={lastSession}
+              sessionsThisMonth={sessions}
+              todaysRoutine={todaysRoutine}
+              doneToday={doneToday}
+              onToggleToday={() => todaysRoutine && toggleCompletionOn(todaysRoutine.id, today)}
+            />
 
-          <Section title={t("pages:training.activePlan")} hasContent={Boolean(activePlan)}>
-            {activePlan && <ActivePlanCard plan={activePlan} />}
-          </Section>
-          </>
-          )}
-
-          {area === "treatments" && (
-            treatments.length === 0 ? (
-              <p className="focus-day-empty mb-0">{t("pages:training.noTreatments")}</p>
-            ) : (
-              <CompactList>
-                {treatments.map((item) => (
-                  <ScheduledRow key={item.id} item={item} />
-                ))}
-              </CompactList>
-            )
-          )}
-
-          {area === "history" && (
-          <>
-          <Section title={t("pages:training.history")} hasContent={Boolean(selected)}>
             {trainingRoutines.length > 1 && (
               <div
                 className="focus-pills"
@@ -213,36 +214,34 @@ export function TrainingPage() {
                 ))}
               </div>
             )}
+
             {selected && <RoutineCalendarCard routine={selected} />}
-          </Section>
 
-          <Section title={t("pages:training.previousPlans")} hasContent={previousPlans.length > 0}>
-            <ul className="list-unstyled focus-grid focus-grid--saved mb-0">
-              {previousPlans.map((item) => (
-                <li key={item.id}>
-                  <SavedItemCard item={item} />
-                </li>
-              ))}
-            </ul>
-          </Section>
-
-          <Section title={t("pages:training.references")} hasContent={references.length > 0}>
-            <ul className="list-unstyled focus-grid focus-grid--saved mb-0">
-              {references.map((item) => (
-                <li key={item.id}>
-                  <SavedItemCard item={item} />
-                </li>
-              ))}
-            </ul>
-          </Section>
+            {treatments.length > 0 && (
+              <>
+                <h2 className="focus-section-title">{t("training:areas.treatments")}</h2>
+                <CompactList>
+                  {treatments.map((item) => (
+                    <ScheduledRow key={item.id} item={item} />
+                  ))}
+                </CompactList>
+              </>
+            )}
           </>
-          )}
-        </>
-      )}
+        )}
+
+        {area === "materials" && (
+          /*
+           * Filed against the training area as a whole. A document that belongs
+           * to one plan is attached to that plan instead, on its own screen.
+           */
+          <ResourcePanels contextId="training" materials={materials} isEditing />
+        )}
+      </CollectionPage>
 
       <RoutineFormModal
-        show={creating}
-        onClose={() => setCreating(false)}
+        show={creatingRoutine}
+        onClose={() => setCreatingRoutine(false)}
         onSubmit={(draft) => createRoutine(draft)}
       />
     </>

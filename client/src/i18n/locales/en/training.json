@@ -1,0 +1,96 @@
+{
+  "title": "Training",
+  "lead": "Your plans, your sessions, and the material you saved.",
+  "chooseArea": "What to show",
+  "chooseTopic": "What to show",
+  "searchPlans": "Search plans",
+  "noMatches": "No plans match that",
+  "emptyHint": "A plan is a name and a few exercises. You can add the rest later.",
+  "missing": "This plan is not here",
+  "missingHint": "It may have been deleted, or the link may be out of date.",
+  "areas": {
+    "plans": "Plans",
+    "tracking": "Tracking",
+    "materials": "Materials",
+    "treatments": "Treatments and check-ups"
+  },
+  "tabs": {
+    "plan": "The plan",
+    "notes": "Notes",
+    "materials": "Materials"
+  },
+  "status": {
+    "active": "Running",
+    "paused": "Parked",
+    "completed": "Finished"
+  },
+  "environments": {
+    "gym": "Gym",
+    "home": "At home",
+    "outdoor": "Outdoors",
+    "custom": "Somewhere else"
+  },
+  "emptyIn": {
+    "active": "No plans running",
+    "paused": "Nothing parked",
+    "completed": "No finished plans"
+  },
+  "filters": {
+    "status": "State",
+    "where": "Where",
+    "all": "All",
+    "anywhere": "Anywhere"
+  },
+  "fields": {
+    "title": "What this plan is called",
+    "status": "State",
+    "environment": "Where",
+    "environmentUnset": "Not set",
+    "label": "Short name",
+    "labelHint": "What you call it out loud — A, B, Push, Home. Your own words.",
+    "description": "A line or two about it",
+    "imageUrl": "Picture address",
+    "imageHint": "An address only. Nothing is uploaded.",
+    "exerciseName": "Exercise",
+    "sets": "Sets",
+    "reps": "Reps",
+    "lastWeight": "Last weight",
+    "exerciseNote": "One line — form, a niggle, what to change"
+  },
+  "form": {
+    "createTitle": "New plan",
+    "editTitle": "Edit plan",
+    "moreDetails": "More details"
+  },
+  "plan": {
+    "empty": "Nothing in this plan yet.",
+    "noExercises": "No exercises in this part yet.",
+    "newGroup": "Name a part — warm-up, legs, Plan A",
+    "addGroup": "Add part",
+    "removeGroup": "Remove this part",
+    "groupTitle": "Part name",
+    "newExercise": "Add an exercise",
+    "moveGroupUp": "Move “{{name}}” up",
+    "moveGroupDown": "Move “{{name}}” down",
+    "moveExerciseUp": "Move “{{name}}” up",
+    "moveExerciseDown": "Move “{{name}}” down",
+    "removeExercise": "Remove “{{name}}”",
+    "groupCount_one": "{{count}} part",
+    "groupCount_other": "{{count}} parts",
+    "exerciseCount_one": "{{count}} exercise",
+    "exerciseCount_other": "{{count}} exercises"
+  },
+  "actions": {
+    "newPlan": "New plan",
+    "editPlan": "Edit details",
+    "duplicate": "Duplicate",
+    "copyOf": "{{title}} (copy)",
+    "moveTo": {
+      "active": "Mark as running",
+      "paused": "Park it",
+      "completed": "Mark as finished"
+    },
+    "deleteTitle": "Delete this plan?",
+    "deleteBody": "“{{title}}” and everything written in it will be removed."
+  }
+}

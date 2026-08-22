@@ -21,6 +21,8 @@ export const STORAGE_KEYS = {
   trips: "focus.trips",
   /** User-managed project categories. Seeded with three; renameable. */
   projectCategories: "focus.projectCategories",
+  /** Training plans — the structures, not the sessions. */
+  trainingPlans: "focus.trainingPlans",
   /**
    * User-managed learning subjects — languages, career, leisure.
    *

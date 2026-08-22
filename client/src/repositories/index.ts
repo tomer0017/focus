@@ -7,6 +7,7 @@ import { MOCK_VISION_BOARDS } from "../mocks/visionBoards";
 import { MOCK_CHECKLISTS } from "../mocks/checklists";
 import { MOCK_COLLECTION_ENTRIES } from "../mocks/savedItems";
 import { MOCK_TRIPS } from "../mocks/trips";
+import { MOCK_TRAINING_PLANS } from "../mocks/training";
 import { DEFAULT_CATEGORIES } from "../lib/projectCategories";
 import { DEFAULT_LEARNING_TOPICS } from "../lib/learning";
 import type {
@@ -18,6 +19,7 @@ import type {
   ProjectCategory,
   Routine,
   SavedItem,
+  TrainingPlan,
   Trip,
   VisionBoard,
   VisionDailyPreference,
@@ -244,6 +246,36 @@ export const learningTopicsRepository: Repository<ProjectCategory[]> = createRep
   STORAGE_KEYS.learningTopics,
   () => DEFAULT_LEARNING_TOPICS,
   (topics) => topics.map((entry, index) => ({ ...entry, order: entry.order ?? index }))
+);
+
+/**
+ * Training plans.
+ *
+ * The migration only fills in the arrays and the order every screen relies on.
+ * It deliberately **creates nothing**: plans somebody wrote before this model
+ * existed were `SavedItem` documents filed against the training area, and they
+ * stay exactly that. Turning a document called "gym plan" into a structured
+ * plan would be inventing groups and exercises nobody wrote — the document is
+ * still there, still readable, under the material tab.
+ */
+export const trainingPlansRepository: Repository<TrainingPlan[]> = createRepository<TrainingPlan[]>(
+  STORAGE_KEYS.trainingPlans,
+  () => MOCK_TRAINING_PLANS,
+  (plans) =>
+    plans.map((plan, index) => ({
+      ...plan,
+      status: plan.status ?? "active",
+      order: plan.order ?? index,
+      groups: (plan.groups ?? []).map((group, groupIndex) => ({
+        ...group,
+        order: group.order ?? groupIndex,
+        exercises: (group.exercises ?? []).map((exercise, exerciseIndex) => ({
+          ...exercise,
+          order: exercise.order ?? exerciseIndex,
+        })),
+      })),
+      imageUrl: normaliseUrl(plan.imageUrl),
+    }))
 );
 
 export type { Repository } from "./createRepository";

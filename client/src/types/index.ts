@@ -131,3 +131,11 @@ export type {
 export { LEISURE_KINDS } from "./leisure";
 export type { Menu, MenuCourse, MenuDish, MenuDraft, MenuKind } from "./menu";
 export { MENU_COURSES } from "./menu";
+export type {
+  TrainingEnvironment,
+  TrainingExercise,
+  TrainingGroup,
+  TrainingPlan,
+  TrainingPlanDraft,
+  TrainingPlanStatus,
+} from "./training";

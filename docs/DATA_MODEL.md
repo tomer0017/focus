@@ -46,6 +46,7 @@ names `window.localStorage`.
 | `QuickLogEntry` | `focus.quickLog` | `quickLogRepository` | family | id + `EntityReference` |
 | `Menu` | `focus.menus` | `menusRepository` | manage → shopping | id; `listPageId` → a checklist page |
 | `LeisureItem` | `focus.leisure` | `leisureRepository` | leisure | id |
+| `TrainingPlan` | `focus.trainingPlans` | `trainingPlansRepository` | training | id; owns groups + exercises + notes |
 | `SuggestionPreference` | `focus.leisure.suggestion` | `suggestionPreferenceRepository` | leisure | singleton |
 | recent template ids | `focus.templates.recent` | `recentTemplatesRepository` | every template picker | — |
 
@@ -128,6 +129,45 @@ screen that lists checklists goes through it.
 trip cannot satisfy it, whatever it is called and whichever space it sits in.
 Trip lists stay inside the trip; event lists stay inside the event. Moving an
 item between them is an explicit user action, never a query side effect.
+
+### 2.2b Training: a plan, a session and a file are three things
+
+`TrainingPlan` is new, and it is new because nothing existing could hold it.
+"The active plan" was `plans[0]` — whichever `SavedItem` document filed against
+the training area happened to be newest — so two plans running at once was
+unrepresentable, and the contents of a plan had nowhere to live at all.
+
+**Embedding decision.** A plan embeds its groups, its groups embed their
+exercises, and the plan embeds its notes. The brief sketched three collections
+keyed by `planId`/`groupId`; this deviates for the reason `Trip` does. A group
+is never read, listed or queried without its plan, so three collections would
+mean three writes per edit and three chances to disagree, in exchange for a
+join. The bound is real and small: twenty groups of a hundred exercises is a few
+kilobytes, and it is a plan document rather than a user document — nothing here
+grows without limit inside one record.
+
+**Materials are not embedded.** A `SavedItem` belongs to many contexts at once
+and is referenced by `contextIds`, so a video attached to a plan is the same
+entity everywhere else it appears. Notes are embedded because they are the
+plan's own words and are reordered as a unit.
+
+**Delete behaviour.** Deleting a plan removes the plan and its groups,
+exercises and notes, because those *are* the plan. It does **not** delete the
+saved items attached to it — a video is attached to a plan, not owned by one,
+and "delete this plan" and "delete this video" are different requests. Those
+items keep the plan's dead id in `contextIds`; the reference is weak by design,
+exactly like every other `EntityReference` in the app, and the screens cope with
+a target that no longer exists. A future server-side sweep may prune dead
+context ids; nothing depends on it.
+
+**Array boundaries.** Groups per plan and exercises per group are both bounded
+by what a person will actually write; neither is paginated and neither needs to
+be. `plans` itself is the unbounded list, and the screen pages it at 20.
+
+**Nothing was migrated into it.** Training documents already in storage stay
+`SavedItem`s under the material tab. Reading "gym plan.pdf" and producing groups
+and exercises would be inventing content, which is the one thing a migration may
+never do.
 
 ### 2.3 Leisure: ownership and progress are two facts
 
@@ -218,7 +258,8 @@ checklists            checklist_items      scheduled_items
 routines              events               trips
 family_profiles       commitments          money_entries
 medications           menus                leisure_items
-recipes               vision_boards        activity_logs
+recipes               vision_boards        training_plans
+activity_logs
 ```
 
 Deviations from the brief's suggested list, each deliberate:
@@ -267,6 +308,8 @@ below exists speculatively — each is named by the screen that needs it.
 | Lists for a purpose and scope | Manage → Shopping | `{ workspaceId: 1, purpose: 1, scope: 1, status: 1 }` |
 | One person's obligations | Family profile | `{ workspaceId: 1, "parent.entityType": 1, "parent.entityId": 1, nextOccurrenceAt: 1 }` |
 | Resources of one kind on one page | Learning material panels | `{ workspaceId: 1, "parent.entityId": 1, kind: 1, order: 1 }` |
+| Plans by state, newest first | Training plans tab | `{ ownerId: 1, status: 1, updatedAt: -1 }` on `training_plans` |
+| Everything filed against one plan | Plan materials | `{ ownerId: 1, "parent.entityType": 1, "parent.entityId": 1, kind: 1 }` on `resources` |
 | The overview's urgent rows | Overview area 1 | `{ ownerId: 1, status: 1, nextOccurrenceAt: 1 }` on `scheduled_items` |
 | The overview's fortnight | Overview area 2 | `{ ownerId: 1, preparationStartsAt: 1, status: 1 }` on `events` |
 | The three projects in flight | Overview area 3 | `{ ownerId: 1, type: 1, status: 1, updatedAt: -1 }` on `pages` |

@@ -202,11 +202,11 @@ no "coming soon".
 
 Documentation only — none of this is started:
 
-- **Training: multiple plans and materials.** One active plan today
-  (`const [activePlan, ...previous]`). No active/alternative/frozen/completed
-  plans, no A/B/C grouping inside one weekly routine, no per-plan or
-  per-exercise resources. No trainers or trainees, ever — that is outside what
-  Focus is.
+- **Linking a session to a plan.** A `ScheduledItem` or a `Routine` could carry
+  one optional `EntityReference` to a `TrainingPlan`, so "gym, Sunday" could say
+  which plan it means. Not built: the two models are already correct and neither
+  copies the other, so this is an addition rather than a fix. No exercise is
+  ever duplicated into an event, and no plan ever generates one.
 - **Project detail consolidation.** Overview · tasks · materials, with up to
   four pinned links at the top.
 - **Family scheduling and materials.** The three-area profile — upcoming ·
@@ -239,3 +239,16 @@ Documentation only. None of this is in the interface:
 Written down so the answer is on record: real social features, comments,
 likes, public profiles, gamification, streaks, an activity feed, AI-generated
 content, and anything that treats a personal system as a network.
+
+**Trainees and shared training pages — cancelled.** This was previously listed
+as possible future work: adding a trainee and sharing a training page with them.
+It is now explicitly out of scope and is not a future task. A personal system
+that grows a second user grows an access-control model, a notion of who may edit
+what, and an invitation flow — that is a different product, and Focus is not it.
+Nothing in the training area assumes more than one person, and nothing should be
+built as if it might.
+
+Also not planned for training specifically: calorie counting, nutrition, watch
+or device integration, RPE, rest timers, one-rep-max estimation, muscle-group
+analytics, a superset engine, and any form of coaching advice. Focus records
+what the user wrote and repeats it back.

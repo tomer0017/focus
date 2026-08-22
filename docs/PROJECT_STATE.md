@@ -3,7 +3,131 @@
 Living document. **Update this at the end of every development task.**
 
 **Last updated:** 2026-08-22
-**Task completed:** Task 15 — the overview rebuilt as a decision screen.
+**Task completed:** Task 16 — training plans, with groups, exercises, notes and
+material.
+
+---
+
+## Task 16 — training
+
+### The defect
+
+One line of the old screen:
+
+```ts
+const [activePlan, ...previousPlans] = plans;
+```
+
+"The active plan" was whichever `SavedItem` document filed against the training
+area happened to be newest. Two consequences, both fatal to the area: running
+Plan A and Plan B in the same week could not be represented, and there was
+nowhere to write down what was *in* a plan at all.
+
+### The model
+
+New `TrainingPlan` in `types/training.ts`, stored under `focus.trainingPlans`.
+It owns its `TrainingGroup[]`, each group owns its `TrainingExercise[]`, and the
+plan carries its own `ProjectNote[]` — the shared note model, not a new one.
+Status is `active | paused | completed` and **any number of plans may be
+active**; there is no primary slot and no single-plan assumption left anywhere.
+
+`environment` (`gym | home | outdoor | custom`) earns a field because it is what
+you filter on when the gym is shut. `label` is free text — "A", "B", "Push",
+"בית" — never a fixed A/B/C, because that is one household's convention.
+
+Sets, reps and weight are **strings**: people write "3–4", "8-12 each side" and
+"20kg, maybe 22 next time". Parsing those would be the first step towards
+calculating with them.
+
+Groups and exercises are embedded rather than kept in their own slices,
+deviating from the brief's sketch for the reason `Trip` owns its destinations: a
+group is never read without its plan, so one write per edit beats three that can
+disagree. Justified in `DATA_MODEL.md` §2.2b along with delete behaviour and
+array bounds.
+
+### The screens
+
+- `/training` is now a `CollectionPage` with three areas — **plans · tracking ·
+  materials** — chosen by `?area=`.
+  - **Plans**: status filter, place filter, search across titles *and exercise
+    names*, 20 rows a page, all in the URL. Create, edit, duplicate, change
+    status and delete, with the secondary actions in an always-visible overflow
+    menu.
+  - **Tracking**: kept exactly as it was — next and last session, sessions this
+    month, the month calendar, treatments read from the manage slice. It earns
+    its tab because every figure on it comes from real completion records the
+    user has been ticking. Nothing was invented for it.
+  - **Materials**: the training area's saved items.
+- `/training/plans/:id` is new: the plan's facts, then **the plan · notes ·
+  materials**, opening in view mode with edit one explicit step away.
+
+**Reordering is buttons, not dragging** — groups and exercises both. A drag
+target is unusable on a phone and unreachable from a keyboard, and this is now a
+hard rule in `CLAUDE.md`.
+
+### One shared component extracted
+
+`LeisureMaterials` became `features/resources/ResourcePanels.tsx`, used by both
+the leisure detail screen and training. Its copy moved to a new shared
+`resources` namespace. Extracted at the second real caller, not before.
+
+### Migration — which deliberately does nothing
+
+`trainingPlansRepository` fills in `groups`, `order` and the per-group and
+per-exercise order, and is idempotent. It **creates no plans**. Training
+documents already in storage stay `SavedItem`s under the material tab: reading
+"gym plan.pdf" and producing groups and exercises would be inventing content,
+which is the one thing a migration may never do. A test asserts exactly that.
+
+### Scope held
+
+No trainee or coach profiles, no sharing, no permissions, no chat, no AI, no
+calorie or nutrition tracking, no device integration, no RPE, rest timer,
+one-rep-max, muscle analytics or superset engine, no upload, no metadata fetch,
+no API or database. The previously-floated "add a trainee and share a training
+page" is now marked **cancelled** in `FUTURE_ROADMAP.md` rather than left as a
+live future task.
+
+### Verification
+
+TypeScript (client + server) clean · ESLint clean · **469/469** Vitest tests
+passing, up from 443 · production build clean · `check:links` clean ·
+translation parity clean · source hygiene clean · `legacy/` unchanged · no new
+`localStorage` access · no new dependency.
+
+**26 new tests**: 22 in `lib/training.test.ts` — three plans active at once,
+free-text labels, adding and reordering groups and exercises with buttons,
+refusing to move past either end, removal renumbering, duplication with fresh
+ids that cannot be edited back into the original and that parks rather than
+starts a second live plan, search reaching exercise names, and a 20×5 plan
+staying one small document — plus 4 migration tests including the one proving no
+plan is invented from a saved document.
+
+**Not verified: no browser check.** The sandbox refuses to bind a port and there
+is no browser here. The responsive sweep (1440 / 1024 / 768 / 375 / 320), RTL and
+LTR, console and network, and every interaction — creating a plan, two active at
+once, duplicating, changing status, adding a group and an exercise, reordering,
+saving a weight, adding a note, attaching a link and a video, refresh,
+Back/Forward — are **unverified**. Manual checklist in the task report.
+
+### Technical debt
+
+- **A session still does not know its plan.** `ScheduledItem` and `Routine`
+  carry no reference to a `TrainingPlan`. Deliberate — both models are already
+  correct and neither copies the other — but "gym, Sunday" cannot yet say which
+  plan it means. Recorded in `FUTURE_ROADMAP.md`.
+- Deleting a plan leaves its id in the `contextIds` of any saved item attached
+  to it. The reference is weak by design and the screens cope, but nothing prunes
+  it.
+- The training tab's materials panel is always in editing mode, because the area
+  as a whole has no view/edit toggle of its own. Harmless, but inconsistent with
+  every other materials panel.
+
+### The recommended next action — one
+
+```text
+Project Detail consolidation
+```
 
 ---
 

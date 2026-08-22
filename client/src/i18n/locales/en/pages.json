@@ -376,5 +376,31 @@
       "title": "What it is",
       "hint": "Enough to remember the idea later."
     }
+  },
+  "trainingNotes": {
+    "weights": {
+      "title": "The last weights",
+      "hint": "What you lifted, so next time starts from a fact."
+    },
+    "tips": {
+      "title": "Tips worth keeping",
+      "hint": "Form cues that actually helped."
+    },
+    "changeNext": {
+      "title": "What to change next time",
+      "hint": "Before you forget why."
+    },
+    "stoppedAt": {
+      "title": "Where I stopped",
+      "hint": "Which part, and what was left."
+    },
+    "limits": {
+      "title": "Limits or pain",
+      "hint": "Your own words. Focus records this and never advises on it."
+    },
+    "goal": {
+      "title": "What I'm working towards",
+      "hint": "One sentence is enough."
+    }
   }
 }

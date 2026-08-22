@@ -173,32 +173,5 @@
     "overview": "Overview",
     "notes": "Notes",
     "materials": "Materials"
-  },
-  "materials": {
-    "label": "Which materials",
-    "links": "Links",
-    "documents": "Documents",
-    "images": "Pictures",
-    "videos": "Videos",
-    "open": "Open",
-    "noLink": "No link",
-    "name": "What is it",
-    "url": "Address",
-    "imageUrl": "Picture address",
-    "source": "Where it came from",
-    "note": "One line about it",
-    "documentsNote": "Only the address is stored. Nothing is uploaded.",
-    "add": {
-      "links": "Add a link",
-      "documents": "Add a document",
-      "images": "Add a picture",
-      "videos": "Add a video"
-    },
-    "empty": {
-      "links": "No links saved here",
-      "documents": "No documents saved here",
-      "images": "No pictures saved here",
-      "videos": "No videos saved here"
-    }
   }
 }

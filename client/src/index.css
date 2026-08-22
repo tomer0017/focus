@@ -6829,3 +6829,152 @@ button.focus-route__button:hover {
   gap: 6px;
   margin-block-end: 6px;
 }
+
+/*
+ * Training plans.
+ *
+ * A plan is read at the gym, on a phone, between sets. Everything here is in
+ * service of that: text large enough to catch at arm's length, one line per
+ * exercise, and no editing controls at all until the user asks for them.
+ */
+
+/*
+ * The plan's short name, standing in for a picture it does not have.
+ *
+ * "Today is B" is how these are referred to out loud, so the letter is the most
+ * recognisable thing about the plan — which means the leading slot carries
+ * information rather than an empty square waiting for artwork.
+ */
+.focus-plan-sigil {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 34px;
+  block-size: 34px;
+  border-radius: var(--focus-radius-sm);
+  border: 1px solid var(--focus-line);
+  background: var(--focus-line-soft);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--focus-muted);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.focus-plan-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.focus-plan-group__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-block-end: 6px;
+}
+
+.focus-plan-group__title {
+  font-size: 0.98rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.focus-plan-group__title-input {
+  max-inline-size: 320px;
+}
+
+.focus-plan-group__controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.focus-plan-group__lead {
+  margin-block: 0 8px;
+  font-size: 0.86rem;
+  color: var(--focus-muted);
+}
+
+.focus-plan-exercises {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* A row is as tall as its own text: a name, and a short line only when there
+   is something to put on it. */
+.focus-plan-exercise {
+  padding-block: 7px;
+  border-block-end: 1px solid var(--focus-line-soft);
+}
+
+.focus-plan-exercise:last-child {
+  border-block-end: 0;
+}
+
+.focus-plan-exercise__name {
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.focus-plan-exercise__facts {
+  margin: 2px 0 0;
+  font-size: 0.84rem;
+  color: var(--focus-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.focus-plan-exercise__note {
+  margin: 2px 0 0;
+  font-size: 0.82rem;
+  color: var(--focus-muted);
+}
+
+.focus-plan-exercise--editing {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-block: 10px;
+}
+
+/*
+ * Name takes the room; sets, reps and weight are small and wrap onto their own
+ * line at narrow widths rather than squeezing into unusable slivers.
+ */
+.focus-plan-exercise__fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.focus-plan-exercise__fields > input:first-child {
+  flex: 1 1 180px;
+  min-inline-size: 0;
+}
+
+.focus-plan-exercise__small {
+  flex: 1 1 74px;
+  min-inline-size: 0;
+  max-inline-size: 130px;
+}
+
+.focus-plan-exercise__controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.focus-plan-add {
+  display: flex;
+  gap: 6px;
+  margin-block-start: 10px;
+  flex-wrap: wrap;
+}
+
+.focus-plan-add input {
+  flex: 1 1 200px;
+  min-inline-size: 0;
+}

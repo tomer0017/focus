@@ -1,0 +1,100 @@
+{
+  "title": "אימונים",
+  "lead": "התוכניות שלך, האימונים והחומרים ששמרת.",
+  "chooseArea": "מה להציג",
+  "chooseTopic": "מה להציג",
+  "searchPlans": "חיפוש בתוכניות",
+  "noMatches": "אין תוכנית שמתאימה לזה",
+  "emptyHint": "תוכנית היא שם וכמה תרגילים. את השאר אפשר להוסיף אחר כך.",
+  "missing": "התוכנית הזאת אינה כאן",
+  "missingHint": "ייתכן שהיא נמחקה, או שהקישור כבר אינו מעודכן.",
+  "areas": {
+    "plans": "תוכניות",
+    "tracking": "מעקב",
+    "materials": "חומרים",
+    "treatments": "טיפולים ובדיקות"
+  },
+  "tabs": {
+    "plan": "התוכנית",
+    "notes": "פתקים",
+    "materials": "חומרים"
+  },
+  "status": {
+    "active": "פעילה",
+    "paused": "מוקפאת",
+    "completed": "הסתיימה"
+  },
+  "environments": {
+    "gym": "חדר כושר",
+    "home": "בבית",
+    "outdoor": "בחוץ",
+    "custom": "מקום אחר"
+  },
+  "emptyIn": {
+    "active": "אין תוכניות פעילות",
+    "paused": "אין תוכניות מוקפאות",
+    "completed": "אין תוכניות שהסתיימו"
+  },
+  "filters": {
+    "status": "מצב",
+    "where": "איפה",
+    "all": "הכל",
+    "anywhere": "כל מקום"
+  },
+  "fields": {
+    "title": "איך קוראים לתוכנית",
+    "status": "מצב",
+    "environment": "איפה",
+    "environmentUnset": "לא נקבע",
+    "label": "שם קצר",
+    "labelHint": "איך אתה קורא לזה בפועל — A, B, דחיפה, בית. במילים שלך.",
+    "description": "שורה או שתיים על זה",
+    "imageUrl": "כתובת תמונה",
+    "imageHint": "כתובת בלבד. שום קובץ אינו מועלה.",
+    "exerciseName": "תרגיל",
+    "sets": "סטים",
+    "reps": "חזרות",
+    "lastWeight": "משקל אחרון",
+    "exerciseNote": "שורה אחת — טכניקה, כאב, מה לשנות"
+  },
+  "form": {
+    "createTitle": "תוכנית חדשה",
+    "editTitle": "עריכת תוכנית",
+    "moreDetails": "עוד פרטים"
+  },
+  "plan": {
+    "empty": "עדיין אין כלום בתוכנית הזאת.",
+    "noExercises": "עדיין אין תרגילים בחלק הזה.",
+    "newGroup": "שם החלק — חימום, רגליים, תוכנית A",
+    "addGroup": "הוספת חלק",
+    "removeGroup": "הסרת החלק",
+    "groupTitle": "שם החלק",
+    "newExercise": "הוספת תרגיל",
+    "moveGroupUp": "העברת „{{name}}” למעלה",
+    "moveGroupDown": "העברת „{{name}}” למטה",
+    "moveExerciseUp": "העברת „{{name}}” למעלה",
+    "moveExerciseDown": "העברת „{{name}}” למטה",
+    "removeExercise": "הסרת „{{name}}”",
+    "groupCount_one": "חלק אחד",
+    "groupCount_two": "{{count}} חלקים",
+    "groupCount_many": "{{count}} חלקים",
+    "groupCount_other": "{{count}} חלקים",
+    "exerciseCount_one": "תרגיל אחד",
+    "exerciseCount_two": "{{count}} תרגילים",
+    "exerciseCount_many": "{{count}} תרגילים",
+    "exerciseCount_other": "{{count}} תרגילים"
+  },
+  "actions": {
+    "newPlan": "תוכנית חדשה",
+    "editPlan": "עריכת הפרטים",
+    "duplicate": "שכפול",
+    "copyOf": "{{title}} (עותק)",
+    "moveTo": {
+      "active": "סימון כפעילה",
+      "paused": "הקפאה",
+      "completed": "סימון כהסתיימה"
+    },
+    "deleteTitle": "למחוק את התוכנית?",
+    "deleteBody": "„{{title}}” וכל מה שכתוב בה יוסרו."
+  }
+}

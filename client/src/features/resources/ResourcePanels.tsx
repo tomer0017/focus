@@ -11,7 +11,7 @@ import { UrlImageField } from "../../components/ui/UrlImageField";
 import { normaliseUrl } from "../../lib/links";
 import { THUMB_FOR_KIND, savedItemId } from "../../lib/savedItems";
 import { usePages } from "../../state/pagesContext";
-import type { LeisureItem, SavedItem, SavedItemKind, SavedItemSource } from "../../types";
+import type { SavedItem, SavedItemKind, SavedItemSource } from "../../types";
 
 /** The four panels, and the saved-item kind each one files into. */
 const TABS = ["links", "documents", "images", "videos"] as const;
@@ -26,28 +26,40 @@ const KIND_FOR_TAB: Record<MaterialTab, SavedItemKind> = {
 
 const VIDEO_SOURCES: SavedItemSource[] = ["youtube", "tiktok", "instagram", "web"];
 
-interface LeisureMaterialsProps {
-  item: LeisureItem;
+interface ResourcePanelsProps {
+  /**
+   * The id new material is filed against — a leisure item, a training plan.
+   *
+   * This is the explicit parent, written into `SavedItem.contextIds`. Nothing
+   * here infers an owner from a title, a route or an id prefix.
+   */
+  contextId: string;
+  /** Everything already attached to that context. */
   materials: SavedItem[];
+  /** Adding is behind the caller's one edit action. */
   isEditing: boolean;
 }
 
 /**
- * Links, documents, pictures and videos for one saved thing.
+ * Links, documents, pictures and videos, for anything that can hold them.
  *
- * These are ordinary `SavedItem`s — the same model the learning pages, the
- * trips and quick save all use — attached through `contextIds`, which is the
- * app's one association mechanism. There is no `LeisureLink`, no
- * `LeisureDocument` and no second media model, and an item attached here is
- * still the same entity everywhere else it appears.
+ * One component, two callers: a leisure item and a training plan both need
+ * exactly this, and building it twice would have been two sets of bugs and two
+ * ideas of what a broken picture looks like.
+ *
+ * These are ordinary `SavedItem`s — the same model learning pages, trips and
+ * quick save all use — attached through `contextIds`, the app's one association
+ * mechanism. There is no `TrainingDocument`, no `LeisureLink` and no second
+ * media model, and an item attached here is the same entity everywhere else it
+ * appears.
  *
  * Nothing is uploaded and nothing is fetched. A document is an address, a video
  * is an address with a platform label the user chose, and a picture that fails
  * to load says so rather than being replaced with artwork that would look like
  * the user's own.
  */
-export function LeisureMaterials({ item, materials, isEditing }: LeisureMaterialsProps) {
-  const { t } = useTranslation(["leisure", "pages", "common"]);
+export function ResourcePanels({ contextId, materials, isEditing }: ResourcePanelsProps) {
+  const { t } = useTranslation(["resources", "pages", "common"]);
   const { addSavedItem } = usePages();
   const [tab, setTab] = useState<MaterialTab>("links");
 
@@ -69,7 +81,7 @@ export function LeisureMaterials({ item, materials, isEditing }: LeisureMaterial
 
   const tabs: SegmentedItem[] = TABS.map((name) => ({
     id: name,
-    label: t(`leisure:materials.${name}`),
+    label: t(`resources:${name}`),
     badge: byTab[name].length > 0 ? String(byTab[name].length) : undefined,
   }));
 
@@ -78,7 +90,7 @@ export function LeisureMaterials({ item, materials, isEditing }: LeisureMaterial
   return (
     <>
       <SegmentedNav
-        label={t("leisure:materials.label")}
+        label={t("resources:label")}
         items={tabs}
         value={tab}
         onChange={(id) => setTab(id as MaterialTab)}
@@ -87,7 +99,7 @@ export function LeisureMaterials({ item, materials, isEditing }: LeisureMaterial
 
       <div className="mt-3">
         {shown.length === 0 ? (
-          <EmptyState title={t(`leisure:materials.empty.${tab}`)} />
+          <EmptyState title={t(`resources:empty.${tab}`)} />
         ) : tab === "images" ? (
           <div className="focus-gallery">
             {shown.map((entry) => (
@@ -114,10 +126,10 @@ export function LeisureMaterials({ item, materials, isEditing }: LeisureMaterial
                   }
                   meta={
                     entry.url ? (
-                      <ExternalLink href={entry.url}>{t("leisure:materials.open")}</ExternalLink>
+                      <ExternalLink href={entry.url}>{t("resources:open")}</ExternalLink>
                     ) : (
                       <span className="focus-chip focus-chip--muted">
-                        {t("leisure:materials.noLink")}
+                        {t("resources:noLink")}
                       </span>
                     )
                   }
@@ -127,7 +139,7 @@ export function LeisureMaterials({ item, materials, isEditing }: LeisureMaterial
           </CompactList>
         )}
 
-        {isEditing && <AddMaterial tab={tab} contextId={item.id} onAdd={addSavedItem} />}
+        {isEditing && <AddMaterial tab={tab} contextId={contextId} onAdd={addSavedItem} />}
       </div>
     </>
   );
@@ -150,7 +162,7 @@ function AddMaterial({
   contextId: string;
   onAdd: (entry: SavedItem) => void;
 }) {
-  const { t } = useTranslation(["leisure", "pages", "common"]);
+  const { t } = useTranslation(["resources", "pages", "common"]);
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
@@ -187,7 +199,7 @@ function AddMaterial({
   if (!open) {
     return (
       <Button variant="outline-primary" size="sm" className="mt-3" onClick={() => setOpen(true)}>
-        <Icon name="plus" size={15} /> {t(`leisure:materials.add.${tab}`)}
+        <Icon name="plus" size={15} /> {t(`resources:add.${tab}`)}
       </Button>
     );
   }
@@ -195,11 +207,11 @@ function AddMaterial({
   return (
     <form className="focus-resource-form mt-3" onSubmit={submit}>
       <div>
-        <label htmlFor="leisure-res-title" className="form-label fw-medium">
-          {t("leisure:materials.name")}
+        <label htmlFor="res-panel-title" className="form-label fw-medium">
+          {t("resources:name")}
         </label>
         <input
-          id="leisure-res-title"
+          id="res-panel-title"
           className="form-control"
           dir="auto"
           value={title}
@@ -210,18 +222,18 @@ function AddMaterial({
 
       {tab === "images" ? (
         <UrlImageField
-          id="leisure-res-image"
-          label={t("leisure:materials.imageUrl")}
+          id="res-panel-image"
+          label={t("resources:imageUrl")}
           value={url}
           onChange={setUrl}
         />
       ) : (
         <div>
-          <label htmlFor="leisure-res-url" className="form-label fw-medium">
-            {t("leisure:materials.url")}
+          <label htmlFor="res-panel-url" className="form-label fw-medium">
+            {t("resources:url")}
           </label>
           <input
-            id="leisure-res-url"
+            id="res-panel-url"
             type="url"
             dir="ltr"
             className="form-control"
@@ -234,11 +246,11 @@ function AddMaterial({
 
       {tab === "videos" && (
         <div>
-          <label htmlFor="leisure-res-source" className="form-label fw-medium">
-            {t("leisure:materials.source")}
+          <label htmlFor="res-panel-source" className="form-label fw-medium">
+            {t("resources:source")}
           </label>
           <select
-            id="leisure-res-source"
+            id="res-panel-source"
             className="form-select"
             value={source}
             onChange={(event) => setSource(event.target.value as SavedItemSource)}
@@ -253,11 +265,11 @@ function AddMaterial({
       )}
 
       <div>
-        <label htmlFor="leisure-res-note" className="form-label fw-medium">
-          {t("leisure:materials.note")}
+        <label htmlFor="res-panel-note" className="form-label fw-medium">
+          {t("resources:note")}
         </label>
         <input
-          id="leisure-res-note"
+          id="res-panel-note"
           className="form-control"
           dir="auto"
           value={note}
@@ -266,7 +278,7 @@ function AddMaterial({
       </div>
 
       {tab === "documents" && (
-        <p className="form-text mb-0">{t("leisure:materials.documentsNote")}</p>
+        <p className="form-text mb-0">{t("resources:documentsNote")}</p>
       )}
 
       <div className="d-flex gap-2">

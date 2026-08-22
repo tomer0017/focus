@@ -461,6 +461,58 @@ material. That is deliberate groundwork and nothing more — there is no share
 button, no permission model and no public projection, and there will not be one
 before a server, a database and users exist. See `docs/FUTURE_ROADMAP.md`.
 
+## Training
+
+Three things that used to be one, kept apart on purpose.
+
+```
+TrainingPage (/training)
+  ?area=plans|tracking|materials
+    plans     → useTraining()  → trainingPlansRepository   (focus.trainingPlans)
+    tracking  → useRoutines()  + useManage()               (existing slices)
+    materials → savedItemsFor("training")
+
+TrainingPlanPage (/training/plans/:id)
+  ?topic=plan|notes|materials
+    plan      → PlanGroups, editing through lib/training.ts
+    notes     → plan.notes: ProjectNote[]  → <ProjectNotes>
+    materials → savedItemsFor(plan.id)     → <ResourcePanels>
+```
+
+### Plan, group, exercise
+
+`TrainingPlan` **owns** its `TrainingGroup[]`, and each group owns its
+`TrainingExercise[]`. Embedded rather than three slices, for the reason `Trip`
+owns its destinations and days: a group is never read without its plan, so
+keeping them together means one write per edit instead of three that could
+disagree. Twenty groups of a hundred exercises is a few kilobytes — and it is a
+*plan* document, not one growing user document.
+
+Every structural edit is a pure function in `lib/training.ts` returning a whole
+plan; the provider exposes a single `putPlan`. The rules stay testable and the
+provider only decides where the result is stored.
+
+### Training and scheduling
+
+There is **no link between a plan and a session yet**, and that is deliberate
+rather than missing. The two models are already correct — a `Routine` carries
+the completion history, a `ScheduledItem` carries a single dated obligation —
+and neither contains a copy of any plan. When the link is wanted it is one
+optional `EntityReference` on the scheduled side pointing at a plan; nothing
+about the plan changes and no exercise is ever duplicated into an event.
+Recorded as future work rather than half-built.
+
+### Notes and materials
+
+Notes are embedded (`plan.notes: ProjectNote[]`) and rendered by the same
+`<ProjectNotes>` the project, learning and leisure screens use. Material is
+referenced: a `SavedItem` lists the plan's id — or the literal `"training"`
+context for the area as a whole — in `contextIds`.
+
+`<ResourcePanels>` is shared by training and leisure. It was extracted when the
+second real caller appeared, not before, and it is the only component that knows
+how a link, a document, a picture and a video are added.
+
 ## The overview projection
 
 The overview is the only screen that reads across every slice, and it is a
