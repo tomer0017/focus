@@ -871,20 +871,41 @@ inspiration. Caps are 5 · 6 · 3 · 3 and they are not negotiable.
 `SPACE_SECTIONS` in `lib/spaceLayout.ts` — never from a copied per-space
 dashboard. Add a space by adding a config entry, not a component.
 
-**Project detail (`/pages/:id`)** opens in **view mode** and leads with the
-picture the project is aiming at, if it has one. Then the brief — where it
-stands, where you stopped, the blocker, and the next action as the largest
-element — followed by the user's own notes, then pictures of the work as it
-went. Below that sit four content tabs: **tasks · materials · inspiration ·
-history**. There is **no Overview tab** — the overview is above them, and
-repeating it would be the same information twice. Materials is one tab, not
-three: documents, links and useful notes are the same question. There is no
-Future tab either: it held one optional sentence and was usually empty, and that
-sentence is an ordinary note now.
+**Project detail (`/pages/:id`)** is a compact folder, not a questionnaire.
+Three layers and no more:
+
+1. **A compact header** — small thumbnail if there is one, title, category,
+   status, blocked badge, paused reason and completion date when they exist, and
+   when it was last touched.
+2. **The focus band** — the next action, and the blocker *in the same block*,
+   because "what do I do next" and "what is in the way" are one thought. Plus a
+   button through to the open tasks. It renders **nothing at all** when there is
+   no next action, no blocker and no tasks.
+3. **Three tabs: overview · tasks · materials**, one at a time, with the choice
+   in the URL.
+
+**Overview** is where it stands and where you stopped as two short lines, then
+the notes, then the vision and progress pictures. **Tasks** is the shared
+checklist. **Materials** is everything saved to the project on one shelf,
+filtered by *what a thing is* — links · documents · pictures · videos.
+
+There is no Inspiration tab: it was split from materials by a hard-coded list of
+saved-item kinds, and that division was the screen's idea rather than the
+user's — a photograph of the existing garden is reference *and* inspiration
+depending on the day. There is no History tab either; it held three facts, and
+they are chips in the header.
 
 Edit mode is one explicit action next to the title. Only then do note toolbars,
 reorder arrows, delete buttons and the picture controls appear; a project opened
-to be read shows text, not a content management system.
+to be read shows text, not a content management system. The project's *fields* —
+title, category, status and the four structured facts — are edited in a focused
+dialog where Cancel genuinely discards.
+
+**The four structured fields keep their jobs and lose their headings.**
+`nextAction` is the focus band, `blocker` is the badge and the band's warning
+line, `currentState` and `stoppedAt` are two short lines at the top of the
+overview. None of them is duplicated as a note, and none of them became prose:
+the overview screen and the board read all four.
 
 **Checklist pages (`/pages/:id` where `type` is `checklist`)** render
 `ChecklistPageView`: title, date and overall progress; then notes; then the
@@ -1159,14 +1180,16 @@ its script is still a notice; do not report that half as passing.
     empty thing the user fills is the honest answer.
 22. **A level is a lens, not a folder.** One control filters a whole screen, and
     unlevelled content is general — visible at every setting, labelled as such.
-23. **Reordering is buttons, never dragging.** A drag target is unusable on a
+23. **A project's materials are one shelf.** Filtered by what a thing *is*, never
+    split by what a screen guesses it is *for*.
+24. **Reordering is buttons, never dragging.** A drag target is unusable on a
     phone and unreachable from a keyboard.
-24. **The overview shows nothing it did not compute this render.** No dashboard
+25. **The overview shows nothing it did not compute this render.** No dashboard
     record, no copied domain data, de-duplicated by `EntityReference` and
     capped per area.
-25. **Ownership is never progress.** Two independent axes, never one field, and
+26. **Ownership is never progress.** Two independent axes, never one field, and
     a migration never invents either from data that did not record it.
-26. **A list query names a purpose and a scope, never a type.** `type` is the
+27. **A list query names a purpose and a scope, never a type.** `type` is the
     storage shape; a screen showing checklists must go through
     `checklistContextOf`. An unclassified list appears nowhere rather than
     somewhere plausible.

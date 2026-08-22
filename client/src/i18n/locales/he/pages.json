@@ -3,13 +3,9 @@
   "tabs": {
     "tasks": "משימות",
     "materials": "חומרים",
-    "inspiration": "השראה",
-    "history": "היסטוריה"
+    "overview": "סקירה"
   },
-  "empty": {
-    "materials": "עדיין לא נשמרו מסמכים, קישורים או הערות לעמוד הזה.",
-    "inspiration": "עדיין לא נשמרו תמונות או דוגמאות לעמוד הזה."
-  },
+  "empty": {},
   "edit": {
     "title": "עריכת עמוד",
     "titleField": "כותרת",
@@ -127,13 +123,6 @@
     "noTreatments": "אין טיפולים או מעקבים פתוחים."
   },
   "contentTabs": "תוכן הפרויקט",
-  "brief": {
-    "why": "למה זה קיים",
-    "stage": "שלב נוכחי"
-  },
-  "history": {
-    "lastUpdated": "עודכן לאחרונה"
-  },
   "notes": {
     "add": "הוספת פתק",
     "blank": "פתק ריק",
@@ -412,5 +401,25 @@
       "title": "המטרה הנוכחית",
       "hint": "משפט אחד מספיק."
     }
+  },
+  "band": {
+    "noNextAction": "עדיין לא נרשמה פעולה הבאה.",
+    "openTasks_one": "משימה אחת פתוחה",
+    "openTasks_two": "{{count}} משימות פתוחות",
+    "openTasks_many": "{{count}} משימות פתוחות",
+    "openTasks_other": "{{count}} משימות פתוחות",
+    "allTasksDone": "כל המשימות הושלמו"
+  },
+  "materials": {
+    "all": "הכול",
+    "filterLabel": "סוג",
+    "search": "חיפוש בחומרי הפרויקט",
+    "noMatches": "אין כאן משהו שמתאים",
+    "empty": "עדיין לא נשמר כלום בפרויקט הזה",
+    "emptyHint": "קישורים, מסמכים, תמונות וסרטונים שתשמור אליו יופיעו כאן.",
+    "pagination": "עמודי החומרים",
+    "previous": "הקודם",
+    "next": "הבא",
+    "pageOf": "עמוד {{page}} מתוך {{total}}"
   }
 }

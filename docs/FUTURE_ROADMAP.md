@@ -207,8 +207,11 @@ Documentation only — none of this is started:
   which plan it means. Not built: the two models are already correct and neither
   copies the other, so this is an addition rather than a fix. No exercise is
   ever duplicated into an event, and no plan ever generates one.
-- **Project detail consolidation.** Overview · tasks · materials, with up to
-  four pinned links at the top.
+- **Pinned links on a project.** Up to four addresses — Figma, the repo, the
+  client's Drive — held above the tabs so they are one click from anywhere on
+  the page. Not built: `SavedItem` has no "pinned" flag, and adding one is a
+  model change rather than a layout change. Today those links live on the
+  materials shelf like everything else.
 - **Family scheduling and materials.** The three-area profile — upcoming ·
   recurring · information and materials — replacing the current opt-in section
   list.

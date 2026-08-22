@@ -6978,3 +6978,110 @@ button.focus-route__button:hover {
   flex: 1 1 200px;
   min-inline-size: 0;
 }
+
+/*
+ * The project's decision strip.
+ *
+ * Named `focus-project-band` and not `focus-band`: that name already belongs to
+ * the quiet section wrapper Manage and Trips use, and reusing it would have put
+ * two rule sets in conflict. This is the rule about checking a class name
+ * before reusing it, in practice.
+ *
+ * The next action and the blocker sit in **one block** rather than two panels,
+ * because they are one thought: a blocker is the reason the next action has not
+ * happened. Splitting them is what made the old brief read as a form with
+ * headings rather than as an answer.
+ */
+.focus-project-band {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  padding: 12px 16px;
+  margin-block: 14px 18px;
+  border: 1px solid var(--focus-line);
+  border-radius: var(--focus-radius);
+  background: var(--focus-surface);
+  /* The accent is on the inline-start edge and never carries the meaning:
+     the word "blocker" is written out beside it. */
+  border-inline-start: 3px solid var(--focus-line);
+}
+
+.focus-project-band--blocked {
+  border-inline-start-color: var(--focus-warn);
+}
+
+.focus-project-band__main {
+  flex: 1 1 260px;
+  min-inline-size: 0;
+}
+
+.focus-project-band__label {
+  margin: 0 0 2px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--focus-muted);
+}
+
+/* The loudest text on the page after the title. */
+.focus-project-band__action {
+  font-size: 1.05rem;
+  line-height: 1.35;
+  font-weight: 500;
+}
+
+.focus-project-band__none {
+  font-size: 0.88rem;
+  color: var(--focus-muted);
+}
+
+.focus-project-band__blocker {
+  display: flex;
+  align-items: start;
+  gap: 6px;
+  margin-block-start: 8px;
+  font-size: 0.86rem;
+  color: #8a5a00;
+}
+
+.focus-project-band__blocker svg {
+  flex: 0 0 auto;
+  margin-block-start: 2px;
+}
+
+/*
+ * Where it stands and where you stopped: two lines of context above the notes,
+ * not two headed panels. The label is inline and small — it introduces the
+ * sentence rather than presiding over it.
+ */
+.focus-project-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-block-end: 16px;
+  font-size: 0.9rem;
+}
+
+.focus-project-summary__label {
+  font-weight: 600;
+  color: var(--focus-muted);
+}
+
+/* Real paging: previous, where you are, next. */
+.focus-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-block-start: 16px;
+}
+
+.focus-pager__count {
+  font-size: 0.86rem;
+  color: var(--focus-muted);
+  font-variant-numeric: tabular-nums;
+}

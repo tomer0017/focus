@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { moveNote, notesForPage, noteTitle, renumber } from "./projectNotes";
 import type { PageSummary, ProjectNote } from "../types/page";
+import { MOCK_PAGES } from "../mocks/pages";
 
 function page(overrides: Partial<PageSummary> = {}): PageSummary {
   return {
@@ -125,5 +126,80 @@ describe("ordering", () => {
   it("refuses to move past either end", () => {
     expect(moveNote(notes, 0, -1)).toBe(notes);
     expect(moveNote(notes, 2, 1)).toBe(notes);
+  });
+});
+
+describe("the adapter is stable across reads", () => {
+  /*
+   * The adapter runs on every render. If it were not idempotent, a project
+   * written before notes existed would grow a duplicate set of notes every time
+   * somebody refreshed — the exact failure the "fill in, never remove" rule is
+   * written to prevent.
+   */
+  const legacy: PageSummary = {
+    id: "old",
+    type: "project",
+    spaceId: "work-tech",
+    status: "active",
+    title: "Written before notes existed",
+    description: "Why this exists",
+    outcome: "What finishing looks like",
+    lastDecision: "The one decision worth keeping",
+    lastUpdatedAt: "2026-01-01T00:00:00.000Z",
+    favorite: false,
+    visibility: "private",
+  };
+
+  it("produces the same notes however many times it runs", () => {
+    const once = notesForPage(legacy);
+    const twice = notesForPage(legacy);
+    const thrice = notesForPage(legacy);
+
+    expect(twice).toEqual(once);
+    expect(thrice).toEqual(once);
+    expect(once).toHaveLength(3);
+  });
+
+  it("gives each derived note a stable id, so nothing duplicates on a refresh", () => {
+    const first = notesForPage(legacy).map((note) => note.id);
+    const second = notesForPage(legacy).map((note) => note.id);
+
+    expect(first).toEqual(second);
+    expect(new Set(first).size).toBe(first.length);
+  });
+
+  it("stops deriving the moment the page has notes of its own", () => {
+    // Saving once takes the page off the adapter for good — which is what makes
+    // the adapter safe to run on every read.
+    const edited: PageSummary = { ...legacy, notes: [] };
+    expect(notesForPage(edited)).toEqual([]);
+    expect(notesForPage(edited)).toEqual([]);
+  });
+});
+
+describe("the seeded projects all open", () => {
+  it("handles every seeded project, with or without notes and pictures", () => {
+    const projects = MOCK_PAGES.filter((page) => page.type === "project");
+    expect(projects.length).toBeGreaterThan(0);
+
+    for (const project of projects) {
+      // Never throws, always an array, always ordered.
+      const notes = notesForPage(project);
+      expect(Array.isArray(notes), project.id).toBe(true);
+      expect(notes.map((note) => note.order)).toEqual(notes.map((_, index) => index));
+      // And an empty rubric never became an empty note.
+      for (const note of notes) expect(note.content.trim().length).toBeGreaterThan(0);
+    }
+  });
+
+  it("covers the three shapes the migration has to survive", () => {
+    const projects = MOCK_PAGES.filter((page) => page.type === "project");
+
+    // A project the user has edited down to nothing keeps an empty list.
+    expect(projects.some((page) => page.notes?.length === 0)).toBe(true);
+    // A project that has never been edited reads its legacy fields.
+    expect(projects.some((page) => page.notes === undefined)).toBe(true);
+    // A project with no picture at all still opens.
+    expect(projects.some((page) => !page.visionImageUrl)).toBe(true);
   });
 });

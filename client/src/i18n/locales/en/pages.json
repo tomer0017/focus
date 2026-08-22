@@ -3,13 +3,9 @@
   "tabs": {
     "tasks": "Tasks",
     "materials": "Materials",
-    "inspiration": "Inspiration",
-    "history": "History"
+    "overview": "Overview"
   },
-  "empty": {
-    "materials": "No documents, links or notes saved to this page yet.",
-    "inspiration": "No images or examples saved to this page yet."
-  },
+  "empty": {},
   "edit": {
     "title": "Edit page",
     "titleField": "Title",
@@ -119,13 +115,6 @@
     "noTreatments": "No open treatments or follow-ups."
   },
   "contentTabs": "Project content",
-  "brief": {
-    "why": "Why this exists",
-    "stage": "Where it stands"
-  },
-  "history": {
-    "lastUpdated": "Last updated"
-  },
   "notes": {
     "add": "Add a note",
     "blank": "Blank note",
@@ -402,5 +391,23 @@
       "title": "What I'm working towards",
       "hint": "One sentence is enough."
     }
+  },
+  "band": {
+    "noNextAction": "No next action written down yet.",
+    "openTasks_one": "{{count}} task open",
+    "openTasks_other": "{{count}} tasks open",
+    "allTasksDone": "All tasks done"
+  },
+  "materials": {
+    "all": "All",
+    "filterLabel": "Kind",
+    "search": "Search this project's materials",
+    "noMatches": "Nothing here matches that",
+    "empty": "Nothing saved to this project yet",
+    "emptyHint": "Links, documents, pictures and videos you save to it appear here.",
+    "pagination": "Materials pages",
+    "previous": "Previous",
+    "next": "Next",
+    "pageOf": "Page {{page}} of {{total}}"
   }
 }

@@ -3,8 +3,133 @@
 Living document. **Update this at the end of every development task.**
 
 **Last updated:** 2026-08-22
-**Task completed:** Task 16 — training plans, with groups, exercises, notes and
-material.
+**Task completed:** Task 17 — the project page consolidated into a header, a
+focus band and three tabs.
+
+---
+
+## Task 17 — project detail
+
+### What it was
+
+A header, a full-width vision picture, a four-panel brief, the notes, and a
+progress gallery — all stacked down one page **before** the tabs began. Then
+four tabs: tasks, materials, inspiration, history. Opening a project meant
+scrolling past most of it to reach anything actionable.
+
+### What it is now
+
+Three layers:
+
+1. **Compact header** — thumbnail, title, category, status, blocked badge,
+   paused reason and completion date when they exist, last touched.
+2. **Focus band** — the next action, with the blocker *in the same block*. They
+   are one thought: a blocker is the reason the next action has not happened,
+   and splitting them into a "stage" panel and an "action" panel is what made
+   the old brief read as a form with headings. Plus a button to the open tasks.
+   Renders **nothing** when there is no action, no blocker and no tasks.
+3. **Three tabs — overview · tasks · materials** — with `?tab=` in the URL.
+
+### Two tabs removed, and why
+
+- **Inspiration** was divided from materials by a hard-coded list of saved-item
+  kinds. That division was the screen's idea, not the user's: a photograph of
+  the existing garden is reference *and* inspiration depending on the day. One
+  shelf now, filtered by what a thing **is** — links · documents · pictures ·
+  videos — which is a fact about the item rather than a judgement about it.
+- **History** held three facts: last updated, completed on, paused reason. They
+  are chips in the header, where they are actually read.
+
+`ResumeBrief.tsx` became dead and was deleted, along with six orphaned
+translation keys in both languages.
+
+### The four structured fields kept their jobs
+
+`nextAction` → the focus band. `blocker` → the badge and the band's warning
+line. `currentState` and `stoppedAt` → two short lines at the top of the
+overview. None is duplicated as a note and none became prose: the overview
+screen and the board read all four, and `isBlocked()` is defined in terms of
+`blocker`.
+
+### Materials
+
+New pure module `lib/projectMaterials.ts`. All nine `SavedItemKind`s map onto
+four shelves, so no item can become invisible. Search runs over the whole shelf,
+not the current page. Paging is real — previous / "page 2 of 4" / next — at 20
+rows or 12 tiles, sized so both produce a screen of about the same length. The
+shelf, the search and the page all live in the URL, and changing the shelf or
+the search resets the page.
+
+Page numbers are **clamped, not trusted**: `?page=9` on a two-page shelf shows
+the last page rather than an empty screen.
+
+### Editing
+
+The field dialog gained **status**, which previously could only be changed from
+the board. It goes through `moveProject` — the same call the board makes — and
+only when the value actually changed, because that call stamps and clears
+`completedAt`.
+
+Two deviations from the brief, both deliberate:
+
+- **`description` was not added to the dialog.** It is a legacy field the
+  adapter reads as the "why this exists" note. Adding it as a field as well
+  would put the same text in a field *and* a note, which the brief itself
+  forbids.
+- **Pictures are still edited in place** in the overview tab rather than in the
+  dialog. In-place editing already supports picking an existing saved item and
+  several progress pictures with notes and dates; moving it into a dialog would
+  have lost capability.
+
+### Migration and backward compatibility
+
+**No migration was written, because none is needed.** `notesForPage` is a pure,
+idempotent adapter that runs on each render: `notes` present wins (including
+`[]`, which means the user deleted every note); absent falls back to the legacy
+fields that hold something, with stable derived ids. Nothing is written to
+storage, so a refresh cannot duplicate a note, and no legacy field is destroyed.
+New tests assert exactly that.
+
+### Verification
+
+TypeScript (client + server) clean · ESLint clean · **492/492** Vitest tests
+passing, up from 469 · production build clean · `check:links` clean ·
+translation parity clean · source hygiene clean · `legacy/` unchanged · no new
+`localStorage` access · no new dependency.
+
+**23 new tests**: 18 in `lib/projectMaterials.test.ts` — every saved kind has a
+shelf; one project's materials never leak into a project whose id merely starts
+the same way; an item titled after a project does not join it; filter and search
+combine rather than compete; paging clamps out-of-range pages; a heavy project
+(70 links, 40 documents, 60 pictures, 50 videos) pages at 20 and 12 — plus 5 in
+`lib/projectNotes.test.ts` covering adapter idempotency across repeated reads,
+stable derived ids, and every seeded project opening with or without notes and
+pictures.
+
+**A class collision was caught during the work.** `.focus-band` already belonged
+to the quiet section wrapper Manage and Trips use; the new strip is
+`.focus-project-band`. That is the "check a class name before reusing it" rule
+doing its job.
+
+**Not verified: no browser check.** The sandbox refuses to bind a port and there
+is no browser here. The responsive sweep (1440 / 1024 / 768 / 375 / 320), RTL and
+LTR, console and network, and all 23 interaction checks in the brief are
+**unverified**. Manual checklist in the task report.
+
+### Technical debt
+
+- Materials paging renders the whole filtered array before slicing. Correct and
+  fast at this size; a server-side cursor is the eventual answer.
+- The focus band's blocker colour is a literal `#8a5a00` rather than a token.
+- Pinned links (Figma, repo, Drive above the tabs) are **not** built. It needs a
+  "pinned" flag on `SavedItem` — a model change, not a layout one. Recorded in
+  `FUTURE_ROADMAP.md`.
+
+### The recommended next action — one
+
+```text
+Family scheduling and materials
+```
 
 ---
 

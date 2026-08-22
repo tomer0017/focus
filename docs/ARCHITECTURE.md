@@ -461,6 +461,69 @@ material. That is deliberate groundwork and nothing more — there is no share
 button, no permission model and no public projection, and there will not be one
 before a server, a database and users exist. See `docs/FUTURE_ROADMAP.md`.
 
+## Project detail
+
+```
+PageDetailPage (/pages/:id)
+  ?tab=overview|tasks|materials   · ?kind= · ?q= · ?page=
+    header      PageSummary fields + categories
+    focus band  page.nextAction, page.blocker, checklist progress
+    overview    currentState + stoppedAt, notesForPage(page), images
+    tasks       <ChecklistSection ownerId={`page:${id}`} />
+    materials   savedItemsFor(page.id) → lib/projectMaterials.ts
+```
+
+`checklist` and `learning` pages branch out at the top of the component to their
+own views; the rest of the file is the project screen.
+
+### The relationships, all explicit
+
+| From | To | How |
+|---|---|---|
+| Project | its notes | **Embedded** — `PageSummary.notes: ProjectNote[]` |
+| Project | its tasks | `Checklist` keyed `page:<id>` via `checklistOwnerFor` |
+| Project | its materials | `SavedItem.contextIds` contains the project id |
+| Project | its category | `PageSummary.categoryId`, a stored id |
+
+Nothing is inferred from a title, an id prefix or a route. `sorcol` and
+`sorcol-garden` are different projects and a saved item titled "Sorcol quote"
+belongs to whichever project its `contextIds` names — there are tests for both.
+
+### The adapter, and why it is safe on every read
+
+`notesForPage(page)` is the compatibility layer between the five old narrative
+rubrics and the note model:
+
+- `page.notes` present → those notes, sorted. Including `[]`, which means the
+  user deleted every note and must stay empty.
+- `page.notes` absent → the legacy fields that **hold something** become notes,
+  with stable derived ids (`legacy-description`).
+
+It is **pure and idempotent**, which is what lets it run on every render without
+a migration ever writing to storage: the same page produces the same notes with
+the same ids however many times it is read, so a refresh cannot duplicate
+anything. Saving once takes the page off the adapter permanently. Nothing is
+copied and no legacy field is destroyed.
+
+`currentState`, `stoppedAt`, `blocker` and `nextAction` are deliberately **not**
+in the adapter. They stay structured fields because the overview screen and the
+board read them, and turning them into prose would empty half the overview.
+
+### Materials
+
+`lib/projectMaterials.ts` maps all nine `SavedItemKind`s onto four shelves, so
+no item can become invisible, then filters, sorts and pages. Paging clamps
+rather than trusts: `?page=9` on a two-page shelf shows the last page instead of
+an empty screen. Changing shelf or search resets the page, because page 4 of
+"links" means nothing once you are looking at pictures.
+
+### Repository responsibilities
+
+Unchanged. The screen reads `usePages()` and `useChecklists()`; the providers
+read `pageOverridesRepository`, `ownPagesRepository`, `savedItemsRepository` and
+`checklistsRepository`. Only the *diff* against seeded pages is stored, so demo
+data can change between versions without freezing on a user's machine.
+
 ## Training
 
 Three things that used to be one, kept apart on purpose.

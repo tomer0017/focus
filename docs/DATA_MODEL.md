@@ -130,6 +130,37 @@ trip cannot satisfy it, whatever it is called and whichever space it sits in.
 Trip lists stay inside the trip; event lists stay inside the event. Moving an
 item between them is an explicit user action, never a query side effect.
 
+### 2.2a The project page: four fields, many notes, one shelf
+
+A project's content sits in four places, and which place a thing belongs in is
+decided by **who reads it**:
+
+| Thing | Where it lives | Why |
+|---|---|---|
+| `currentState`, `stoppedAt`, `blocker`, `nextAction` | fields on the page | The overview screen and the board read all four |
+| Everything else the user writes | `notes: ProjectNote[]`, embedded | Read by this page and nothing else |
+| Tasks | `Checklist` keyed `page:<id>` | Shared mechanism; ticked item by item |
+| Links, documents, pictures, videos | `SavedItem` by `contextIds` | One item belongs to many contexts |
+
+**Notes are embedded, materials are referenced.** Notes are the page's own words,
+reordered as a unit and never read without it — one write per edit. A saved item
+belongs to several projects at once and must not be copied into any of them.
+
+**No unbounded array is embedded in a project.** Notes are bounded by what a
+person writes; tasks live in their own record with items referenced separately;
+materials are referenced. The project document does not grow with use.
+
+**Nothing is inferred from a name.** The association is always an explicit id:
+`contextIds` for materials, the `page:<id>` owner key for the checklist,
+`categoryId` for the category. `sorcol` and `sorcol-garden` are different
+projects, and an item titled "Sorcol quote" belongs to whichever project its
+`contextIds` names — both are tested.
+
+**The legacy adapter never writes.** Five old narrative rubrics are read as
+notes by a pure function on each render, with stable derived ids, rather than by
+a migration that rewrites stored pages. That is why a refresh cannot duplicate a
+note, and why no old field has been destroyed.
+
 ### 2.2b Training: a plan, a session and a file are three things
 
 `TrainingPlan` is new, and it is new because nothing existing could hold it.
@@ -309,6 +340,10 @@ below exists speculatively — each is named by the screen that needs it.
 | One person's obligations | Family profile | `{ workspaceId: 1, "parent.entityType": 1, "parent.entityId": 1, nextOccurrenceAt: 1 }` |
 | Resources of one kind on one page | Learning material panels | `{ workspaceId: 1, "parent.entityId": 1, kind: 1, order: 1 }` |
 | Plans by state, newest first | Training plans tab | `{ ownerId: 1, status: 1, updatedAt: -1 }` on `training_plans` |
+| Projects by category and state | Projects index | `{ ownerId: 1, categoryId: 1, status: 1, updatedAt: -1 }` on `pages` |
+| One project's notes, in order | Project overview | `{ ownerId: 1, projectId: 1, order: 1 }` on `notes` |
+| One project's tasks | Project tasks tab | `{ ownerId: 1, "ownerRef.type": 1, "ownerRef.id": 1 }` on `checklists` |
+| One project's materials, by kind | Project materials tab | `{ ownerId: 1, "entityRefs.type": 1, "entityRefs.id": 1, type: 1, createdAt: -1 }` on `saved_items` |
 | Everything filed against one plan | Plan materials | `{ ownerId: 1, "parent.entityType": 1, "parent.entityId": 1, kind: 1 }` on `resources` |
 | The overview's urgent rows | Overview area 1 | `{ ownerId: 1, status: 1, nextOccurrenceAt: 1 }` on `scheduled_items` |
 | The overview's fortnight | Overview area 2 | `{ ownerId: 1, preparationStartsAt: 1, status: 1 }` on `events` |
