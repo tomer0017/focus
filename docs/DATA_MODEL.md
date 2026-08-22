@@ -130,6 +130,41 @@ trip cannot satisfy it, whatever it is called and whichever space it sits in.
 Trip lists stay inside the trip; event lists stay inside the event. Moving an
 item between them is an explicit user action, never a query side effect.
 
+### 2.1b Family: a profile owns nothing it can share
+
+A `FamilyProfile` is a context. Nothing about a dentist appointment, a
+medicine, a feed or a document is a "family" model — they are the app's own
+records pointed at a profile.
+
+**Recurrence without an occurrence explosion.** A workout every three days is
+**one** `ScheduledItem` with a `RecurrenceRule`. Completing it advances
+`dueAt` from the anchor and leaves it open; nothing writes a document per
+future repetition, and nothing pre-generates a year of sessions. The server-side
+equivalent stores `nextOccurrence` as the single index key, computed by the same
+rule, so "what is due" stays a range scan.
+
+**Birthdays are derived, never stored** — see `ARCHITECTURE.md`. The rule that
+matters for the data model: there is no birthday document, so there is nothing
+to migrate, duplicate or clean up, and no `familyProfiles` record grows a
+history of past birthdays.
+
+**No unbounded array inside a profile.** Notes are bounded by what a person
+writes; scheduled items, medicines, logs and materials are all referenced.
+`FamilyProfile.savedItemIds` predates `contextIds`, is written by nothing and
+read by nothing — it is left in place because a migration never removes a field,
+and is documented here as vestigial so it is not mistaken for a second
+association mechanism.
+
+**Delete cascade.** Records the profile solely owns (scheduled items,
+medications, quick logs) may be deleted on explicit confirmation with a count
+shown first. Saved items are never deleted — only the profile's id is removed
+from `contextIds`. The reference is weak by design, so a record pointing at a
+deleted profile degrades rather than breaks.
+
+**Unassigned records are left alone.** A `ScheduledItem` with no
+`relatedEntity` is not guessed at: it belongs to no profile, appears on no
+profile page, and stays where it already is in Manage.
+
 ### 2.2a The project page: four fields, many notes, one shelf
 
 A project's content sits in four places, and which place a thing belongs in is
@@ -341,6 +376,11 @@ below exists speculatively — each is named by the screen that needs it.
 | Resources of one kind on one page | Learning material panels | `{ workspaceId: 1, "parent.entityId": 1, kind: 1, order: 1 }` |
 | Plans by state, newest first | Training plans tab | `{ ownerId: 1, status: 1, updatedAt: -1 }` on `training_plans` |
 | Projects by category and state | Projects index | `{ ownerId: 1, categoryId: 1, status: 1, updatedAt: -1 }` on `pages` |
+| Profiles by type and name | Family index | `{ userId: 1, relationshipType: 1, name: 1 }` on `family_profiles` |
+| One profile's schedule | Family schedule tab | `{ userId: 1, "ownerRef.type": 1, "ownerRef.id": 1, nextOccurrence: 1, status: 1 }` on `scheduled_items` |
+| One profile's notes | Family notes tab | `{ userId: 1, "ownerRef.type": 1, "ownerRef.id": 1, order: 1 }` on `notes` |
+| One profile's quick logs | Family schedule tab | `{ userId: 1, "ownerRef.type": 1, "ownerRef.id": 1, occurredAt: -1 }` on `quick_logs` |
+| One profile's medicines | Family schedule tab | `{ userId: 1, "ownerRef.type": 1, "ownerRef.id": 1, active: 1 }` on `medications` |
 | One project's notes, in order | Project overview | `{ ownerId: 1, projectId: 1, order: 1 }` on `notes` |
 | One project's tasks | Project tasks tab | `{ ownerId: 1, "ownerRef.type": 1, "ownerRef.id": 1 }` on `checklists` |
 | One project's materials, by kind | Project materials tab | `{ ownerId: 1, "entityRefs.type": 1, "entityRefs.id": 1, type: 1, createdAt: -1 }` on `saved_items` |

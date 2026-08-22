@@ -3,8 +3,118 @@
 Living document. **Update this at the end of every development task.**
 
 **Last updated:** 2026-08-22
-**Task completed:** Task 17 — the project page consolidated into a header, a
-focus band and three tabs.
+**Task completed:** Task 18 — family rebuilt around scheduling and materials,
+and the two materials components merged into one.
+
+---
+
+## Task 18 — family
+
+### What already existed and was reused
+
+Most of the model was already right and was **not** rebuilt: `FamilyProfile`
+(with `notes: ProjectNote[]` and a birthday preference), `ScheduledItem` with
+`relatedEntity`, `Medication`, `QuickLogEntry`, `birthdayEventFor` /
+`withBirthdays` / `isDerivedBirthday`, `familyReference` / `belongsTo`,
+`nextAttentionFor`, `nextDateFor`, `ScheduledFormModal` and
+`MedicationFormModal` (both already accepting `defaultRelated`),
+`ProfileFormModal`, `QuickLogModal`, and the delete dialog's cascade opt-in.
+
+**No new repository and no new storage key** were added. Nothing about family
+needed one.
+
+### What was actually wrong
+
+- **Materials did not work.** The profile page read `profile.savedItemIds`,
+  which is `[]` everywhere and written by nothing. Family materials were a
+  field that never filled.
+- **Ten opt-in sections, four derived topics.** A vaccination, an appointment
+  and a check-up are the same record with a different category, so a
+  grandmother's page had four panels holding one row each — and switching
+  sections on was a configuration task before the page was useful.
+- **The index was a card grid** with cards of different heights, each printing
+  whatever it had, with no search, no filter and no paging.
+
+### What changed
+
+- `/family` is one compact row per profile — avatar, name, relationship, and
+  **the single nearest thing that wants doing** — with search, a type filter and
+  20 to a page, all in the URL.
+- `/family/:id` is who they are, what is nearest, then **schedule · notes ·
+  materials** with `?tab=` in the URL.
+- **Schedule** is one list: every `ScheduledItem` owned by the profile whatever
+  its category, then medicines shown as themselves, then the five most recent
+  quick logs with history behind a toggle, then what is done. Creating a
+  reminder or a medicine is scoped to the profile by `defaultRelated`.
+- **Materials** now use `contextIds`, so they work. Four seeded examples were
+  added, including a document attached to Dad that a training plan could also
+  claim without being copied.
+- **Notes** gained a family-scoped template set.
+
+Four components became dead and were deleted: `ProfileCard`, `SectionManager`,
+`FeedingSection`, `TastingSection`.
+
+### The two materials components became one
+
+`ResourcePanels` (add form, no paging) and `ProjectMaterials` (filter, search,
+real paging, no add form) were the same component twice. They are now
+`features/resources/MaterialsPanel.tsx`, used by **projects, leisure, training
+and family**. View state is URL-driven when the caller passes it and internal
+otherwise. Leisure and training gained search and paging; projects gained the
+add form.
+
+### Migration
+
+**None was needed and none was written.** No field changed shape. Three
+existing behaviours were verified by test rather than altered: an unassigned
+scheduled item is never guessed at, a derived birthday is never stored, and
+`notes` keeps the `undefined` / `[]` distinction. `savedItemIds` is left in
+place — a migration never removes a field — and is documented as vestigial.
+
+### Verification
+
+TypeScript (client + server) clean · ESLint clean · **522/522** Vitest tests
+passing, up from 492 · production build clean · `check:links` clean ·
+translation parity clean · source hygiene clean · `legacy/` unchanged · no new
+repository, storage key or dependency.
+
+**30 new tests** in `lib/familyScheduling.test.ts`: reference-based ownership
+and two-profile isolation, `dad` vs `dad-in-law`, unassigned items appearing on
+nobody's page, every-three-days and every-fortnight recurrence, completion
+advancing from the anchor and keeping the item open, a one-off treatment
+closing, derived birthdays producing one event however many times they are read,
+a corrected birth date following, a stored birthday not counting as derived, 29
+February clamping to 28 February in a common year, medicine and log isolation,
+material isolation with one item shared between a profile and a plan, filtering
+and paging 150 materials, the delete footprint counting owned records separately
+from linked ones, and 100 profiles paging at 20.
+
+Two API guesses were wrong and the tests caught them (`nextOccurrence`,
+`completeScheduled` — the real names are `nextOccurrenceAfter` and
+`completeOccurrence`), and `tsc -b` caught three `as Medication` casts that
+Vitest had happily run.
+
+**Not verified: no browser check.** Sandbox refuses to bind a port; no browser
+here. The responsive sweep (1440 / 1024 / 768 / 375 / 320), RTL and LTR, console
+and network, and all 29 interaction scenarios are **unverified**. The four
+riskiest to check by hand are named in the task report.
+
+### Technical debt
+
+- `FamilyProfile.savedItemIds` and `activeSections` are both now vestigial:
+  nothing writes or reads them. Left in place deliberately; a later pass should
+  retire them together.
+- The profile's checklist (`family:<id>`) has no surface on the new page. It had
+  one under the old section list. Nothing was deleted — the data is intact — but
+  it is currently unreachable from the profile.
+- `family.json` still carries `sections` and `topics` keys for the removed
+  section system.
+
+### The recommended next action — one
+
+```text
+Manage household shopping and recurring menus
+```
 
 ---
 

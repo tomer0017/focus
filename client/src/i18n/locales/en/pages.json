@@ -409,5 +409,35 @@
     "previous": "Previous",
     "next": "Next",
     "pageOf": "Page {{page}} of {{total}}"
+  },
+  "familyNotes": {
+    "worthKnowing": {
+      "title": "Worth knowing",
+      "hint": "The things you would tell someone looking after them."
+    },
+    "medicines": {
+      "title": "Medicines and allergies",
+      "hint": "Your own words. Focus stores this and never acts on it."
+    },
+    "toBuy": {
+      "title": "What to get them",
+      "hint": "Sizes, brands, the thing they keep mentioning."
+    },
+    "likes": {
+      "title": "What they enjoy",
+      "hint": "Useful when you need an idea."
+    },
+    "stoppedAt": {
+      "title": "Where we left off",
+      "hint": "What you talked about, or what you promised to do."
+    },
+    "forTheDoctor": {
+      "title": "Questions for the doctor",
+      "hint": "So you remember them in the room."
+    },
+    "background": {
+      "title": "Short background",
+      "hint": "The history worth having written down once."
+    }
   }
 }

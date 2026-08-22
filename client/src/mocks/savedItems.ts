@@ -14,6 +14,60 @@ import { daysAgo } from "./relativeDates";
  */
 export const MOCK_SAVED_ITEMS: SavedItem[] = [
   /*
+   * Family materials.
+   *
+   * Attached by `contextIds` — the same mechanism every other area uses — so
+   * the same document could belong to a profile and to a training plan without
+   * being copied. Dad's programme is exactly that case.
+   */
+  {
+    id: "saved-dad-plan",
+    kind: "document",
+    title: "תוכנית האימונים של אבא",
+    note: "מה שהפיזיותרפיסט נתן. שלוש פעמים בשבוע",
+    url: "https://drive.google.com/drive/folders/example-dad-training",
+    source: "web",
+    spaceId: "personal",
+    thumb: "document",
+    contextIds: ["dad"],
+    savedAt: daysAgo(20, 9),
+  },
+  {
+    id: "saved-dad-dentist",
+    kind: "link",
+    title: "קביעת תור למרפאת השיניים",
+    url: "https://www.example-clinic.co.il/appointments",
+    source: "web",
+    spaceId: "personal",
+    thumb: "notebook",
+    contextIds: ["dad"],
+    savedAt: daysAgo(12, 17),
+  },
+  {
+    id: "saved-grandma-questions",
+    kind: "document",
+    title: "שאלות לרופאה — הביקור הבא",
+    note: "לשאול על המינון של הערב",
+    url: "https://docs.google.com/document/d/example-grandma-questions",
+    source: "web",
+    spaceId: "personal",
+    thumb: "document",
+    contextIds: ["grandma"],
+    savedAt: daysAgo(6, 20),
+  },
+  {
+    id: "saved-grandma-exercise",
+    kind: "video",
+    title: "תרגילי ישיבה קצרים",
+    note: "היא אוהבת את הראשון",
+    url: "https://www.youtube.com/watch?v=example-chair-exercises",
+    source: "youtube",
+    spaceId: "personal",
+    thumb: "gym",
+    contextIds: ["grandma"],
+    savedAt: daysAgo(30, 11),
+  },
+  /*
    * The English page's material, across all four panels.
    *
    * Ordinary saved items, attached the ordinary way: `contextIds` holds the

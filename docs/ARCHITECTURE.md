@@ -461,6 +461,66 @@ material. That is deliberate groundwork and nothing more — there is no share
 button, no permission model and no public projection, and there will not be one
 before a server, a database and users exist. See `docs/FUTURE_ROADMAP.md`.
 
+## Family
+
+A profile is a **context**, and everything attached to it lives in the slice
+that already owns that kind of record.
+
+```
+FamilyPage (/family)            ?type= · ?q=
+  useFamily().profiles + useManage().scheduled
+    → filterProfiles / sortProfiles / nextAttentionFor   lib/familySelectors.ts
+    → PagedList 20 → ProfileRow → /family/:id
+
+FamilyProfilePage (/family/:id) ?tab=schedule|notes|materials · ?kind= · ?q= · ?page=
+  header    profile + birthdayEventFor(profile)  ← derived on every read
+  next      nextDateFor(profile, scheduled)
+  schedule  <ProfileSchedule>  ScheduledItem + Medication + QuickLogEntry
+  notes     profile.notes: ProjectNote[]         → <ProjectNotes>
+  materials savedItemsFor(profile.id)            → <MaterialsPanel>
+```
+
+### Ownership
+
+| Record | Owned how | Stored where |
+|---|---|---|
+| Scheduled items | `relatedEntity: {kind:"family", id}` | `focus.scheduled` |
+| Medications | `relatedEntity` | `focus.medications` |
+| Quick logs | `relatedEntity` | `focus.quickLog` |
+| Notes | **Embedded** — `profile.notes` | `focus.family` |
+| Materials | `SavedItem.contextIds` contains the profile id | `focus.savedItems` |
+
+`familyReference(id)` builds the reference and `belongsTo` compares them.
+Nothing is matched by name, title, id prefix or route — `dad` and `dad-in-law`
+are different profiles, and there is a test for it.
+
+Notes are embedded because they are the profile's own words, reordered as a
+unit and never read without it. Everything else is referenced, because a
+scheduled item is queried by date across all profiles and a saved item belongs
+to several things at once.
+
+### Birthdays
+
+`birthdayEventFor(profile)` computes the **next** occurrence on every read from
+`birthDate`, gated on `profile.birthday.enabled`. Nothing is stored, so there is
+nothing to duplicate on a refresh and no sweep to create next year's. A 29
+February birth date clamps to 28 February in a common year rather than rolling
+into March. An event the user actually built claims the same id and wins;
+`event.derived` tells them apart, never the id.
+
+### Cascade
+
+`footprintOf` counts what a deletion would touch, split into two groups:
+
+- **Owned** — scheduled items, medications, quick logs. Deleted only if the user
+  ticks the cascade box, and the dialog states the number first.
+- **Linked** — saved items. **Never deleted.** One may belong to three other
+  things, so only the link to this profile is removed, and the dialog says so
+  rather than leaving it to be discovered.
+
+Notes go with the profile because they are part of it. A derived birthday is not
+a record, so there is nothing to delete.
+
 ## Project detail
 
 ```

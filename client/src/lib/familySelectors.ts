@@ -15,6 +15,7 @@ import type { FamilyProfile, FamilySection, FamilySectionKind } from "../types/f
 import type { ScheduledItem } from "../types/scheduled";
 import type { QuickLogEntry } from "../types/quickLog";
 import type { Medication } from "../types/health";
+import type { ProjectNoteTemplate } from "./projectNotes";
 
 export function familyReference(profileId: string): EntityReference {
   return { kind: "family", id: profileId };
@@ -178,3 +179,108 @@ export const FAMILY_TOPIC_KEY: Record<FamilyTopic, string> = {
   logs: "topics.logs",
   notes: "topics.notes",
 };
+
+/* ------------------------------------------------------------- the index -- */
+
+export interface ProfileFilter {
+  /** A profile type, or absent for "everyone". */
+  type?: FamilyProfile["type"];
+  query?: string;
+}
+
+/**
+ * The profiles the index shows.
+ *
+ * Search matches the name, the relationship and the species — "the dog" and
+ * "Mum" are how people look for a profile, and neither is the name. It runs
+ * over everyone rather than the current type filter, because you rarely
+ * remember whether you filed the vet's patient as a pet or as a child.
+ */
+export function filterProfiles(
+  profiles: FamilyProfile[],
+  { type, query }: ProfileFilter
+): FamilyProfile[] {
+  const term = query?.trim().toLowerCase();
+
+  return profiles.filter((profile) => {
+    if (type && profile.type !== type) return false;
+    if (term) {
+      const haystack = [profile.name, profile.relationship, profile.species]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      if (!haystack.includes(term)) return false;
+    }
+    return true;
+  });
+}
+
+/** How many profiles of each type — the counts beside the filter chips. */
+export function countByType(
+  profiles: FamilyProfile[]
+): Record<FamilyProfile["type"], number> {
+  const counts = { adult: 0, child: 0, baby: 0, pet: 0 };
+  for (const profile of profiles) counts[profile.type] += 1;
+  return counts;
+}
+
+/**
+ * Everything that would be affected by deleting a profile.
+ *
+ * Counted rather than summarised, because "this will also delete 3 reminders
+ * and 1 medicine" is a decision and "are you sure?" is a reflex. Saved items
+ * are counted separately and are **never** deleted: one may belong to three
+ * other things, so only the link to this profile is removed.
+ */
+export interface ProfileFootprint {
+  scheduled: number;
+  medications: number;
+  logs: number;
+  notes: number;
+  /** Links to material. Removed from the profile; the items themselves stay. */
+  materials: number;
+  /** Everything the cascade would actually delete. */
+  owned: number;
+}
+
+export function footprintOf(
+  profile: FamilyProfile,
+  scheduled: ScheduledItem[],
+  medications: Medication[],
+  logs: QuickLogEntry[],
+  savedItems: { contextIds: string[] }[]
+): ProfileFootprint {
+  const own = {
+    scheduled: belongsTo(scheduled, profile.id).length,
+    medications: medicationsFor(medications, profile.id).length,
+    logs: logsFor(logs, profile.id).length,
+    notes: profile.notes.length,
+    materials: savedItems.filter((item) => item.contextIds.includes(profile.id)).length,
+  };
+
+  return { ...own, owned: own.scheduled + own.medications + own.logs };
+}
+
+/* --------------------------------------------------------- note prompts -- */
+
+/**
+ * The starting points offered when writing a note on a profile.
+ *
+ * A title and a prompt, nothing more — the same rule every template in the app
+ * follows. Scoped to family for the reason learning and training have their own
+ * sets: "questions for the doctor" is the right prompt here and nonsense on a
+ * shopping list.
+ *
+ * "Medicines and allergies" is the user's own words about their own family.
+ * Focus stores it and shows it back; it never reads it, acts on it, or turns it
+ * into a reminder. This is not a medical record.
+ */
+export const FAMILY_NOTE_TEMPLATES: ProjectNoteTemplate[] = [
+  { id: "worthKnowing", titleKey: "familyNotes.worthKnowing.title", hintKey: "familyNotes.worthKnowing.hint" },
+  { id: "medicines", titleKey: "familyNotes.medicines.title", hintKey: "familyNotes.medicines.hint" },
+  { id: "toBuy", titleKey: "familyNotes.toBuy.title", hintKey: "familyNotes.toBuy.hint" },
+  { id: "likes", titleKey: "familyNotes.likes.title", hintKey: "familyNotes.likes.hint" },
+  { id: "stoppedAt", titleKey: "familyNotes.stoppedAt.title", hintKey: "familyNotes.stoppedAt.hint" },
+  { id: "forTheDoctor", titleKey: "familyNotes.forTheDoctor.title", hintKey: "familyNotes.forTheDoctor.hint" },
+  { id: "background", titleKey: "familyNotes.background.title", hintKey: "familyNotes.background.hint" },
+];

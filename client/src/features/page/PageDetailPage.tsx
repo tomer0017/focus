@@ -23,7 +23,7 @@ import { EditPageModal } from "../edit/EditPageModal";
 import { ChecklistPageView } from "./ChecklistPageView";
 import { LearningPageView } from "./LearningPageView";
 import { ProjectFocusBand } from "./ProjectFocusBand";
-import { ProjectMaterials } from "./ProjectMaterials";
+import { MaterialsPanel } from "../resources/MaterialsPanel";
 import { ProjectNotes } from "./ProjectNotes";
 import { ProjectProgressImages, ProjectVisionImage } from "./ProjectImages";
 import { isBlocked } from "../../types";
@@ -284,8 +284,10 @@ export function PageDetailPage() {
         {tab === "tasks" && <ChecklistSection ownerId={ownerId} />}
 
         {tab === "materials" && (
-          <ProjectMaterials
-            items={materials}
+          <MaterialsPanel
+            contextId={page.id}
+            materials={materials}
+            canAdd={isEditing}
             filter={filter}
             query={query}
             page={pageNumber}

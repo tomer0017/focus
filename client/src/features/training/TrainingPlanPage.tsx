@@ -13,7 +13,7 @@ import { usePages } from "../../state/pagesContext";
 import { useTraining } from "../../state/trainingContext";
 import type { ProjectNote } from "../../types";
 import { ProjectNotes } from "../page/ProjectNotes";
-import { ResourcePanels } from "../resources/ResourcePanels";
+import { MaterialsPanel } from "../resources/MaterialsPanel";
 import { PlanFormModal } from "./PlanFormModal";
 import { PlanGroups } from "./PlanGroups";
 
@@ -160,7 +160,7 @@ export function TrainingPlanPage() {
         )}
 
         {topic === "materials" && (
-          <ResourcePanels contextId={plan.id} materials={materials} isEditing={editMode} />
+          <MaterialsPanel contextId={plan.id} materials={materials} canAdd={editMode} />
         )}
       </div>
 

@@ -249,6 +249,29 @@ already has. A stored event in that slot is **not** derived: `event.derived`
 tells them apart, never the id, or the real one would lose its title and its
 screen.
 
+**A family profile is a context, not a subsystem.** A dentist appointment in two
+months, a workout every three days, a fortnightly visit, a vaccination and a
+repeat prescription are **one** `ScheduledItem` with a category and an owner —
+not five features. They were once five opt-in sections grouped into four derived
+topics, which meant a grandmother's page had four panels holding one row each,
+and switching sections on was a configuration task before the page was useful.
+
+Everything a profile holds reuses the app's models: `ScheduledItem` for anything
+dated, `Medication` shown as itself and never copied into a scheduled item,
+`ProjectNote` for notes, `SavedItem` by `contextIds` for material, and
+`QuickLogEntry` for a baby's feeds or a pet's treatments. There is no
+`FamilyNote`, `FamilyDocument`, `FamilyImage` or `MedicalDocument`.
+
+**Ownership is always an explicit `EntityReference`.** `belongsTo` compares
+references — never a name, a title, an id prefix or a route. An item nobody
+assigned to a profile appears on **no** profile; it stays in Manage, and a
+migration must never guess an owner for it.
+
+**Deleting a profile never silently deletes something shared.** The dialog
+counts what it would take — reminders, medicines, logs — and the cascade is an
+explicit opt-in. Saved items are **never** deleted with a profile: one may
+belong to three other things, so only the link goes, and the dialog says so.
+
 **A family profile is not a family tree.** Four types — adult, child, baby, pet —
 and one model, because a dog needing vaccinations, a vet and some documents is
 the same *shape* as a grandmother needing appointments, medicines and a shopping
@@ -986,11 +1009,11 @@ health panel, and shopping lists and menus. No charts.
 that turns them into shopping — with a count in front of it, merging into the
 list the menu already wrote to.
 
-**Family (`/family`, `/family/:id`)** is a grid of compact profile cards, then
-one profile per screen showing only the sections the user switched on. A baby
-gets feeds and new foods as quick logs; a pet gets vaccinations and treatments;
-a grandparent gets contact reminders, medicines and a shopping list. Same
-mechanisms, different sections.
+**Family (`/family`, `/family/:id`)** is one compact row per profile — avatar,
+name, relationship, and **the single nearest thing that wants doing** — with
+search, a type filter and twenty to a page, all in the URL. A profile opens on
+who they are and what is nearest, then three tabs: **schedule · notes ·
+materials**.
 
 **Learning (`/learning`)** asks two questions and then stops: *am I on this now*
 (tabs: learning now · on hold · finished · all) and *what is it about* (subject
@@ -1180,16 +1203,18 @@ its script is still a notice; do not report that half as passing.
     empty thing the user fills is the honest answer.
 22. **A level is a lens, not a folder.** One control filters a whole screen, and
     unlevelled content is general — visible at every setting, labelled as such.
-23. **A project's materials are one shelf.** Filtered by what a thing *is*, never
+23. **One materials panel, four areas.** Projects, leisure, training and family
+    all render `<MaterialsPanel>` over `SavedItem` + `contextIds`.
+24. **A project's materials are one shelf.** Filtered by what a thing *is*, never
     split by what a screen guesses it is *for*.
-24. **Reordering is buttons, never dragging.** A drag target is unusable on a
+25. **Reordering is buttons, never dragging.** A drag target is unusable on a
     phone and unreachable from a keyboard.
-25. **The overview shows nothing it did not compute this render.** No dashboard
+26. **The overview shows nothing it did not compute this render.** No dashboard
     record, no copied domain data, de-duplicated by `EntityReference` and
     capped per area.
-26. **Ownership is never progress.** Two independent axes, never one field, and
+27. **Ownership is never progress.** Two independent axes, never one field, and
     a migration never invents either from data that did not record it.
-27. **A list query names a purpose and a scope, never a type.** `type` is the
+28. **A list query names a purpose and a scope, never a type.** `type` is the
     storage shape; a screen showing checklists must go through
     `checklistContextOf`. An unclassified list appears nowhere rather than
     somewhere plausible.

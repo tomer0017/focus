@@ -21,7 +21,7 @@ import type { SegmentedItem } from "../../components/ui/SegmentedNav";
 import { ScheduledRow } from "../manage/ScheduledRow";
 import { RoutineCalendarCard } from "../routines/RoutineCalendarCard";
 import { RoutineFormModal } from "../routines/RoutineFormModal";
-import { ResourcePanels } from "../resources/ResourcePanels";
+import { MaterialsPanel } from "../resources/MaterialsPanel";
 import { PlansTab } from "./PlansTab";
 import { TrainingSummary } from "./TrainingSummary";
 
@@ -235,7 +235,7 @@ export function TrainingPage() {
            * Filed against the training area as a whole. A document that belongs
            * to one plan is attached to that plan instead, on its own screen.
            */
-          <ResourcePanels contextId="training" materials={materials} isEditing />
+          <MaterialsPanel contextId="training" materials={materials} canAdd />
         )}
       </CollectionPage>
 

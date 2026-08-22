@@ -116,11 +116,14 @@
     "keepRelated": "{{count}} appointments, medicines and log entries point at this profile. They will be kept unless you say otherwise.",
     "cascadeLabel": "Also delete those {{count}} records",
     "cascadeCaution": "Deleted records cannot be brought back.",
-    "confirm": "Delete"
+    "confirm": "Delete",
+    "materialsKept_one": "The 1 linked material stays; only its link to this profile is removed.",
+    "materialsKept_other": "The {{count}} linked materials stay; only their links to this profile are removed."
   },
   "safety": {
     "baby": "Focus records what you write down. It suggests no amount, judges no reaction and is not a substitute for a paediatrician.",
-    "pet": "Focus records what the vet told you. It gives no veterinary advice."
+    "pet": "Focus records what the vet told you. It gives no veterinary advice.",
+    "medical": "Whatever you write here is stored and shown back to you. Focus never reads it, calculates with it, or turns it into an alert."
   },
   "topics": {
     "dates": "Reminders and dates",
@@ -128,5 +131,43 @@
     "logs": "Log",
     "notes": "Notes and documents"
   },
-  "chooseTopic": "What to show"
+  "chooseTopic": "What to show",
+  "search": "Search by name or relationship",
+  "noMatches": "Nobody matches that",
+  "turningSoon": "turning {{age}}",
+  "turningOn": "Turning {{age}} on {{when}}",
+  "filters": {
+    "all": "Everyone",
+    "type": "Who"
+  },
+  "tabs": {
+    "schedule": "Schedule",
+    "notes": "Notes",
+    "materials": "Materials"
+  },
+  "next": {
+    "birthday": "Birthday",
+    "scheduled": "Next up"
+  },
+  "logKinds": {
+    "feeding": "Log a feed",
+    "tasting": "Log a new food",
+    "treatment": "Log a treatment",
+    "other": "Log something",
+    "visit": "Visit",
+    "call": "Call",
+    "payment": "Payment",
+    "measure": "Measurement",
+    "dose": "Dose"
+  },
+  "schedule": {
+    "add": "Add a reminder or appointment",
+    "addMedication": "Add a medicine",
+    "medications": "Medicines",
+    "recentLogs": "Recently logged",
+    "showHistory": "Show history",
+    "hideHistory": "Hide history",
+    "done": "Done and cancelled",
+    "empty": "Nothing scheduled for this profile yet."
+  }
 }

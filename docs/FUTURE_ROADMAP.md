@@ -212,9 +212,10 @@ Documentation only — none of this is started:
   the page. Not built: `SavedItem` has no "pinned" flag, and adding one is a
   model change rather than a layout change. Today those links live on the
   materials shelf like everything else.
-- **Family scheduling and materials.** The three-area profile — upcoming ·
-  recurring · information and materials — replacing the current opt-in section
-  list.
+- **Family quick logs, in depth.** A baby's feeds and a pet's treatments are
+  recorded and listed, and that is all. No charts, no totals, no intake
+  tracking, no dose arithmetic, no nutrition guidance — those are a medical
+  product, and Focus is not one.
 - **Learning sharing.** Sharing a subject or one level.
 - Database and API, authentication, real file storage, collaboration — all as
   described elsewhere in this document.
