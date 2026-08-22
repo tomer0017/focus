@@ -113,7 +113,7 @@ export function LeisureFormModal({ show, onClose, item, defaultKind }: LeisureFo
     event.preventDefault();
     if (!canSave) return;
 
-    const payload: Partial<LeisureItem> = {
+    const payload = {
       kind,
       title: title.trim(),
       note: note.trim() || undefined,
@@ -140,13 +140,10 @@ export function LeisureFormModal({ show, onClose, item, defaultKind }: LeisureFo
     } else {
       createItem({
         ...payload,
-        kind,
-        title: title.trim(),
-        tags,
         // The legacy axis the suggester still reads. A new item is an idea
         // until somebody plans or finishes it.
         status: "idea",
-      } as Parameters<typeof createItem>[0]);
+      });
     }
     onClose();
   };
