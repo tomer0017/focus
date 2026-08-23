@@ -3,8 +3,109 @@
 Living document. **Update this at the end of every development task.**
 
 **Last updated:** 2026-08-23
-**Task completed:** Task 21 — project reordering verified with a real pointer.
-Two defects found and fixed, one of them app-wide.
+**Task completed:** Task 22 — the cooking board's drag and ordering verified
+with a real native pointer. One defect fixed; the drag itself was sound.
+
+---
+
+## Task 22 — cooking board ordering
+
+### What the interaction actually is
+
+- **Route:** `/spaces/cooking`. `CookingBoard` reuses the shared `BoardColumn`.
+- **Columns:** want to try · tried · recommended — a *view* over `status` and
+  `recommended`, not three statuses.
+- **Drag moves a recipe between columns and appends it.** `BoardColumn.onDrop`
+  passes `-1`; there is no positional drop target and no insertion placeholder.
+  **Drag cannot reorder within a column, by construction** — so Flow A of the
+  brief is unsupported by design, and is documented rather than built.
+- **Reordering** is the card's up/down buttons; group changes also have a
+  `<select>`. Both are always visible, keyboard-reachable and touch-safe.
+- Grid and board share one data set. Tag filter and search narrow the board.
+
+### The defect — a nudge reshuffled recipes nobody touched
+
+**Reproduction:** cooking board, tag filter `חלבי` active, *tried* column.
+Press "move down" on the first card.
+**Expected:** the top two swap; nothing else moves.
+**Actual:** the top two swapped **and** "Couscous with vegetables" and "Roast
+cauliflower" swapped as well. **Fifteen** stored `order` values changed.
+
+**Root cause:** ordering renumbered a group `0..n`, but only across entries
+sharing the moved recipe's `pageId` — while the column merges every collection
+page and sorts by `order`. Renumbering one collection's run slid it wholesale
+past the others.
+
+**Fix:** `swapOrder` exchanges exactly two entries' positions. Two records
+change, so no third recipe can move, whichever collections they belong to. A
+future server writes it as a two-row scoped update. `moveEntry` still handles
+group changes and appends, where renumbering the destination is right.
+
+**Regression cover:** 12 tests in `lib/recipeOrder.test.ts` — the exact
+interleaved-collections case, "exactly two records change", cross-collection
+swaps, unordered entries, exhaustive no-loss/no-duplicate, reversibility, and
+that status/recommended/tags/note/rating are untouched.
+
+### Real native pointer results
+
+Genuine drag sessions confirmed by capture-phase listeners: real `dragstart`,
+`dragover`, `drop`, `dragend`.
+
+| Flow | Coverage | Result |
+|---|---|---|
+| Reorder within a column (arrows) | en/he × 1440, 1024 | **32/32** |
+| Move between columns (native drag) | en/he × 1440, 1024 | **44/44** |
+| Route sweep after the fix | 20 × 5 × 2 | **200/200** |
+| Projects reorder (unchanged, re-checked) | en/he × 4 widths | **40/40** |
+
+Confirmed by pointer for the cross-column drag: it leaves the source, appears
+exactly once in the destination, `status` becomes `tried`, **`recommended` is
+untouched**, tags/note/image/rating stay attached, nothing is lost or
+duplicated, no other recipe changes status, it survives a refresh, Recipe Detail
+opens on it, and the `<select>` puts it back.
+
+### A harness bug that nearly became a bad fix
+
+`dragTo` reported the **wrong recipe moving 6 times out of 6**. I hypothesised
+the card's `stretched-link` was competing as a drag source, applied
+`draggable={false}`, re-measured — **still 6/6** — and reverted it, because a
+fix that changes nothing is not a fix.
+
+The real cause: `dragTo` **scrolls the target into view before `dragstart`
+fires**, so the drag begins on whatever card slid under the pointer. Instrumented
+proof: `dragTo` → `dragstart from "Thin apple tart"` at `scrollY: 347`; explicit
+`mouse.move`/`down`/`up` with both boxes in view → `dragstart from "72h cold
+ferment"` at `scrollY: 0`, correct throughout. **The board's drag was sound all
+along.** This is now a standing rule in `CLAUDE.md`.
+
+That is six harness bugs against four real defects across three verification
+tasks. Proving a failure against the app before changing code has now paid for
+itself twice.
+
+### Verification
+
+TypeScript (client + server) clean · ESLint clean · **582/582** Vitest tests
+passing, up from 570 · production build clean · `check:links` clean ·
+translation parity clean · source hygiene clean · `legacy/` unchanged · **no new
+repository, storage key or dependency**.
+
+### What was not verified
+
+- **Touch drag.** Native HTML5 drag-and-drop does not fire on touch at all; the
+  arrows and `<select>` are the touch path and were exercised, the drag was not.
+- **Below `lg`** the board becomes tabs showing one column, so cross-column drag
+  is not offered there and was not tested.
+- **Grid view drag.** Cards stay `draggable` in grid view but there is no drop
+  target, so a drag there does nothing. Not a defect; not exercised.
+- **Screen readers** — asserted programmatically, not heard.
+
+Screenshots: `tmp-verification/task14/` and `task14-sweep/` (gitignored).
+
+### The recommended next action — one
+
+```text
+Remove the dead ProjectCard component and the vestigial FamilyProfile fields
+```
 
 ---
 

@@ -160,6 +160,16 @@ export interface PagesContextValue {
    * position within it. Status and `recommended` follow from the group.
    */
   moveEntry: (id: string, group: RecipeGroup, targetIndex?: number) => void;
+  /**
+   * Exchanges two recipes' positions, and touches nothing else.
+   *
+   * Separate from `moveEntry` because the two answer different questions.
+   * `moveEntry` changes a recipe's *group* and appends it; this changes only
+   * where one sits relative to one other. Renumbering a group for a nudge is
+   * what let a single "move down" reshuffle fifteen recipes across other
+   * collections.
+   */
+  swapEntries: (aId: string, bId: string) => void;
 }
 
 export const PagesContext = createContext<PagesContextValue | null>(null);

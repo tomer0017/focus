@@ -11,7 +11,7 @@ import {
 } from "../repositories";
 import { columnPages, insertAt } from "../lib/projectBoard";
 import { normaliseUrl } from "../lib/links";
-import { entriesInGroup, statusForGroup, type RecipeGroup } from "../lib/recipes";
+import { entriesInGroup, statusForGroup, swapOrder, type RecipeGroup } from "../lib/recipes";
 import type {
   CollectionEntry,
   EditablePageFields,
@@ -478,6 +478,12 @@ export function PagesProvider({ children }: { children: ReactNode }) {
     [setCollectionEntries]
   );
 
+  const swapEntries = useCallback(
+    (aId: string, bId: string) =>
+      setCollectionEntries((current) => swapOrder(current, aId, bId)),
+    [setCollectionEntries]
+  );
+
   const addSavedItem = useCallback(
     (item: SavedItem) => {
       setOwnSavedItems((current) => [item, ...current]);
@@ -521,6 +527,7 @@ export function PagesProvider({ children }: { children: ReactNode }) {
       savedItemsFor,
       updateEntry,
       moveEntry,
+      swapEntries,
     }),
     [
       pages,
@@ -557,6 +564,7 @@ export function PagesProvider({ children }: { children: ReactNode }) {
       savedItemsFor,
       updateEntry,
       moveEntry,
+      swapEntries,
     ]
   );
 

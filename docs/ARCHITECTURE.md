@@ -569,6 +569,40 @@ into March. An event the user actually built claims the same id and wins;
 Notes go with the profile because they are part of it. A derived birthday is not
 a record, so there is nothing to delete.
 
+## Cooking board ordering
+
+Three columns — want to try · tried · recommended — are a **view over two
+fields** (`status`, `recommended`), not three statuses. Dropping into
+"recommended" marks a recipe tried *and* recommended; taking it out clears only
+the flag. That is the whole reason `recommended` is not a status.
+
+**Drag changes a recipe's column, and only that.** `BoardColumn.onDrop` passes
+`-1`, which appends — there is no positional drop target and no insertion
+placeholder, by design. Reordering within a column is the card's up/down
+buttons, which work by pointer, touch and keyboard alike.
+
+### Ordering is a swap, not a renumber
+
+`order` is stored per `CollectionEntry`, but a column **merges every collection
+page** and sorts by it. Renumbering a group `0..n` — which is what ordering used
+to do, and only for entries sharing the moved recipe's `pageId` — therefore slid
+one collection's run wholesale past the others. A single "move down" rewrote the
+order of fifteen recipes and visibly reshuffled cards nobody had touched.
+
+`swapOrder` exchanges exactly two entries' positions:
+
+```
+onMove(direction)
+  → neighbour = list[index + direction]     // the card beside it on screen
+  → swapEntries(entry.id, neighbour.id)
+  → swapOrder(entries, a, b)                // two records change, no others
+```
+
+Two records is the point: no third recipe can move, whichever collections the
+two belong to, and a future server writes it as a two-row scoped update rather
+than a renumbering pass. `moveEntry` still handles group changes and appends,
+where renumbering the destination is correct.
+
 ## Project ordering
 
 There is **no drag-and-drop on the projects screen**, and there has not been

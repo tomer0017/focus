@@ -31,7 +31,7 @@ interface CookingBoardProps {
  */
 export function CookingBoard({ entries }: CookingBoardProps) {
   const { t } = useTranslation(["cooking", "common"]);
-  const { moveEntry } = usePages();
+  const { moveEntry, swapEntries } = usePages();
 
   const [dragging, setDragging] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<RecipeGroup>("want_to_try");
@@ -89,7 +89,17 @@ export function CookingBoard({ entries }: CookingBoardProps) {
               onDragStart={() => setDragging(entry.id)}
               onDragEnd={() => setDragging(null)}
               onGroupChange={(next) => moveEntry(entry.id, next)}
-              onMove={(direction) => moveEntry(entry.id, group, index + direction)}
+              /*
+               * Swap with the card beside it on screen, named rather than
+               * indexed. The column merges every collection page and the
+               * stored order is per page, so an on-screen index meant nothing
+               * to the old renumbering — one nudge reshuffled recipes from
+               * other collections that nobody had touched.
+               */
+              onMove={(direction) => {
+                const neighbour = list[index + direction];
+                if (neighbour) swapEntries(entry.id, neighbour.id);
+              }}
             />
           </li>
         ))}

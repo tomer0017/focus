@@ -660,6 +660,11 @@ Rules for any browser pass:
   the wrong one produces a convincing false failure.
 - When a check fails, **prove it against the app before changing code**. In the
   first full pass, five of six apparent failures were harness bugs.
+- **Never drive a drag with `dragTo`.** It scrolls the target into view before
+  `dragstart` fires, so the drag begins on whatever element slid under the
+  pointer. It reported the wrong recipe moving six times out of six on a board
+  that was working correctly. Use explicit `mouse.move`/`down`/`up` with both
+  boxes already in view.
 - Screenshots and reports go to `tmp-verification/`, which is gitignored.
 
 ## Testing
@@ -1263,21 +1268,24 @@ its script is still a notice; do not report that half as passing.
     empty thing the user fills is the honest answer.
 22. **A level is a lens, not a folder.** One control filters a whole screen, and
     unlevelled content is general — visible at every setting, labelled as such.
-23. **A menu returns focus to its trigger.** Closing by selection unmounts the
+23. **Reordering swaps two records; it never renumbers a group.** A column may
+    merge several collections, and renumbering one of them slides it past the
+    others — moving cards nobody touched.
+24. **A menu returns focus to its trigger.** Closing by selection unmounts the
     focused item; without restoring it, focus falls to `<body>` and a keyboard
     user loses their place after every action.
-24. **One materials panel, four areas.** Projects, leisure, training and family
+25. **One materials panel, four areas.** Projects, leisure, training and family
     all render `<MaterialsPanel>` over `SavedItem` + `contextIds`.
-25. **A project's materials are one shelf.** Filtered by what a thing *is*, never
+26. **A project's materials are one shelf.** Filtered by what a thing *is*, never
     split by what a screen guesses it is *for*.
-26. **Reordering is buttons, never dragging.** A drag target is unusable on a
+27. **Reordering is buttons, never dragging.** A drag target is unusable on a
     phone and unreachable from a keyboard.
-27. **The overview shows nothing it did not compute this render.** No dashboard
+28. **The overview shows nothing it did not compute this render.** No dashboard
     record, no copied domain data, de-duplicated by `EntityReference` and
     capped per area.
-28. **Ownership is never progress.** Two independent axes, never one field, and
+29. **Ownership is never progress.** Two independent axes, never one field, and
     a migration never invents either from data that did not record it.
-29. **A list query names a purpose and a scope, never a type.** `type` is the
+30. **A list query names a purpose and a scope, never a type.** `type` is the
     storage shape; a screen showing checklists must go through
     `checklistContextOf`. An unclassified list appears nowhere rather than
     somewhere plausible.

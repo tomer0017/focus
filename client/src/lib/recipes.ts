@@ -82,3 +82,53 @@ export function totalMinutes(entry: CollectionEntry): number | null {
   if (entry.prepMinutes === undefined && entry.cookMinutes === undefined) return null;
   return (entry.prepMinutes ?? 0) + (entry.cookMinutes ?? 0);
 }
+
+/**
+ * Two recipes with their positions exchanged, and **nothing else touched**.
+ *
+ * This exists because of a defect a real pointer found. Ordering used to
+ * renumber a whole group `0..n` — but only the entries sharing the moved
+ * recipe's `pageId`, while the column on screen merges every collection page
+ * and sorts by `order`. Renumbering one page's run therefore slid it wholesale
+ * past the others: one press of "move down" changed the stored order of
+ * fifteen recipes and visibly reshuffled cards the user had never touched.
+ *
+ * Swapping is the smallest thing that cannot do that. Exactly two records
+ * change, so no third recipe can move, whichever collections the two belong to
+ * — and a future server writes it as a two-row scoped update rather than a
+ * renumbering pass.
+ *
+ * Where either side has no `order` yet, both take their current positions in
+ * the group first, so the swap has two distinct numbers to exchange instead of
+ * silently doing nothing.
+ */
+export function swapOrder(
+  entries: CollectionEntry[],
+  aId: string,
+  bId: string
+): CollectionEntry[] {
+  if (aId === bId) return entries;
+
+  const a = entries.find((entry) => entry.id === aId);
+  const b = entries.find((entry) => entry.id === bId);
+  if (!a || !b) return entries;
+
+  const group = groupOf(a);
+  // Positions within the group as it is actually displayed, used only as a
+  // fallback for entries that have never been ordered.
+  const positions = new Map(
+    entriesInGroup(entries, group).map((entry, index) => [entry.id, index])
+  );
+
+  const orderA = a.order ?? positions.get(a.id) ?? 0;
+  const orderB = b.order ?? positions.get(b.id) ?? 0;
+  // Equal values would sort by title and the swap would be invisible.
+  const [nextA, nextB] =
+    orderA === orderB ? [orderB + 1, orderA] : [orderB, orderA];
+
+  return entries.map((entry) => {
+    if (entry.id === aId) return { ...entry, order: nextA };
+    if (entry.id === bId) return { ...entry, order: nextB };
+    return entry;
+  });
+}
