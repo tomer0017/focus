@@ -5,7 +5,7 @@ import Button from "react-bootstrap/Button";
 import { usePages } from "../../state/pagesContext";
 import { useChecklists } from "../../state/checklistsContext";
 import { progressOf } from "../../lib/checklist";
-import { boardProjects, columnPages } from "../../lib/projectBoard";
+import { boardProjects, columnPages, targetIndexBeside } from "../../lib/projectBoard";
 import { categoryLabel, categoryOf } from "../../lib/projectCategories";
 import { CollectionPage } from "../../components/ui/CollectionPage";
 import { FilterChips, type FilterOption } from "../../components/ui/FilterChips";
@@ -180,12 +180,38 @@ export function ProjectsBoardPage() {
                       }
                       progress={progressOf(getChecklist(`project:${page.id}`))}
                       onStatusChange={(next) => moveProject(page.id, next)}
-                      onMove={(direction) =>
-                        moveProject(page.id, page.status, index + direction)
-                      }
+                      /*
+                       * Named neighbours, not screen positions. `boardOrder`
+                       * numbers a whole status column across every category,
+                       * and this screen shows one category — so an on-screen
+                       * index means nothing to `moveProject`. Say which row to
+                       * swap with and let the column work out where that is.
+                       */
+                      onMove={(direction) => {
+                        const neighbour = listed[index + direction];
+                        if (!neighbour) return;
+                        moveProject(
+                          page.id,
+                          page.status,
+                          targetIndexBeside(
+                            columnPages(projects, page.status).map((entry) => entry.id),
+                            page.id,
+                            neighbour.id,
+                            direction
+                          )
+                        );
+                      }}
                       onEditReason={() => setReasonFor(page)}
+                      /*
+                       * Reordering is off while searching: the results mix
+                       * statuses and are not in column order, so "below the
+                       * next row" would not mean anything. The ends are judged
+                       * against the whole filtered list, not the rendered page,
+                       * so the last row on screen can still move down.
+                       */
+                      canReorder={!term}
                       isFirst={index === 0}
-                      isLast={index === visible.length - 1}
+                      isLast={index === listed.length - 1}
                     />
                   </li>
                 ))}

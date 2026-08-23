@@ -89,6 +89,21 @@ export function OverflowMenu({ label, actions }: OverflowMenuProps) {
               className={`focus-overflow__item${action.danger ? " is-danger" : ""}`}
               onClick={() => {
                 setOpen(false);
+                /*
+                 * Back to the trigger before the action runs.
+                 *
+                 * Closing the menu unmounts the item that was focused, and
+                 * focus then falls to `<body>` — so a keyboard user who
+                 * reorders a row loses their place entirely and has to tab from
+                 * the top of the document to move it again. Escape already
+                 * restored focus here; choosing something did not, which is the
+                 * path people actually take.
+                 *
+                 * Ordering matters: an action that opens a dialog or navigates
+                 * takes focus for itself immediately afterwards, so this only
+                 * decides where focus lands when the action leaves it alone.
+                 */
+                trigger.current?.focus();
                 action.onSelect();
               }}
             >

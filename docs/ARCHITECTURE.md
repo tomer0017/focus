@@ -569,6 +569,44 @@ into March. An event the user actually built claims the same id and wins;
 Notes go with the profile because they are part of it. A derived birthday is not
 a record, so there is nothing to delete.
 
+## Project ordering
+
+There is **no drag-and-drop on the projects screen**, and there has not been
+since it became a paged list. Reordering is the overflow menu's "move up" /
+"move down" — reachable by mouse, touch and keyboard alike, with no pointer
+gesture anywhere in the path. (Drag-and-drop still exists on the *cooking*
+board, which is a different screen and out of this scope.)
+
+`boardOrder` numbers a whole **status column** — every active project, across
+every category — and the screen shows **one category at a time**. Those two
+index spaces are not the same, and conflating them was a real defect: passing
+the on-screen index straight to `moveProject` meant "move down" on the first
+physical project jumped it over a *tech* project and left the visible order
+unchanged. Nothing moved, as far as the user could tell.
+
+So the screen names the **neighbour** it wants to swap with, and
+`targetIndexBeside` converts that into the column's own index space:
+
+```
+onMove(direction)
+  → neighbour = listed[index + direction]      // the row beside it on screen
+  → targetIndexBeside(columnIds, movedId, neighbourId, direction)
+  → moveProject(id, status, targetIndex)       // renumbers the column 0..n
+```
+
+Two consequences worth keeping:
+
+- **The ends are judged against the filtered list, not the rendered page**, so
+  the last row on screen can still move down into rows that "show more" has not
+  revealed yet.
+- **Reordering is withdrawn during a search.** Results mix statuses and are not
+  in column order, so "below the next row" would not mean anything. The two
+  actions are hidden rather than left to do something unpredictable.
+
+Order stays a dense integer run, renumbered `0..n` on every move, which is
+exactly what a future server persists with one indexed field and a scoped
+update.
+
 ## Project detail
 
 ```

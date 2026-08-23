@@ -16,6 +16,15 @@ interface ProjectRowProps {
   onStatusChange: (status: PageStatus) => void;
   onMove: (direction: -1 | 1) => void;
   onEditReason: () => void;
+  /**
+   * Whether the order can be changed from here at all.
+   *
+   * False while a search is running: the results mix statuses and are not in
+   * column order, so "move below the next row" has no meaning. Hiding the two
+   * actions is clearer than leaving controls that would move something
+   * somewhere unpredictable.
+   */
+  canReorder?: boolean;
   isFirst: boolean;
   isLast: boolean;
 }
@@ -45,6 +54,7 @@ export function ProjectRow({
   progress,
   onStatusChange,
   onMove,
+  canReorder = true,
   onEditReason,
   isFirst,
   isLast,
@@ -103,7 +113,9 @@ export function ProjectRow({
           label={page.title}
           actions={actions.filter(
             (action) =>
-              !(action.id === "up" && isFirst) && !(action.id === "down" && isLast)
+              (canReorder || (action.id !== "up" && action.id !== "down")) &&
+              !(action.id === "up" && isFirst) &&
+              !(action.id === "down" && isLast)
           )}
         />
       }

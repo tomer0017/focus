@@ -3,8 +3,130 @@
 Living document. **Update this at the end of every development task.**
 
 **Last updated:** 2026-08-23
-**Task completed:** Task 20 — the first real browser verification pass. One
-defect found and fixed; five apparent failures proved to be harness bugs.
+**Task completed:** Task 21 — project reordering verified with a real pointer.
+Two defects found and fixed, one of them app-wide.
+
+---
+
+## Task 21 — project reordering
+
+### What reordering actually is
+
+**There is no drag-and-drop on the projects screen**, and the brief was right to
+warn against assuming otherwise. It became a paged compact list in the
+consolidation pass; reordering is the overflow menu's "move up" / "move down",
+reachable by mouse, touch and keyboard alike. Drag-and-drop still exists on the
+*cooking* board — a different screen, out of scope.
+
+`ProjectCard.tsx` is dead code: nothing references it. `BoardColumn.tsx` is
+still used, but by cooking. Neither was removed in this task.
+
+Order lives in `PageSummary.boardOrder`, stored per page as a `PageOverride`,
+renumbered `0..n` across a status column on every move.
+
+### Defect 1 — the on-screen index was applied to the whole column
+
+**Reproduction:** `/projects?category=physical&status=active`, both languages,
+every width. Open the first row's menu, choose "move down".
+**Expected:** it swaps with the second row.
+**Actual:** **nothing visibly moved.** Storage showed the project had jumped
+over a *tech* project instead.
+
+**Root cause:** `boardOrder` numbers a whole status column across every
+category; the screen shows one category. It passed the on-screen index straight
+to `moveProject`, and the two index spaces only agree when a category happens to
+hold the entire column. In the seed they interleave, so the gesture silently did
+the wrong thing.
+
+This is why it survived a unit-tested release and two full route sweeps: the
+list renders correctly, nothing errors, and the defect is invisible unless you
+actually press the control and compare.
+
+**Fix:** the screen now names the **neighbour** it wants to swap with, and
+`targetIndexBeside` converts that to the column's index space. Two related
+corrections came with it: the ends are judged against the filtered list rather
+than the rendered page, so the last row on screen can still move down; and
+reordering is withdrawn during a search, where results mix statuses and column
+order means nothing.
+
+**Regression cover:** 11 tests in `lib/projectBoard.test.ts`, including the
+before/after of this exact case and an exhaustive no-loss/no-duplicate check
+over every move in an interleaved column.
+
+### Defect 2 — focus fell to `<body>` after any menu action (app-wide)
+
+**Reproduction:** Tab to a row's menu, Enter to open, Enter on "move down".
+**Expected:** focus stays somewhere sensible.
+**Actual:** `document.activeElement` was `<body>`. A keyboard user lost their
+place entirely and had to Tab from the top of the document to move the row
+again.
+
+**Root cause:** `OverflowMenu` restored focus to its trigger on **Escape** but
+not on **selection** — and selection is the path people actually take. Closing
+unmounts the focused item, so focus falls to the document.
+
+**Fix in the shared primitive:** focus returns to the trigger before the action
+runs, so an action that opens a dialog or navigates still takes focus for
+itself. This affects every overflow menu in the app — projects, leisure,
+training, family, shopping.
+
+**Verified:** focus lands on "More actions for Living Room Renovation" in both
+languages, so a second move is one keypress away.
+
+### Real-pointer evidence
+
+Playwright `page.mouse.move/down/up` — genuine pointer events, not
+`dispatchEvent`. Every reorder in this task was performed that way.
+
+| Check | Coverage |
+|---|---|
+| Reorder flows | en/he × 1440, 768, 375, 320 — **40/40** |
+| Keyboard + RTL semantics | en/he — **17/17** |
+| Heavy fixture (70 archived) | **12/12** |
+| Route sweep after the shared fix | 20 routes × 5 widths × 2 langs — **200/200** |
+| Interaction flows after the shared fix | **25/25** |
+
+Confirmed by pointer: the swap is exactly one place; it survives refresh and
+navigating away; it restores; another category is never disturbed; "move down"
+still means down under RTL; 70 archived projects render 20 rows at 1511px with
+zero overflow; "show more" grows 20 → 40; a status change does not overwrite
+order, and order does not overwrite status.
+
+### Data integrity
+
+Across every move: no project lost, none duplicated, ids unchanged, order values
+unique and dense, categories and statuses unchanged unless explicitly edited.
+
+### Verification
+
+TypeScript (client + server) clean · ESLint clean · **570/570** Vitest tests
+passing, up from 559 · production build clean · `check:links` clean ·
+translation parity clean · source hygiene clean · `legacy/` unchanged · **no new
+repository, storage key, dependency or direct `localStorage` access**.
+
+### Two more harness bugs, not product bugs
+
+Recorded because the pattern keeps repeating: a loose `/חיפוש/` matched the
+**global header search** instead of the screen's own, and `/show more/i` never
+matched "Show 20 more". Both produced convincing false failures. Targeting by
+*exact* accessible name is the rule.
+
+### What was not verified
+
+- **Touch input.** Widths were emulated; no touch device was used, so tap
+  targets were measured, not tapped.
+- **Cooking's drag-and-drop.** Out of scope; still unverified by pointer.
+- **Cross-page reordering.** The model does not support moving a row onto a page
+  that "show more" has not revealed; not built, not tested.
+- **Screen readers.** Names and focus order asserted programmatically, not heard.
+
+Screenshots: `tmp-verification/task13/` and `task13-sweep/` (gitignored).
+
+### The recommended next action — one
+
+```text
+Verify the cooking board's drag-and-drop with a real pointer
+```
 
 ---
 

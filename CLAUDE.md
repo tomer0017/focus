@@ -1263,18 +1263,21 @@ its script is still a notice; do not report that half as passing.
     empty thing the user fills is the honest answer.
 22. **A level is a lens, not a folder.** One control filters a whole screen, and
     unlevelled content is general — visible at every setting, labelled as such.
-23. **One materials panel, four areas.** Projects, leisure, training and family
+23. **A menu returns focus to its trigger.** Closing by selection unmounts the
+    focused item; without restoring it, focus falls to `<body>` and a keyboard
+    user loses their place after every action.
+24. **One materials panel, four areas.** Projects, leisure, training and family
     all render `<MaterialsPanel>` over `SavedItem` + `contextIds`.
-24. **A project's materials are one shelf.** Filtered by what a thing *is*, never
+25. **A project's materials are one shelf.** Filtered by what a thing *is*, never
     split by what a screen guesses it is *for*.
-25. **Reordering is buttons, never dragging.** A drag target is unusable on a
+26. **Reordering is buttons, never dragging.** A drag target is unusable on a
     phone and unreachable from a keyboard.
-26. **The overview shows nothing it did not compute this render.** No dashboard
+27. **The overview shows nothing it did not compute this render.** No dashboard
     record, no copied domain data, de-duplicated by `EntityReference` and
     capped per area.
-27. **Ownership is never progress.** Two independent axes, never one field, and
+28. **Ownership is never progress.** Two independent axes, never one field, and
     a migration never invents either from data that did not record it.
-28. **A list query names a purpose and a scope, never a type.** `type` is the
+29. **A list query names a purpose and a scope, never a type.** `type` is the
     storage shape; a screen showing checklists must go through
     `checklistContextOf`. An unclassified list appears nowhere rather than
     somewhere plausible.
